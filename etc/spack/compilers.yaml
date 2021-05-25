@@ -39,6 +39,19 @@ compilers:
     environment: {}
     extra_rpaths: []
 - compiler:
+    spec: gcc@10.2.0
+    paths:
+      cc: /mnt/home/sw/spack/opt/spack/linux-centos7-broadwell/gcc-7.4.0/gcc-10.2.0-shocfaugo3tpi7bca6vpxnfoxlf5gqlk/bin/gcc
+      cxx: /mnt/home/sw/spack/opt/spack/linux-centos7-broadwell/gcc-7.4.0/gcc-10.2.0-shocfaugo3tpi7bca6vpxnfoxlf5gqlk/bin/g++
+      f77: /mnt/home/sw/spack/opt/spack/linux-centos7-broadwell/gcc-7.4.0/gcc-10.2.0-shocfaugo3tpi7bca6vpxnfoxlf5gqlk/bin/gfortran
+      fc: /mnt/home/sw/spack/opt/spack/linux-centos7-broadwell/gcc-7.4.0/gcc-10.2.0-shocfaugo3tpi7bca6vpxnfoxlf5gqlk/bin/gfortran
+    flags: {}
+    operating_system: centos7
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
     spec: intel@19.1.0.166
     paths:
       cc: /cm/shared/sw/pkg/vendor/intel-pstudio/2020/compilers_and_libraries_2020.0.166/linux/bin/intel64/icc
