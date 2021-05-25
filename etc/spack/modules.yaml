@@ -1,0 +1,33 @@
+modules:
+  tcl:
+    hash_length: 0
+    naming_scheme: '{compiler.name}-{compiler.version}/{name}/{version}'
+    whitelist:
+      - 'py-mpi4py'
+    blacklist_implicits: true
+    blacklist:
+      - '%gcc@4.8.5'
+      - '^python'
+    ^openmpi@4:4:
+      prerequisites: 'none'
+    all:
+      autoload: 'none'
+      prerequisites: 'direct'
+      conflict:
+        - '{name}'
+      environment:
+        set:
+          '{name}_BASE': '{prefix}'
+      suffixes:
+        ^openmpi@2:2: 'openmpi2'
+        ^openmpi@4:4: 'openmpi4'
+    projections:
+      all: '{compiler.name}-{compiler.version}/{name}/{version}'
+      openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
+      openblas threads=pthreads: '{compiler.name}-{compiler.version}/{name}/{version}-threaded'
+      openblas threads=none: '{compiler.name}-{compiler.version}/{name}/{version}-single'
+    intel:
+      environment:
+        # Hack since it doesn't seem to want to take the license server from file
+        set:
+          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
