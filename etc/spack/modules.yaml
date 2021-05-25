@@ -19,6 +19,7 @@ modules:
         set:
           '{name}_BASE': '{prefix}'
       suffixes:
+        ^openmpi@1:1: 'openmpi1'
         ^openmpi@2:2: 'openmpi2'
         ^openmpi@4:4: 'openmpi4'
     projections:

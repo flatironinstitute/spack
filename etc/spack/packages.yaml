@@ -3,16 +3,20 @@ packages:
     compiler: [gcc@7.4.0, intel@19.1.0.166, gcc@10.2.0]
     providers:
       mpi: [openmpi]
-      blas: [openblas, mkl]
-      lapack: [openblas, mkl]
+      blas: [openblas, intel-mkl]
+      lapack: [openblas, intel-mkl]
+      scalapack: [openblas, intel-mkl]
   slurm:
     buildable: false
     externals:
-      - spec: slurm@20-02-5-0%gcc@7.4.0
+      - spec: slurm@20-02-5-0
         prefix: /cm/shared/apps/slurm/current
   openmpi:
+    buildable: false
     externals:
-      - spec: openmpi@4.0.5%gcc@7.4.0
-        prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
-      - spec: openmpi@4.0.5%intel@19.1.0.166
+      - spec: openmpi@1.10.7
+        prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
+      - spec: openmpi@2.1.6
+        prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
+      - spec: openmpi@4.0.5
         prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08

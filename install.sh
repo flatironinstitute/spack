@@ -9,6 +9,7 @@ compilers=(
 )
 
 mpis=(
+    openmpi@1.10.7
     openmpi@2.1.6
     openmpi@4.0.5
 )
@@ -21,8 +22,8 @@ do
     spack install cudnn@8.0.4.30-11.1-linux-x64    $compiler
     spack install cmake@3.18.4                     $compiler
     spack install eigen@3.3.8                      $compiler
-    spack install fftw@3.3.8 mpi=false \
-          precision=float,double,quad,long_double  $compiler
+    spack install fftw@2.1.5 mpi=false \
+          precision=float,double                   $compiler
     spack install fftw@3.3.8 mpi=false \
           precision=float,double,quad,long_double  $compiler
     spack install git@2.29.0                       $compiler
@@ -53,14 +54,12 @@ do
     # Parallel installs
     for mpi in "${mpis[@]}"
     do
-        if [ "$mpi" != "openmpi@4.0.5" ]; then
-            spack install $mpi $compiler
-        fi
+        spack install $mpi                         $compiler
 
-        spack install boost@1.74.0 mpi=true $compiler ^$mpi
-        spack install hdf5@1.10.7           $compiler ^$mpi
-        spack install fftw@3.3.8            $compiler ^$mpi
-        spack install fftw@2.1.5            $compiler ^$mpi
-        spack install py-mpi4py@3.0.3       $compiler ^$mpi
+        spack install boost@1.74.0 mpi=true        $compiler ^$mpi
+        spack install hdf5@1.10.7                  $compiler ^$mpi
+        spack install fftw@2.1.5                   $compiler ^$mpi
+        spack install fftw@3.3.8                   $compiler ^$mpi
+        spack install py-mpi4py@3.0.3              $compiler ^$mpi
     done
 done
