@@ -26,6 +26,7 @@ modules:
       openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
       openblas threads=pthreads: '{compiler.name}-{compiler.version}/{name}/{version}-threaded'
       openblas threads=none: '{compiler.name}-{compiler.version}/{name}/{version}-single'
+      gcc: '{name}-{version}/{name}/{version}'
     intel:
       environment:
         # Hack since it doesn't seem to want to take the license server from file
