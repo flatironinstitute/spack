@@ -4,12 +4,24 @@ modules:
     naming_scheme: '{compiler.name}-{compiler.version}/{name}/{version}'
     whitelist:
       - 'py-mpi4py'
+      - 'py-numpy'
+      - 'py-scipy'
+      - 'py-h5py'
+      - 'py-pyqt5'
+      - 'python-blas-backend^intel-mkl'
+      - 'llvm'
     blacklist_implicits: true
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
     ^openmpi@4:4:
       prerequisites: 'none'
+    py-scipy:
+      autoload: 'direct'
+    py-numpy:
+      autoload: 'direct'
+    python-blas-backend:
+      autoload: 'direct'
     all:
       autoload: 'none'
       prerequisites: 'direct'
@@ -22,11 +34,20 @@ modules:
         ^openmpi@1:1: 'openmpi1'
         ^openmpi@2:2: 'openmpi2'
         ^openmpi@4:4: 'openmpi4'
+        ^intel-mkl: 'mkl'
+        ^openblas:  'openblas'
     projections:
       all: '{compiler.name}-{compiler.version}/{name}/{version}'
       openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
       openblas threads=pthreads: '{compiler.name}-{compiler.version}/{name}/{version}-threaded'
       openblas threads=none: '{compiler.name}-{compiler.version}/{name}/{version}-single'
+      python: '{compiler.name}-{compiler.version}/{name}/{version}'
+      python-blas-backend^intel-mkl: '{compiler.name}-{compiler.version}/python/{version}'
+      py-mpi4py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/mpi4py/{version}'
+      py-pyqt5: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/pyqt5/{version}'
+      py-h5py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/h5py/{version}'
+      py-numpy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/numpy/.{version}'
+      py-scipy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/scipy/.{version}'
       gcc: '{name}-{version}/{name}/{version}'
     intel:
       environment:
