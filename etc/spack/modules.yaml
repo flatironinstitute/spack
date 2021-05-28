@@ -16,28 +16,6 @@ modules:
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
-    ^openmpi@4:4:
-      prerequisites: 'none'
-    openmpi-opa:
-      autoload: 'direct'
-      environment:
-        set:
-          OMPI_MCA_pml: 'cm'
-    intel:
-      environment:
-        # Hack since it doesn't seem to want to take the license server from file
-        set:
-          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
-    py-jupyter:
-      autoload: 'direct'
-    py-scipy:
-      autoload: 'direct'
-    py-numpy:
-      autoload: 'direct'
-    python-blas-backend:
-      autoload: 'direct'
-    py-h5py:
-      autoload: 'direct'
     all:
       autoload: 'none'
       prerequisites: 'direct'
@@ -50,8 +28,8 @@ modules:
         ^openmpi@1:1: 'openmpi1'
         ^openmpi@2:2: 'openmpi2'
         ^openmpi@4:4: 'openmpi4'
+        ^openblas: 'openblas'
         ^intel-mkl: 'mkl'
-        ^openblas:  'openblas'
     projections:
       all: '{compiler.name}-{compiler.version}/{name}/{version}'
       openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
@@ -68,3 +46,29 @@ modules:
       gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
       openmpi-opa: '{compiler.name}-{compiler.version}/openmpi/{version}-opa'
       gcc: '{name}-{version}/{name}/{version}'
+    ^openmpi@4:4:
+      prerequisites: 'none'
+    intel:
+      environment:
+        # Hack since it doesn't seem to want to take the license server from file
+        set:
+          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
+    py-scipy:
+      autoload: 'direct'
+    py-numpy:
+      autoload: 'direct'
+    python-blas-backend:
+      autoload: 'direct'
+    py-jupyter:
+      autoload: 'direct'
+    py-h5py::
+      autoload: 'direct'
+      suffixes:
+        ^openmpi@1:1: 'openmpi1'
+        ^openmpi@2:2: 'openmpi2'
+        ^openmpi@4:4: 'openmpi4'
+    openmpi-opa::
+      autoload: 'direct'
+      environment:
+        set:
+          OMPI_MCA_pml: 'cm'
