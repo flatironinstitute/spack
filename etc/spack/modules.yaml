@@ -9,6 +9,7 @@ modules:
       - 'py-h5py'
       - 'py-pyqt5'
       - 'py-jupyter'
+      - 'py-torch'
       - 'python-blas-backend^intel-mkl'
       - 'llvm'
       - 'openmpi'
@@ -28,21 +29,19 @@ modules:
         ^openmpi@1:1: 'openmpi1'
         ^openmpi@2:2: 'openmpi2'
         ^openmpi@4:4: 'openmpi4'
-        ^openblas: 'openblas'
-        ^intel-mkl: 'mkl'
     projections:
       all: '{compiler.name}-{compiler.version}/{name}/{version}'
       openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
       openblas threads=pthreads: '{compiler.name}-{compiler.version}/{name}/{version}-threaded'
       openblas threads=none: '{compiler.name}-{compiler.version}/{name}/{version}-single'
+      llvm: '{compiler.name}-{compiler.version}/{name}/{version}'
       python: '{compiler.name}-{compiler.version}/{name}/{version}'
-      python-blas-backend^intel-mkl: '{compiler.name}-{compiler.version}/python/{version}'
-      py-mpi4py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/mpi4py/{version}'
-      py-pyqt5: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/pyqt5/{version}'
-      py-jupyter: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/jupyter/{version}'
-      py-h5py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/h5py/{version}'
-      py-numpy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/numpy/.{version}'
-      py-scipy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/scipy/.{version}'
+      python-blas-backend^intel-mkl: '{compiler.name}-{compiler.version}/python/{version}-mkl'
+      py-numpy^openblas: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-openblas'
+      py-numpy^intel-mkl: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-mkl'
+      py-scipy^openblas: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-openblas'
+      py-scipy^intel-mkl: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-mkl'
+      ^python: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/{version}'
       gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
       openmpi-opa: '{compiler.name}-{compiler.version}/openmpi/{version}-opa'
       gcc: '{name}-{version}/{name}/{version}'
@@ -61,12 +60,10 @@ modules:
       autoload: 'direct'
     py-jupyter:
       autoload: 'direct'
-    py-h5py::
-      autoload: 'direct'
-      suffixes:
-        ^openmpi@1:1: 'openmpi1'
-        ^openmpi@2:2: 'openmpi2'
-        ^openmpi@4:4: 'openmpi4'
+    py-h5py:
+      prerequisites: 'none'
+    py-torch:
+      prerequisites: 'none'
     openmpi-opa::
       autoload: 'direct'
       environment:

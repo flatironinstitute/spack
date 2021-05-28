@@ -65,6 +65,9 @@ for compiler in "${compilers[@]}"; do
     spack install intel@20.0.2                     $compiler
     spack install intel-mkl@2020.3.279             $compiler
     spack install intel-oneapi-mkl@2021.1.1        $compiler
+    spack install llvm@10.0.1                      $compiler
+    spack install llvm@11.0.1                      $compiler
+    spack install intel-oneapi-mkl@2021.1.1        $compiler
     spack install openblas@0.3.12 threads=none     $compiler
     spack install openblas@0.3.12 threads=openmp   $compiler
     spack install openblas@0.3.12 threads=pthreads $compiler
@@ -112,6 +115,10 @@ for compiler in "${compilers[@]}"; do
     # h5py, since it uses a variant, needs its own install
     spack install py-h5py mpi=false                $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
     spack activate py-h5py mpi=false               $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
+
+    spack load git                                 $compiler
+    spack install py-torch cuda_arch=35,60,70,80   $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64
+    spack unload git                               $compiler
 
     # Anything dependent on MPI
     for mpi in "${mpis[@]}"; do
