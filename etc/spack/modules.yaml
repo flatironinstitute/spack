@@ -8,19 +8,35 @@ modules:
       - 'py-scipy'
       - 'py-h5py'
       - 'py-pyqt5'
+      - 'py-jupyter'
       - 'python-blas-backend^intel-mkl'
       - 'llvm'
+      - 'openmpi'
     blacklist_implicits: true
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
     ^openmpi@4:4:
       prerequisites: 'none'
+    openmpi-opa:
+      autoload: 'direct'
+      environment:
+        set:
+          OMPI_MCA_pml: 'cm'
+    intel:
+      environment:
+        # Hack since it doesn't seem to want to take the license server from file
+        set:
+          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
+    py-jupyter:
+      autoload: 'direct'
     py-scipy:
       autoload: 'direct'
     py-numpy:
       autoload: 'direct'
     python-blas-backend:
+      autoload: 'direct'
+    py-h5py:
       autoload: 'direct'
     all:
       autoload: 'none'
@@ -45,12 +61,10 @@ modules:
       python-blas-backend^intel-mkl: '{compiler.name}-{compiler.version}/python/{version}'
       py-mpi4py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/mpi4py/{version}'
       py-pyqt5: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/pyqt5/{version}'
+      py-jupyter: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/jupyter/{version}'
       py-h5py: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/h5py/{version}'
       py-numpy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/numpy/.{version}'
       py-scipy: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/scipy/.{version}'
+      gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
+      openmpi-opa: '{compiler.name}-{compiler.version}/openmpi/{version}-opa'
       gcc: '{name}-{version}/{name}/{version}'
-    intel:
-      environment:
-        # Hack since it doesn't seem to want to take the license server from file
-        set:
-          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
