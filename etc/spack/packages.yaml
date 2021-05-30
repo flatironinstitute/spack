@@ -9,7 +9,7 @@ packages:
   slurm:
     buildable: false
     externals:
-      - spec: slurm@20-02-5-0
+      - spec: slurm
         prefix: /cm/shared/apps/slurm/current
   openmpi:
     buildable: false

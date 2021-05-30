@@ -61,7 +61,7 @@ compilers:
     flags: {}
     operating_system: centos7
     target: x86_64
-    modules: []
+    modules: [gcc/7.4.0]
     environment:
       set:
         INTEL_LICENSE_FILE: 28518@lic1.flatironinstitute.org

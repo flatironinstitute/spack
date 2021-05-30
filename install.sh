@@ -67,18 +67,18 @@ for compiler in "${compilers[@]}"; do
           precision=float,double                   $compiler
     spack install fftw@3.3.8 mpi=false \
           precision=float,double,quad,long_double  $compiler
+    spack install gdb@9.2                          $compiler
     spack install git@2.29.0                       $compiler
     spack install hdf5@1.10.7+fortran~mpi+cxx      $compiler
-    spack install intel@20.0.2                     $compiler
     spack install intel-mkl@2020.3.279             $compiler
     spack install intel-oneapi-mkl@2021.1.1        $compiler
     spack install llvm@10.0.1                      $compiler
     spack install llvm@11.0.1                      $compiler
-    spack install intel-oneapi-mkl@2021.1.1        $compiler
     spack install openblas@0.3.12 threads=none     $compiler
     spack install openblas@0.3.12 threads=openmp   $compiler
     spack install openblas@0.3.12 threads=pthreads $compiler
     spack install openmpi-opa@4.0.5                $compiler
+    spack install slurm                            $compiler
 
     # python time!
     # python default to multithreaded openblas

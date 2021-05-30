@@ -48,6 +48,7 @@ modules:
       ^python: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/{version}'
       gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
       openmpi-opa: '{compiler.name}-{compiler.version}/openmpi/{version}-opa'
+      slurm: '{compiler.name}-{compiler.version}/slurm/current'
       gcc: '{name}-{version}/{name}/{version}'
     ^openmpi@4:4:
       prerequisites: 'none'
@@ -113,6 +114,7 @@ modules:
       py-torch^intel-mkl: 'python-packages/{^python.version}/{name}/{version}-mkl'
       python-blas-backend^intel-mkl: 'python/{version}-mkl'
       gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
+      slurm: '{compiler.name}-{compiler.version}/slurm/current'
       ^python: 'python-packages/{^python.version}/{name}/{version}'
     python-blas-backend:
       autoload: 'direct'
