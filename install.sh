@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 source share/spack/setup-env.sh
 export INTEL_LICENSE_FILE=28518@lic1.flatironinstitute.org
@@ -47,6 +47,13 @@ declare -a python_packages=(
     "py-pylint@2.3.1"
     "py-autopep8@1.4.4"
     "py-sqlalchemy@1.3.19"
+    "py-nose@1.3.7"
+    "py-mako@1.0.4"
+    "py-pkgconfig@1.5.1"
+    "py-virtualenv@16.7.6"
+    "py-sympy@1.4"
+    "py-pycairo@1.18.1"
+    "py-sphinx@3.2.0"
 )
 
 for compiler in "${compilers[@]}"; do
@@ -75,8 +82,7 @@ for compiler in "${compilers[@]}"; do
 
     # python time!
     # python default to multithreaded openblas
-    # python-blas-backend is a custom package that includes scipy/numpy (the only two things
-    # that directly link BLAS stuff that i know of)
+    # python-blas-backend is a custom package that includes scipy/numpy
     spack install python@3.8.6                     $compiler
     spack install python-blas-backend@3.8.6        $compiler ^openblas@0.3.12 threads=pthreads
     spack install python-blas-backend@3.8.6        $compiler ^intel-mkl@2020.3.279
@@ -113,12 +119,20 @@ for compiler in "${compilers[@]}"; do
     spack install py-jupyter@1.0.0                 $compiler
 
     # h5py, since it uses a variant, needs its own install
-    spack install py-h5py mpi=false                $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
-    spack activate py-h5py mpi=false               $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
+    spack install py-h5py@2.10.0 mpi=false         $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
+    spack activate py-h5py@2.10.0 mpi=false        $compiler ^openblas@0.3.12 threads=pthreads ^hdf5+fortran~mpi+cxx
 
+    # requires git > 2
     spack load git                                 $compiler
-    spack install py-torch cuda_arch=35,60,70,80   $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64
+    spack install py-torch@1.7.0 cuda_arch=35,60,70,80 \
+          $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64
+    spack install py-torch@1.7.0 cuda_arch=35,60,70,80 \
+          $compiler ^intel-mkl@2020.3.279 ^cudnn@8.0.4.30-11.1-linux-x64
     spack unload git                               $compiler
+
+    # ipython requires 7.18.1 requires py-prompt-toolkit@2, so ipdb needs this constraint since it tries for v3
+    spack install py-ipdb                          $compiler ^py-prompt-toolkit@2:2
+    spack activate py-ipdb                         $compiler ^py-prompt-toolkit@2:2
 
     # Anything dependent on MPI
     for mpi in "${mpis[@]}"; do
@@ -131,11 +145,11 @@ for compiler in "${compilers[@]}"; do
         spack install py-mpi4py@3.0.3              $compiler ^$mpi
 
         # openmpi was compiled with gcc@7, so we can't compile hdf5 with fortran, because of
-        # binary incompability with the openmpi fortran bindings
+        # binary incompability with the openmpi fortran bindings in our external module
         if [ "$compiler" == "%gcc@10.2.0" ]; then
-            spack install py-h5py@2.10.0               $compiler ^$mpi ^openblas@0.3.12 threads=pthreads ^hdf5~fortran
+            spack install py-h5py@2.10.0           $compiler ^$mpi ^openblas@0.3.12 threads=pthreads ^hdf5~fortran
         else
-            spack install py-h5py@2.10.0               $compiler ^$mpi ^openblas@0.3.12 threads=pthreads ^hdf5+fortran
+            spack install py-h5py@2.10.0           $compiler ^$mpi ^openblas@0.3.12 threads=pthreads ^hdf5+fortran
         fi
     done
 done
