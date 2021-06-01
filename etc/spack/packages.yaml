@@ -20,3 +20,23 @@ packages:
         prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
       - spec: openmpi@4.0.5
         prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
+  mathematica:
+    buildable: false
+    externals:
+      - spec: mathematica@11.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.2
+      - spec: mathematica@11.3
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.3
+      - spec: mathematica@12.1
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.1
+      - spec: mathematica@12.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.2
+  matlab:
+    buildable: false
+    externals:
+      - spec: matlab@R2018a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018a
+      - spec: matlab@R2018b
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
+      - spec: matlab@R2020a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a

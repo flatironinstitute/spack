@@ -78,9 +78,11 @@ modules:
     hierarchy:
       - mpi
     hash_length: 0
+    core_compilers:
+      - 'gcc@7.4.0'
     core_specs:
-      - gcc@7.4.0
-      - gcc@10.2.0
+      - 'gcc@7.4.0'
+      - 'gcc@10.2.0'
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
@@ -90,6 +92,10 @@ modules:
       environment:
         set:
           OMPI_MCA_pml: 'cm'
+    openmpi:
+      environment:
+        set:
+          'OPENMPI_VERSION': '{version}'
     whitelist:
       - 'py-mpi4py'
       - 'py-numpy'
@@ -101,6 +107,22 @@ modules:
       - 'python-blas-backend^intel-mkl'
       - 'openmpi'
       - 'llvm'
+      - 'gsl'
+    all:
+      autoload: 'none'
+      prerequisites: 'direct'
+      environment:
+        set:
+          '{name}_BASE': '{prefix}'
+    matlab:
+      environment:
+        set:
+          'MLM_LICENSE_FILE': '/cm/shared/sw/pkg/vendor/matlab/src/network.lic'
+    slurm:
+      environment:
+        set:
+          'CMD_WLM_CLUSTER_NAME': 'slurm'
+          'SLURM_CONF': '/cm/shared/apps/slurm/var/etc/slurm/slurm.conf'
     projections:
       openblas threads=openmp: '{name}/{version}-openmp'
       openblas threads=pthreads: '{name}/{version}-threaded'
@@ -113,8 +135,8 @@ modules:
       py-torch^openblas: 'python-packages/{^python.version}/{name}/{version}-openblas'
       py-torch^intel-mkl: 'python-packages/{^python.version}/{name}/{version}-mkl'
       python-blas-backend^intel-mkl: 'python/{version}-mkl'
-      gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
-      slurm: '{compiler.name}-{compiler.version}/slurm/current'
+      gromacs+plumed: '{name}/{version}-plumed'
+      slurm: 'slurm/current'
       ^python: 'python-packages/{^python.version}/{name}/{version}'
     python-blas-backend:
       autoload: 'direct'

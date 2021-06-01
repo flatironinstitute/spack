@@ -28,6 +28,7 @@ in_list() {
     return 1
 }
 
+# python packages that implicitly depend on blas
 declare -a python_blas_packages=(
     "py-pandas@1.1.4"
     "py-scikit-learn@0.23.2"
@@ -38,6 +39,8 @@ declare -a python_blas_packages=(
     "py-seaborn@0.9.0"
     "py-matplotlib@3.3.3"
 )
+
+# python packages that don't depend on blas at all
 declare -a python_packages=(
     "py-cherrypy@18.1.1"
     "py-flask@1.1.2"
@@ -74,6 +77,13 @@ for compiler in "${compilers[@]}"; do
     spack install intel-oneapi-mkl@2021.1.1        $compiler
     spack install llvm@10.0.1                      $compiler
     spack install llvm@11.0.1                      $compiler
+    spack install mathematica@11.2                 $compiler
+    spack install mathematica@11.3                 $compiler
+    spack install mathematica@12.1                 $compiler
+    spack install mathematica@12.2                 $compiler
+    spack install matlab@R2018a                    $compiler
+    spack install matlab@R2018b                    $compiler
+    spack install matlab@R2020a                    $compiler
     spack install openblas@0.3.12 threads=none     $compiler
     spack install openblas@0.3.12 threads=openmp   $compiler
     spack install openblas@0.3.12 threads=pthreads $compiler
@@ -124,10 +134,11 @@ for compiler in "${compilers[@]}"; do
 
     # requires git > 2
     spack load git                                 $compiler
-    spack install py-torch@1.7.0 cuda_arch=35,60,70,80 \
-          $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64
-    spack install py-torch@1.7.0 cuda_arch=35,60,70,80 \
-          $compiler ^intel-mkl@2020.3.279 ^cudnn@8.0.4.30-11.1-linux-x64
+    CUDA_ARCH=35,60,70,80
+    spack install py-torch@1.7.0 cuda_arch=$CUDA_ARCH \
+          $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl cuda_arch=$CUDA_ARCH
+    spack install py-torch@1.7.0 cuda_arch=$CUDA_ARCH \
+          $compiler ^intel-mkl@2020.3.279 ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl cuda_arch=$CUDA_ARCH
     spack unload git                               $compiler
 
     # ipython requires 7.18.1 requires py-prompt-toolkit@2, so ipdb needs this constraint since it tries for v3
