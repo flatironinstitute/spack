@@ -86,7 +86,6 @@ modules:
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
-      - 'lmod'
     blacklist_implicits: true
     openmpi-opa:
       environment:
@@ -106,8 +105,10 @@ modules:
       - 'py-torch'
       - 'python-blas-backend^intel-mkl'
       - 'openmpi'
+      # things that depend on python, so they get blocked without a whitelist
       - 'llvm'
-      - 'gsl'
+      - 'vim'
+      - 'gdb'
     all:
       autoload: 'none'
       prerequisites: 'direct'
@@ -127,7 +128,6 @@ modules:
       openblas threads=openmp: '{name}/{version}-openmp'
       openblas threads=pthreads: '{name}/{version}-threaded'
       openblas threads=none: '{name}/{version}-single'
-      llvm: '{name}/{version}'
       py-numpy^openblas: 'python-packages/{^python.version}/{name}/.{version}-openblas'
       py-numpy^intel-mkl: 'python-packages/{^python.version}/{name}/.{version}-mkl'
       py-scipy^openblas: 'python-packages/{^python.version}/{name}/.{version}-openblas'
@@ -137,6 +137,11 @@ modules:
       python-blas-backend^intel-mkl: 'python/{version}-mkl'
       gromacs+plumed: '{name}/{version}-plumed'
       slurm: 'slurm/current'
+      # depend on python, so would be picked up by the python-packages rule unless we do this
+      llvm: '{name}/{version}'
+      gdb: '{name}/{version}'
+      vim: '{name}/{version}'
+      # python packages
       ^python: 'python-packages/{^python.version}/{name}/{version}'
     python-blas-backend:
       autoload: 'direct'
