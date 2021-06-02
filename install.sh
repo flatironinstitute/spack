@@ -60,20 +60,31 @@ declare -a python_packages=(
 )
 
 compiler=%gcc@7.4.0
-spack install emacs@27.1 $compiler+X toolkit=athena \
-      vim@8.2.1201       $compiler+x+python+gui+huge+cscope+lua+ruby \
-      zsh@5.8            $compiler \
-      mathematica@11.2   $compiler \
-      mathematica@11.3   $compiler \
-      mathematica@12.1   $compiler \
-      mathematica@12.2   $compiler \
-      matlab@R2018       $compiler \
-      matlab@R2018b      $compiler \
-      matlab@R2020a      $compiler \
-      cmake@3.18.4       $compiler \
-      git@2.29.0         $compiler \
-      gdb@9.2            $compiler \
-      slurm              $compiler
+spack install emacs@27.1  $compiler+X toolkit=athena \
+      vim@8.2.1201        $compiler+x+python+gui+huge+cscope+lua+ruby \
+      zsh@5.8             $compiler \
+      mathematica@11.2    $compiler \
+      mathematica@11.3    $compiler \
+      mathematica@12.1    $compiler \
+      mathematica@12.2    $compiler \
+      matlab@R2018        $compiler \
+      matlab@R2018b       $compiler \
+      matlab@R2020a       $compiler \
+      cmake@3.18.4        $compiler \
+      git@2.29.0          $compiler \
+      gdb@9.2             $compiler \
+      slurm               $compiler \
+      mercurial@5.3       $compiler \
+      node-js@12.18.4     $compiler \
+      node-js@14.13.0     $compiler \
+      go@1.15.2           $compiler \
+      rclone@1.51.0       $compiler \
+      subversion@1.14.0   $compiler \
+      tmux@3.1b           $compiler \
+      valgrind@3.15.0~mpi $compiler \
+      gperftools@2.7      $compiler \
+      lftp@4.8.1          $compiler \
+      curl@7.72.0         $compiler
 
 for compiler in "${compilers[@]}"; do
     # Core installs

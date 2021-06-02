@@ -109,6 +109,8 @@ modules:
       - 'llvm'
       - 'vim'
       - 'gdb'
+      - 'cmake'
+      - 'mercurial'
     all:
       autoload: 'none'
       prerequisites: 'direct'
