@@ -86,6 +86,7 @@ modules:
     blacklist:
       - '%gcc@4.8.5'
       - '^python'
+      - 'lmod'
     blacklist_implicits: true
     openmpi-opa:
       environment:
@@ -117,6 +118,8 @@ modules:
       environment:
         set:
           '{name}_BASE': '{prefix}'
+      suffixes:
+        ^openmpi: 'openmpi'
     matlab:
       environment:
         set:
