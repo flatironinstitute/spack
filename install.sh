@@ -57,6 +57,8 @@ declare -a python_packages=(
     "py-sympy@1.4"
     "py-pycairo@1.18.1"
     "py-sphinx@3.2.0"
+    "py-pytest@5.3.4"
+    "py-hypothesis@5.3.0"
 )
 
 compiler=%gcc@7.4.0
