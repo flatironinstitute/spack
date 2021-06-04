@@ -267,6 +267,12 @@ class Hdf5(AutotoolsPackage):
         else:
             extra_args.append('--without-szlib')
 
+        # Fix for gcc@10 compile issues
+        if self.spec.satisfies('@1.8.0:1.8.999'):
+            extra_args.extend([
+                'FCFLAGS="-fallow-invalid-boz"',
+            ])
+
         if self.spec.satisfies('@1.10:'):
             if '+debug' in self.spec:
                 extra_args.append('--enable-build-mode=debug')
