@@ -24,10 +24,11 @@ class Llvm(CMakePackage, CudaPackage):
     git = "https://github.com/llvm/llvm-project"
     maintainers = ['trws', 'naromero77']
 
-    family = "compiler"  # Used by lmod
+    # family = "compiler"  # Used by lmod
 
     # fmt: off
     version('main', branch='main')
+    version('12.0.0', sha256='8e6c99e482bb16a450165176c2d881804976a2d770e0445af4375e78a1fbf19c')
     version('11.0.1', sha256='9c7ad8e8ec77c5bde8eb4afa105a318fd1ded7dff3747d14f012758719d7171b')
     version('11.0.0', sha256='8ad4ddbafac4f2c8f2ea523c2c4196f940e8e16f9e635210537582a48622a5d5')
     version('10.0.1', sha256='c7ccb735c37b4ec470f66a6c35fbae4f029c0f88038f6977180b1a8ddc255637')
@@ -353,7 +354,7 @@ class Llvm(CMakePackage, CudaPackage):
         env.append_flags("CXXFLAGS", self.compiler.cxx11_flag)
 
     def setup_run_environment(self, env):
-        if "+clang" in self.spec:
+        if False and "+clang" in self.spec:
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
 

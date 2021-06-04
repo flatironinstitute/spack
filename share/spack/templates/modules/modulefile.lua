@@ -26,7 +26,9 @@ help([[{{ long_description| textwrap(72)| join() }}]])
 {% if has_modulepath_modifications %}
 -- Services provided by the package
 {% for name in provides %}
+{% if spec.name != "llvm" %}
 family("{{ name }}")
+{% endif %}
 {% endfor %}
 
 -- Loading this module unlocks the path below unconditionally
