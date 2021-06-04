@@ -40,3 +40,12 @@ packages:
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
       - spec: matlab@R2020a
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
+  llvm:
+    version: [12.0.0, 11.0.1, 10.0.1]
+    variants: +omp_tsan+python
+  openblas:
+    version: [0.3.12]
+    variants: threads=pthreads
+  hdf5:
+    version: [1.10.7, 1.8.21]
+    variants: +hl+fortran~mpi
