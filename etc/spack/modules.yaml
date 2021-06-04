@@ -119,7 +119,7 @@ modules:
         set:
           '{name}_BASE': '{prefix}'
       suffixes:
-        ^openmpi: 'openmpi'
+        ^mpi: 'mpi'
     matlab:
       environment:
         set:
@@ -129,7 +129,16 @@ modules:
         set:
           'CMD_WLM_CLUSTER_NAME': 'slurm'
           'SLURM_CONF': '/cm/shared/apps/slurm/var/etc/slurm/slurm.conf'
+    hdf5:
+      environment:
+        set:
+          'HDF5_ROOT': '{prefix}'
+    boost:
+      environment:
+        set:
+          'BOOST_ROOT': '{prefix}'
     projections:
+      boost+clanglibcpp: '{name}/{version}-libcpp'
       openblas threads=openmp: '{name}/{version}-openmp'
       openblas threads=pthreads: '{name}/{version}-threaded'
       openblas threads=none: '{name}/{version}-single'
