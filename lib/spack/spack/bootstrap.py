@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -198,9 +198,7 @@ def get_executable(exe, spec=None, install=False):
 def _bootstrap_config_scopes():
     tty.debug('[BOOTSTRAP CONFIG SCOPE] name=_builtin')
     config_scopes = [
-        spack.config.InternalConfigScope(
-            '_builtin', spack.config.config_defaults
-        )
+        spack.config.InternalConfigScope('_builtin', spack.config.config_defaults)
     ]
     for name, path in spack.config.configuration_paths:
         platform = spack.architecture.platform().name

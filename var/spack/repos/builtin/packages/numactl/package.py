@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -21,6 +21,7 @@ class Numactl(AutotoolsPackage):
     patch('numactl-2.0.11-sysmacros.patch', when="@2.0.11")
     # https://github.com/numactl/numactl/issues/94
     patch('numactl-2.0.14-symver.patch', when="@2.0.14")
+    patch('fix-empty-block.patch', when="@2.0.10:2.0.14")
 
     depends_on('autoconf', type='build')
     depends_on('automake', type='build')
@@ -31,14 +32,21 @@ class Numactl(AutotoolsPackage):
         bash = which('bash')
         bash('./autogen.sh')
 
+    @when('%nvhpc')
     def patch(self):
+        self._nvhpc_patch()
+
+    @when('%pgi@20:')
+    def patch(self):
+        self._nvhpc_patch()
+
+    def _nvhpc_patch(self):
         # Remove flags not recognized by the NVIDIA compiler
-        if self.spec.satisfies('%nvhpc'):
-            filter_file('-ffast-math -funroll-loops', '', 'Makefile.am')
-            filter_file('-std=gnu99', '-c99', 'Makefile.am')
+        filter_file('-ffast-math -funroll-loops', '', 'Makefile.am')
+        filter_file('-std=gnu99', '-c99', 'Makefile.am')
 
         # Avoid undefined reference errors
-        if self.spec.satisfies('@2.0.14 %nvhpc'):
+        if self.spec.satisfies('@2.0.14'):
             filter_file('numa_sched_setaffinity_v1_int',
                         'numa_sched_setaffinity_v1', 'libnuma.c')
             filter_file('numa_sched_setaffinity_v2_int',

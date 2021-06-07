@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -69,7 +69,8 @@ __all__ = [
     'touchp',
     'traverse_tree',
     'unset_executable_mode',
-    'working_dir'
+    'working_dir',
+    'keep_modification_time'
 ]
 
 
@@ -1825,3 +1826,24 @@ def remove_directory_contents(dir):
                 os.unlink(entry)
             else:
                 shutil.rmtree(entry)
+
+
+@contextmanager
+def keep_modification_time(*filenames):
+    """
+    Context manager to keep the modification timestamps of the input files.
+    Tolerates and has no effect on non-existent files and files that are
+    deleted by the nested code.
+
+    Parameters:
+        *filenames: one or more files that must have their modification
+            timestamps unchanged
+    """
+    mtimes = {}
+    for f in filenames:
+        if os.path.exists(f):
+            mtimes[f] = os.path.getmtime(f)
+    yield
+    for f, mtime in mtimes.items():
+        if os.path.exists(f):
+            os.utime(f, (os.path.getatime(f), mtime))

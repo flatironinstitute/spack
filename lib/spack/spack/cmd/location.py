@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -56,7 +56,7 @@ def setup_parser(subparser):
         help="build directory for a spec "
              "(requires it to be staged first)")
     directories.add_argument(
-        '-e', '--env', action='store',
+        '-e', '--env', action='store', dest='location_env',
         help="location of an environment managed by spack")
 
     arguments.add_common_arguments(subparser, ['spec'])
@@ -71,10 +71,10 @@ def location(parser, args):
         print(spack.paths.prefix)
         return
 
-    if args.env:
-        path = spack.environment.root(args.env)
+    if args.location_env:
+        path = spack.environment.root(args.location_env)
         if not os.path.isdir(path):
-            tty.die("no such environment: '%s'" % args.env)
+            tty.die("no such environment: '%s'" % args.location_env)
         print(path)
         return
 
@@ -119,8 +119,8 @@ def location(parser, args):
     if args.build_dir:
         # Out of source builds have build_directory defined
         if hasattr(pkg, 'build_directory'):
-            # build_directory can be either absolute or relative to the
-            # stage path in either case os.path.join makes it absolute
+            # build_directory can be either absolute or relative to the stage path
+            # in either case os.path.join makes it absolute
             print(os.path.normpath(os.path.join(
                 pkg.stage.path,
                 pkg.build_directory

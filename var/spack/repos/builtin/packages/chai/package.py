@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,25 +14,37 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
     homepage = "https://github.com/LLNL/CHAI"
     git      = "https://github.com/LLNL/CHAI.git"
 
-    version('develop', branch='develop', submodules='True')
-    version('master', branch='main', submodules='True')
-    version('2.1.1', tag='v2.1.1', submodules='True')
-    version('2.1.0', tag='v2.1.0', submodules='True')
-    version('2.0.0', tag='v2.0.0', submodules='True')
-    version('1.2.0', tag='v1.2.0', submodules='True')
-    version('1.1.0', tag='v1.1.0', submodules='True')
-    version('1.0', tag='v1.0', submodules='True')
+    version('develop', branch='develop', submodules=True)
+    version('master', branch='main', submodules=True)
+    version('2.3.0', tag='v2.3.0', submodules=True)
+    version('2.2.2', tag='v2.2.2', submodules=True)
+    version('2.2.1', tag='v2.2.1', submodules=True)
+    version('2.2.0', tag='v2.2.0', submodules=True)
+    version('2.1.1', tag='v2.1.1', submodules=True)
+    version('2.1.0', tag='v2.1.0', submodules=True)
+    version('2.0.0', tag='v2.0.0', submodules=True)
+    version('1.2.0', tag='v1.2.0', submodules=True)
+    version('1.1.0', tag='v1.1.0', submodules=True)
+    version('1.0', tag='v1.0', submodules=True)
 
+    variant('enable_pick', default=False, description='Enable pick method')
     variant('shared', default=True, description='Build Shared Libs')
     variant('raja', default=False, description='Build plugin for RAJA')
-    variant('benchmarks', default=True, description='Build benchmarks.')
+    variant('benchmarks', default=False, description='Build benchmarks.')
     variant('examples', default=True, description='Build examples.')
+    # TODO: figure out gtest dependency and then set this default True
+    # and remove the +tests conflict below.
+    variant('tests', default=False, description='Build tests')
 
     depends_on('cmake@3.8:', type='build')
+    depends_on('cmake@3.9:', type='build', when="+cuda")
+
+    depends_on('blt@0.4.0:', type='build', when='@2.3.1:')
+    depends_on('blt@:0.3.6', type='build', when='@:2.3.0')
+
     depends_on('umpire')
     depends_on('raja', when="+raja")
 
-    depends_on('cmake@3.9:', type='build', when="+cuda")
     depends_on('umpire+cuda', when="+cuda")
     depends_on('raja+cuda', when="+raja+cuda")
 
@@ -44,10 +56,13 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
         depends_on('umpire amdgpu_target=%s' % val, when='amdgpu_target=%s' % val)
         depends_on('raja amdgpu_target=%s' % val, when='+raja amdgpu_target=%s' % val)
 
+    conflicts('+benchmarks', when='~tests')
+
     def cmake_args(self):
         spec = self.spec
 
         options = []
+        options.append('-DBLT_SOURCE_DIR={0}'.format(spec['blt'].prefix))
 
         if '+cuda' in spec:
             options.extend([
@@ -80,23 +95,19 @@ class Chai(CMakePackage, CudaPackage, ROCmPackage):
             options.extend(['-DENABLE_RAJA_PLUGIN=ON',
                             '-DRAJA_DIR=' + spec['raja'].prefix])
 
+        options.append(self.define_from_variant('ENABLE_PICK', 'enable_pick'))
+
         options.append('-Dumpire_DIR:PATH='
                        + spec['umpire'].prefix.share.umpire.cmake)
 
         options.append('-DENABLE_TESTS={0}'.format(
-            'ON' if self.run_tests else 'OFF'))
+            'ON' if '+tests' in spec  else 'OFF'))
 
-        # give clear error for conflict between self.run_tests and
-        # benchmarks variant.
-        if not self.run_tests and '+benchmarks' in spec:
-            raise InstallError(
-                'ENABLE_BENCHMARKS requires ENABLE_TESTS to be ON'
-            )
+        options.append(self.define_from_variant('ENABLE_BENCHMARKS', 'benchmarks'))
+
+        options.append(self.define_from_variant('ENABLE_EXAMPLES', 'examples'))
 
         options.append('-DENABLE_BENCHMARKS={0}'.format(
             'ON' if '+benchmarks' in spec else 'OFF'))
-
-        options.append('-DENABLE_EXAMPLES={0}'.format(
-            'ON' if '+examples' in spec else 'OFF'))
 
         return options

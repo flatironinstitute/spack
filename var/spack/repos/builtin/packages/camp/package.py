@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,8 +19,10 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
     version('master', branch='master', submodules='True')
     version('0.1.0', sha256='fd4f0f2a60b82a12a1d9f943f8893dc6fe770db493f8fae5ef6f7d0c439bebcc')
 
-    depends_on('cmake@3.8:', type='build')
-    depends_on('cmake@3.9:', type='build', when="+cuda")
+    # TODO: figure out gtest dependency and then set this default True.
+    variant('tests', default=False, description='Build tests')
+
+    depends_on('cub', when='+cuda')
 
     def cmake_args(self):
         spec = self.spec
@@ -54,7 +56,6 @@ class Camp(CMakePackage, CudaPackage, ROCmPackage):
         else:
             options.append('-DENABLE_HIP=OFF')
 
-        options.append('-DENABLE_TESTS={0}'.format(
-            "On" if self.run_tests else "Off"))
+        options.append(self.define_from_variant('ENABLE_TESTS', 'tests'))
 
         return options

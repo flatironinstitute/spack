@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -34,6 +34,7 @@ import re
 import sys
 
 from six import string_types
+from typing import Set, List  # novm
 
 import llnl.util.lang
 import llnl.util.tty.color
@@ -111,8 +112,8 @@ class DirectiveMeta(type):
     """
 
     # Set of all known directives
-    _directive_names = set()
-    _directives_to_be_executed = []
+    _directive_names = set()  # type: Set[str]
+    _directives_to_be_executed = []  # type: List[str]
 
     def __new__(cls, name, bases, attr_dict):
         # Initialize the attribute containing the list of directives
@@ -277,6 +278,9 @@ def version(ver, checksum=None, **kwargs):
 
     The ``dict`` of arguments is turned into a valid fetch strategy for
     code packages later. See ``spack.fetch_strategy.for_package_version()``.
+
+    Keyword Arguments:
+        deprecated (bool): whether or not this version is deprecated
     """
     def _execute_version(pkg):
         if checksum is not None:
@@ -400,7 +404,7 @@ def depends_on(spec, when=None, type=default_deptype, patches=None):
 
 
 @directive(('extendees', 'dependencies'))
-def extends(spec, **kwargs):
+def extends(spec, type=('build', 'run'), **kwargs):
     """Same as depends_on, but allows symlinking into dependency's
     prefix tree.
 
@@ -421,7 +425,7 @@ def extends(spec, **kwargs):
         if not when_spec:
             return
 
-        _depends_on(pkg, spec, when=when)
+        _depends_on(pkg, spec, when=when, type=type)
         pkg.extendees[spec] = (spack.spec.Spec(spec), kwargs)
     return _execute_extends
 

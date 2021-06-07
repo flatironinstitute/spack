@@ -1,3 +1,8 @@
+% Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+% Spack Project Developers. See the top-level COPYRIGHT file for details.
+%
+% SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
 %=============================================================================
 % This logic program implements Spack's concretizer
 %=============================================================================
@@ -13,6 +18,9 @@ version_declared(Package, Version) :- version_declared(Package, Version, _).
 % declared version.
 1 { version(Package, Version) : version_declared(Package, Version) } 1
  :- node(Package).
+
+% If we select a deprecated version, mark the package as deprecated
+deprecated(Package, Version) :- version(Package, Version), deprecated_version(Package, Version).
 
 possible_version_weight(Package, Weight)
  :- version(Package, Version), version_declared(Package, Version, Weight),
@@ -32,6 +40,7 @@ version_satisfies(Package, Constraint)
 
 #defined preferred_version_declared/3.
 #defined version_satisfies/3.
+#defined deprecated_version/2.
 
 %-----------------------------------------------------------------------------
 % Spec conditions and imposed constraints
@@ -211,6 +220,7 @@ provider_weight(Package, 100)
     provider(Package, Virtual),
     not default_provider_preference(Virtual, Package, _).
 
+#defined possible_provider/2.
 #defined provider_condition/3.
 #defined required_provider_condition/3.
 #defined required_provider_condition/4.
@@ -397,14 +407,23 @@ variant_not_default(Package, Variant, Value, 0)
     external_with_variant_set(Package, Variant, Value),
     node(Package).
 
-% The default value for a variant in a package is what is written
-% in the package.py file, unless some preference is set in packages.yaml
+% The default value for a variant in a package is what is prescribed:
+%
+% 1. On the command line
+% 2. In packages.yaml (if there's no command line settings)
+% 3. In the package.py file (if there are no settings in
+%    packages.yaml and the command line)
+%
 variant_default_value(Package, Variant, Value)
  :- variant_default_value_from_package_py(Package, Variant, Value),
-    not variant_default_value_from_packages_yaml(Package, Variant, _).
+    not variant_default_value_from_packages_yaml(Package, Variant, _),
+    not variant_default_value_from_cli(Package, Variant, _).
 
 variant_default_value(Package, Variant, Value)
- :- variant_default_value_from_packages_yaml(Package, Variant, Value).
+ :- variant_default_value_from_packages_yaml(Package, Variant, Value),
+    not variant_default_value_from_cli(Package, Variant, _).
+
+variant_default_value(Package, Variant, Value) :- variant_default_value_from_cli(Package, Variant, Value).
 
 % Treat 'none' in a special way - it cannot be combined with other
 % values even if the variant is multi-valued
@@ -429,6 +448,7 @@ variant_single_value(Package, "dev_path")
 #defined variant_single_value/2.
 #defined variant_default_value/3.
 #defined variant_possible_value/3.
+#defined variant_default_value_from_cli/3.
 #defined variant_default_value_from_packages_yaml/3.
 #defined variant_default_value_from_package_py/3.
 #defined variant_value_from_disjoint_sets/4.
@@ -529,29 +549,19 @@ node_target_weight(Package, Weight)
     node_target(Package, Target),
     target_weight(Target, Package, Weight).
 
-% compatibility rules for targets among nodes
-node_target_match_pref(Dependency, Target)
-  :- depends_on(Package, Dependency),
-     node_target_match_pref(Package, Target),
-     not node_target_set(Dependency, _).
-
-node_target_match_pref(Dependency, Target)
-  :- depends_on(Package, Dependency),
-     node_target_set(Package, Target),
-     not node_target_match_pref(Package, Target),
-     not node_target_set(Dependency, _).
-
-node_target_match_pref(Dependency, Target)
-  :- depends_on(Package, Dependency),
-     root(Package), node_target(Package, Target),
-     not node_target_match_pref(Package, _).
-
-node_target_match(Package, 1)
-  :- node_target(Package, Target), node_target_match_pref(Package, Target).
-
 derive_target_from_parent(Parent, Package)
-  :- depends_on(Parent, Package), not package_target_weight(_, Package, _).
+  :- depends_on(Parent, Package),
+     not package_target_weight(_, Package, _).
 
+% compatibility rules for targets among nodes
+node_target_match(Parent, Dependency)
+  :- depends_on(Parent, Dependency),
+     node_target(Parent, Target),
+     node_target(Dependency, Target).
+
+node_target_mismatch(Parent, Dependency)
+  :- depends_on(Parent, Dependency),
+     not node_target_match(Parent, Dependency).
 
 #defined node_target_set/2.
 #defined package_target_weight/3.
@@ -599,22 +609,18 @@ node_compiler_version(Package, Compiler, Version) :- node_compiler_version_set(P
 
 % If a package and one of its dependencies don't have the
 % same compiler there's a mismatch.
-compiler_mismatch(Package, Dependency)
+compiler_match(Package, Dependency)
   :- depends_on(Package, Dependency),
-     node_compiler_version(Package, Compiler1, _),
-     node_compiler_version(Dependency, Compiler2, _),
-     Compiler1 != Compiler2.
+     node_compiler_version(Package, Compiler, Version),
+     node_compiler_version(Dependency, Compiler, Version).
 
 compiler_mismatch(Package, Dependency)
   :- depends_on(Package, Dependency),
-     node_compiler_version(Package, Compiler, Version1),
-     node_compiler_version(Dependency, Compiler, Version2),
-     Version1 != Version2.
+     not compiler_match(Package, Dependency).
 
 #defined node_compiler_set/2.
 #defined node_compiler_version_set/3.
 #defined compiler_supports_os/3.
-#defined compiler_version_match/2.
 #defined allow_compiler/2.
 
 % compilers weighted by preference according to packages.yaml
@@ -689,84 +695,101 @@ no_flags(Package, FlagType)
 %-----------------------------------------------------------------------------
 % How to optimize the spec (high to low priority)
 %-----------------------------------------------------------------------------
-% weight root preferences higher
-%
-% TODO: how best to deal with this issue?  It's not clear how best to
-% weight all the constraints. Without this root preference, `spack solve
-% hdf5` will pick mpich instead of openmpi, even if openmpi is the
-% preferred provider, because openmpi has a version constraint on hwloc.
-% It ends up choosing between settling for an old version of hwloc, or
-% picking the second-best provider.  This workaround weights root
-% preferences higher so that hdf5's prefs are more important, but it's
-% not clear this is a general solution.  It would be nice to weight by
-% distance to root, but that seems to slow down the solve a lot.
-%
-% One option is to make preferences hard constraints.  Or maybe we need
-% to look more closely at where a constraint came from and factor that
-% into our weights.  e.g., a non-default variant resulting from a version
-% constraint counts like a version constraint.  Needs more thought later.
-%
+% Each criterion below has:
+%   1. an opt_criterion(ID, Name) fact that describes the criterion, and
+%   2. a `#minimize{ 0@2 : #true }.` statement that ensures the criterion
+%      is displayed (clingo doesn't display sums over empty sets by default)
 
-root(Package, 2) :- root(Package), node(Package).
-root(Dependency, 1) :- not root(Dependency), node(Dependency).
+% Minimize the number of deprecated versions being used
+opt_criterion(16, "deprecated versions used").
+#minimize{ 0@16 : #true }.
+#minimize{ 1@16,Package : deprecated(Package, _)}.
 
 % The highest priority is to minimize the:
 % 1. Version weight
 % 2. Number of variants with a non default value, if not set
 % for the root(Package)
-#minimize { Weight@15 : root(Package),version_weight(Package, Weight)}.
+opt_criterion(15, "version weight").
+#minimize{ 0@15 : #true }.
+#minimize { Weight@15 : root(Package),version_weight(Package, Weight) }.
+
+opt_criterion(14, "number of non-default variants (roots)").
+#minimize{ 0@14 : #true }.
 #minimize {
     Weight@14,Package,Variant,Value
     : variant_not_default(Package, Variant, Value, Weight), root(Package)
 }.
+
 % If the value is a multivalued variant there could be multiple
 % values set as default. Since a default value has a weight of 0 we
 % need to maximize their number below to ensure they're all set
+opt_criterion(13, "multi-valued variants").
+#minimize{ 0@13 : #true }.
 #maximize {
     1@13,Package,Variant,Value
     : variant_not_default(Package, Variant, Value, Weight),
     not variant_single_value(Package, Variant),
     root(Package)
 }.
+opt_criterion(12, "preferred providers for roots").
+#minimize{ 0@12 : #true }.
 #minimize{
-    Weight@13,Provider
+    Weight@12,Provider
     : provider_weight(Provider, Weight), root(Provider)
 }.
 
 % Try to use default variants or variants that have been set
+opt_criterion(11, "number of non-default variants (non-roots)").
+#minimize{ 0@11 : #true }.
 #minimize {
     Weight@11,Package,Variant,Value
     : variant_not_default(Package, Variant, Value, Weight), not root(Package)
 }.
+
 % Minimize the weights of the providers, i.e. use as much as
 % possible the most preferred providers
+opt_criterion(9, "number of non-default providers (non-roots)").
+#minimize{ 0@9 : #true }.
 #minimize{
     Weight@9,Provider
     : provider_weight(Provider, Weight), not root(Provider)
 }.
+
 % If the value is a multivalued variant there could be multiple
 % values set as default. Since a default value has a weight of 0 we
 % need to maximize their number below to ensure they're all set
+opt_criterion(8, "count of non-root multi-valued variants").
+#minimize{ 0@8 : #true }.
 #maximize {
     1@8,Package,Variant,Value
-    : variant_not_default(Package, Variant, Value, Weight),
+    : variant_not_default(Package, Variant, Value, _),
     not variant_single_value(Package, Variant),
     not root(Package)
 }.
 
 % Try to minimize the number of compiler mismatches in the DAG.
+opt_criterion(7, "compiler mismatches").
 #minimize{ 0@7 : #true }.
 #minimize{ 1@7,Package,Dependency : compiler_mismatch(Package, Dependency) }.
 
 % Choose more recent versions for nodes
+opt_criterion(6, "version badness").
+#minimize{ 0@6 : #true }.
 #minimize{
     Weight@6,Package : version_weight(Package, Weight)
 }.
 
 % Try to use preferred compilers
+opt_criterion(5, "non-preferred compilers").
+#minimize{ 0@5 : #true }.
 #minimize{ Weight@5,Package : compiler_weight(Package, Weight) }.
 
-% Maximize the number of matches for targets in the DAG, try
+% Minimize the number of mismatches for targets in the DAG, try
 % to select the preferred target.
-#maximize{ Weight@4,Package : node_target_match(Package, Weight) }.
+opt_criterion(4, "target mismatches").
+#minimize{ 0@4 : #true }.
+#minimize{ 1@4,Package,Dependency : node_target_mismatch(Package, Dependency) }.
+
+opt_criterion(3, "non-preferred targets").
+#minimize{ 0@3 : #true }.
 #minimize{ Weight@3,Package : node_target_weight(Package, Weight) }.

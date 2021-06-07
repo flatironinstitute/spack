@@ -1,4 +1,4 @@
-# Copyright 2013-2020 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -92,8 +92,8 @@ class Executable(object):
             ignore_errors (int or list): A list of error codes to ignore.
                 If these codes are returned, this process will not raise
                 an exception even if ``fail_on_error`` is set to ``True``
-            ignore_quotes (bool): If False, warn users that quotes are not
-                needed as Spack does not use a shell. Defaults to False.
+            ignore_quotes (bool): If False, warn users that quotes are not needed
+                as Spack does not use a shell. Defaults to False.
             input: Where to read stdin from
             output: Where to send stdout
             error: Where to send stderr
@@ -168,14 +168,12 @@ class Executable(object):
         istream, close_istream = streamify(input,  'r')
 
         if not ignore_quotes:
-            quoted_args = [
-                arg for arg in args if re.search(r'^"|^\'|"$|\'$', arg)
-            ]
+            quoted_args = [arg for arg in args if re.search(r'^"|^\'|"$|\'$', arg)]
             if quoted_args:
                 tty.warn(
                     "Quotes in command arguments can confuse scripts like"
                     " configure.",
-                    "These arguments may cause problems when executed:",
+                    "The following arguments may cause problems when executed:",
                     str("\n".join(["    " + arg for arg in quoted_args])),
                     "Quotes aren't needed because spack doesn't use a shell. "
                     "Consider removing them.",

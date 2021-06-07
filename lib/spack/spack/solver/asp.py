@@ -22,7 +22,7 @@ try:
     # There may be a better way to detect this
     clingo_cffi = hasattr(clingo.Symbol, '_rep')
 except ImportError:
-    clingo = None
+    clingo = None  # type: ignore
     clingo_cffi = False
 
 import llnl.util.lang
@@ -208,6 +208,9 @@ class Result(object):
         self.answers = []
         self.cores = []
 
+        # names of optimization criteria
+        self.criteria = []
+
     def print_cores(self):
         for core in self.cores:
             tty.msg(
@@ -355,6 +358,7 @@ class PyclingoDriver(object):
                 return x.string or str(x)
 
         if result.satisfiable:
+            # build spec from the best model
             builder = SpecBuilder(specs)
             min_cost, best_model = min(models)
             tuples = [
@@ -362,7 +366,19 @@ class PyclingoDriver(object):
                 for sym in best_model
             ]
             answers = builder.build_specs(tuples)
+
+            # add best spec to the results
             result.answers.append((list(min_cost), 0, answers))
+
+            # pull optimization criteria names out of the solution
+            criteria = [
+                (int(args[0]), args[1]) for name, args in tuples
+                if name == "opt_criterion"
+            ]
+            result.criteria = [t[1] for t in sorted(criteria, reverse=True)]
+
+            # record the number of models the solver considered
+            result.nmodels = len(models)
 
         elif cores:
             symbols = dict(
@@ -395,6 +411,7 @@ class SpackSolverSetup(object):
         self.gen = None  # set by setup()
         self.possible_versions = {}
         self.versions_in_package_py = {}
+        self.deprecated_versions = {}
         self.versions_from_externals = {}
         self.possible_virtuals = None
         self.possible_compilers = []
@@ -465,6 +482,11 @@ class SpackSolverSetup(object):
         for i, v in enumerate(most_to_least_preferred):
             self.gen.fact(fn.version_declared(pkg.name, v, i))
 
+        # Declare deprecated versions for this package, if any
+        deprecated = self.deprecated_versions[pkg.name]
+        for v in sorted(deprecated):
+            self.gen.fact(fn.deprecated_version(pkg.name, v))
+
     def spec_versions(self, spec):
         """Return list of clauses expressing spec's version constraints."""
         spec = specify(spec)
@@ -492,9 +514,7 @@ class SpackSolverSetup(object):
 
     def conflict_rules(self, pkg):
         for trigger, constraints in pkg.conflicts.items():
-            trigger_id = self.condition(
-                spack.spec.Spec(trigger), name=pkg.name
-            )
+            trigger_id = self.condition(spack.spec.Spec(trigger), name=pkg.name)
             self.gen.fact(fn.conflict_trigger(trigger_id))
 
             for constraint, _ in constraints:
@@ -950,16 +970,17 @@ class SpackSolverSetup(object):
                 if value == '*':
                     continue
 
-                # validate variant value
-                reserved_names = spack.directives.reserved_names
-                if not spec.virtual and vname not in reserved_names:
-                    try:
-                        variant_def = spec.package.variants[vname]
-                    except KeyError:
-                        msg = 'variant "{0}" not found in package "{1}"'
-                        raise RuntimeError(msg.format(vname, spec.name))
-                    else:
-                        variant_def.validate_or_raise(variant, spec.package)
+                # validate variant value only if spec not concrete
+                if not spec.concrete:
+                    reserved_names = spack.directives.reserved_names
+                    if not spec.virtual and vname not in reserved_names:
+                        try:
+                            variant_def = spec.package.variants[vname]
+                        except KeyError:
+                            msg = 'variant "{0}" not found in package "{1}"'
+                            raise RuntimeError(msg.format(vname, spec.name))
+                        else:
+                            variant_def.validate_or_raise(variant, spec.package)
 
                 clauses.append(f.variant_value(spec.name, vname, value))
 
@@ -1005,12 +1026,16 @@ class SpackSolverSetup(object):
         self.possible_versions = collections.defaultdict(set)
         self.versions_in_package_py = collections.defaultdict(set)
         self.versions_from_externals = collections.defaultdict(set)
+        self.deprecated_versions = collections.defaultdict(set)
 
         for pkg_name in possible_pkgs:
             pkg = spack.repo.get(pkg_name)
-            for v in pkg.versions:
+            for v, version_info in pkg.versions.items():
                 self.versions_in_package_py[pkg_name].add(v)
                 self.possible_versions[pkg_name].add(v)
+                deprecated = version_info.get('deprecated', False)
+                if deprecated:
+                    self.deprecated_versions[pkg_name].add(v)
 
         for spec in specs:
             for dep in spec.traverse():
@@ -1378,7 +1403,10 @@ class SpackSolverSetup(object):
             )
             for clause in self.spec_clauses(spec):
                 self.gen.fact(clause)
-
+                if clause.name == 'variant_set':
+                    self.gen.fact(fn.variant_default_value_from_cli(
+                        *clause.args
+                    ))
         self.gen.h1("Variant Values defined in specs")
         self.define_variant_values()
 
@@ -1535,6 +1563,10 @@ class SpecBuilder(object):
             check_same_flags(spec.compiler_flags, flags)
             spec.compiler_flags.update(flags)
 
+    def deprecated(self, pkg, version):
+        msg = 'using "{0}@{1}" which is a deprecated version'
+        tty.warn(msg.format(pkg, version))
+
     def build_specs(self, function_tuples):
         # Functions don't seem to be in particular order in output.  Sort
         # them here so that directives that build objects (like node and
@@ -1603,8 +1635,7 @@ def _develop_specs_from_env(spec, env):
     if not dev_info:
         return
 
-    path = dev_info['path']
-    path = path if os.path.isabs(path) else os.path.join(env.path, path)
+    path = os.path.normpath(os.path.join(env.path, dev_info['path']))
 
     if 'dev_path' in spec.variants:
         assert spec.variants['dev_path'].value == path
