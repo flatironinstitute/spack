@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 source share/spack/setup-env.sh
 export INTEL_LICENSE_FILE=28518@lic1.flatironinstitute.org
