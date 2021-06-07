@@ -41,7 +41,7 @@ packages:
       - spec: matlab@R2020a
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
   llvm:
-    version: [12.0.0, 11.0.1, 10.0.1]
+    version: [11.0.1, 10.0.1, 12.0.0]
     variants: +omp_tsan+python
   openblas:
     version: [0.3.12]

@@ -1,85 +1,13 @@
 modules:
-  enable:
-    - tcl
+  enable::
     - lmod
-  tcl:
-    hash_length: 0
-    naming_scheme: '{compiler.name}-{compiler.version}/{name}/{version}'
-    whitelist:
-      - 'py-mpi4py'
-      - 'py-numpy'
-      - 'py-scipy'
-      - 'py-h5py'
-      - 'py-pyqt5'
-      - 'py-jupyter'
-      - 'py-torch'
-      - 'python-blas-backend^intel-mkl'
-      - 'llvm'
-      - 'openmpi'
-    blacklist_implicits: true
-    blacklist:
-      - '%gcc@4.8.5'
-      - '^python'
-      - 'lmod'
-    all:
-      autoload: 'none'
-      prerequisites: 'direct'
-      conflict:
-        - '{name}'
-      environment:
-        set:
-          '{name}_BASE': '{prefix}'
-      suffixes:
-        ^openmpi@1:1: 'openmpi1'
-        ^openmpi@2:2: 'openmpi2'
-        ^openmpi@4:4: 'openmpi4'
-    projections:
-      all: '{compiler.name}-{compiler.version}/{name}/{version}'
-      openblas threads=openmp: '{compiler.name}-{compiler.version}/{name}/{version}-openmp'
-      openblas threads=pthreads: '{compiler.name}-{compiler.version}/{name}/{version}-threaded'
-      openblas threads=none: '{compiler.name}-{compiler.version}/{name}/{version}-single'
-      llvm: '{compiler.name}-{compiler.version}/{name}/{version}'
-      python: '{compiler.name}-{compiler.version}/{name}/{version}'
-      python-blas-backend^intel-mkl: '{compiler.name}-{compiler.version}/python/{version}-mkl'
-      py-numpy^openblas: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-openblas'
-      py-numpy^intel-mkl: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-mkl'
-      py-scipy^openblas: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-openblas'
-      py-scipy^intel-mkl: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/.{version}-mkl'
-      ^python: '{compiler.name}-{compiler.version}/python-packages/{^python.version}/{name}/{version}'
-      gromacs+plumed: '{compiler.name}-{compiler.version}/{name}/{version}-plumed'
-      openmpi-opa: '{compiler.name}-{compiler.version}/openmpi/{version}-opa'
-      slurm: '{compiler.name}-{compiler.version}/slurm/current'
-      gcc: '{name}-{version}/{name}/{version}'
-    ^openmpi@4:4:
-      prerequisites: 'none'
-    intel:
-      environment:
-        # Hack since it doesn't seem to want to take the license server from file
-        set:
-          INTEL_LICENSE_FILE: '28518@lic1.flatironinstitute.org'
-    py-scipy:
-      autoload: 'direct'
-    py-numpy:
-      autoload: 'direct'
-    python-blas-backend:
-      autoload: 'direct'
-    py-jupyter:
-      autoload: 'direct'
-    py-h5py:
-      prerequisites: 'none'
-    py-torch:
-      prerequisites: 'none'
-    openmpi-opa::
-      autoload: 'direct'
-      environment:
-        set:
-          OMPI_MCA_pml: 'cm'
   lmod:
     hierarchy:
       - mpi
     hash_length: 0
     core_compilers:
       - 'gcc@7.4.0'
+      - 'clang@11.0.1'
     core_specs:
       - 'gcc@7.4.0'
       - 'gcc@10.2.0'
@@ -87,6 +15,7 @@ modules:
       - '%gcc@4.8.5'
       - '^python'
       - 'lmod'
+      - 'openmpi'
     blacklist_implicits: true
     openmpi-opa:
       environment:
@@ -105,13 +34,15 @@ modules:
       - 'py-jupyter'
       - 'py-torch'
       - 'python-blas-backend^intel-mkl'
-      - 'openmpi'
+      - 'openmpi%gcc'
       # things that depend on python, so they get blocked without a whitelist
       - 'llvm'
       - 'vim'
       - 'gdb'
       - 'cmake'
       - 'mercurial'
+      - 'gettext'
+      - 'boost'
     all:
       autoload: 'none'
       prerequisites: 'direct'
@@ -120,6 +51,8 @@ modules:
           '{name}_BASE': '{prefix}'
       suffixes:
         ^mpi: 'mpi'
+      filter:
+        environment_blacklist: ['CC', 'FC', 'CXX', 'F77']
     matlab:
       environment:
         set:
@@ -138,7 +71,11 @@ modules:
         set:
           'BOOST_ROOT': '{prefix}'
     projections:
-      boost+clanglibcpp: '{name}/{version}-libcpp'
+      # boost+clanglibcpp+mpi%clang^zlib%gcc@7: '{name}/{version}-libcpp'
+      # boost+clanglibcpp+mpi%clang^zlib%gcc@10: '{name}/{version}-libcpp'
+      boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
+      boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
+      boost: '{name}/{version}'
       openblas threads=openmp: '{name}/{version}-openmp'
       openblas threads=pthreads: '{name}/{version}-threaded'
       openblas threads=none: '{name}/{version}-single'
@@ -155,6 +92,9 @@ modules:
       llvm: '{name}/{version}'
       gdb: '{name}/{version}'
       vim: '{name}/{version}'
+      mercurial: '{name}/{version}'
+      gsl^openblas: '{name}/{version}-openblas'
+      gsl^intel-mkl: '{name}/{version}-mkl'
       # python packages
       ^python: 'python-packages/{^python.version}/{name}/{version}'
     python-blas-backend:
