@@ -1,8 +1,13 @@
 #!/bin/bash -e
 
 source share/spack/setup-env.sh
+
 spack env activate bootstrap
 spack install || { spack env view regenerate && spack install; }
+
+spack env activate modules
+spack concretize -f
+spack install
 
 exit 0
 
