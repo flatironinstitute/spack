@@ -99,16 +99,20 @@ spack:
         autoload: direct
   definitions:
   - compiler:
-    - '%gcc@7.5.0'
+    - 'gcc@7.5.0'
+  - other_compilers:
+    - 'gcc@10.2.0'
+    #- 'intel'
   - compilers:
     - $compiler
-    - '%gcc@10.2.0'
-      #- '%intel'
+    - $other_compilers
   - mpis:
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
-  - python_blas_packages:
+  - openblas:
+    - openblas@0.3.12 threads=pthreads
+  - python_blas_packages: # python packages that implicitly depend on blas
     - py-pandas@1.1.4
     - py-scikit-learn@0.23.2
     - py-numba@0.50.1
@@ -117,7 +121,7 @@ spack:
     - py-dask@2.16.0
     - py-seaborn@0.9.0
     - py-matplotlib@3.3.3
-  - python_packages:
+  - python_packages: # python packages that don't depend on blas at all
     - py-cherrypy@18.1.1
     - py-flask@1.1.2
     - py-pip@20.2
@@ -145,10 +149,9 @@ spack:
   - matlab@R2018
   - matlab@R2018b
   - matlab@R2020a
-  - matrix:
-    - - $compiler
-    - - gcc@7.5.0
-      - gcc@10.2.0
+  - matrix: # Utilities
+    - - %$compiler
+    - - $compilers
       - emacs@27.1          +X toolkit=athena
       - vim@8.2.1201        +x+python+gui+huge+cscope+lua+ruby
       - zsh@5.8
@@ -167,8 +170,8 @@ spack:
       - lftp@4.8.1
       - curl@7.72.0
       - r+X@4.0.3
-  - matrix:
-    - - $compilers
+  - matrix: # Core libraries
+    - - %$compilers
     - - boost@1.74.0
       - eigen@3.3.8
       - cuda@11.1.0
@@ -188,17 +191,36 @@ spack:
       - nfft@3.4.1 ^fftw@3.3.8~mpi precision=float,double,quad,long_double
       - openblas@0.3.12 threads=none
       - openblas@0.3.12 threads=openmp
-      - openblas@0.3.12 threads=pthreads
+      - $openblas
+      - $mpis
       - openmpi-opa@4.0.5
       - python@3.8.6
-      - python-blas-backend@3.8.6 ^openblas@0.3.12 threads=pthreads
+      - python-blas-backend@3.8.6 ^$openblas
       - python-blas-backend@3.8.6 ^intel-mkl@2020.3.279
       - $python_packages
       - py-pyqt5@5.13.1 ^py-sip@4.19.21 ^llvm@11.0.1
       - py-jupyter@1.0.0 ^llvm@11.0.1
-      - py-h5py@2.10.0 mpi=false ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+fortran~mpi+cxx
+      - py-h5py@2.10.0 mpi=false ^$openblas ^hdf5@1.10.7+fortran~mpi+cxx
   - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7 ^zlib%gcc@7
-  - matrix:
-    - - $compilers
+  - matrix: # python packages that implicitly depend on blas
+    - - %$compilers
     - - $python_blas_packages
     - - ^openblas@0.3.12 threads=pthreads
+  - matrix:
+    - - %$compiler
+    - - ^$mpis
+    - - hdf5@1.8.21+mpi+fortran
+      - hdf5@1.10.7+mpi+fortran
+      - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi+forwran
+  - matrix:
+    - - %$other_compilers
+    - - ^$mpis
+    - - hdf5@1.8.21+mpi~fortran
+      - hdf5@1.10.7+mpi~fortran
+      - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi~forwran
+  - matrix:
+    - - %$compilers
+    - - ^$mpis
+    - - boost@1.74.0+mpi
+      - fftw@2.1.5
+      - py-mpi4py@3.0.3

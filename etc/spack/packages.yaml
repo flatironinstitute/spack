@@ -1,12 +1,12 @@
 packages:
   all:
-    target: [broadwell]
     compiler: [gcc@7, gcc@4, intel, gcc@10]
     providers:
       mpi: [openmpi]
       blas: [openblas, intel-mkl]
       lapack: [openblas, intel-mkl]
       scalapack: [openblas, intel-mkl]
+    target: [broadwell]
     permissions:
       write: group
       group: spack
@@ -20,7 +20,7 @@ packages:
   slurm:
     buildable: false
     externals:
-      - spec: slurm
+      - spec: slurm@20.02.5
         prefix: /cm/shared/apps/slurm/current
   openmpi:
     buildable: false

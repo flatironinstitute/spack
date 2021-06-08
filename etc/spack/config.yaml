@@ -5,3 +5,4 @@ config:
   - /dev/shm/$user/spack-stage
   source_cache: /mnt/ceph/users/spack/cache
   build_jobs: 28
+  concretizer: clingo
