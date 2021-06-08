@@ -1,6 +1,11 @@
 #!/bin/bash -e
 
 source share/spack/setup-env.sh
+spack env activate bootstrap
+spack install || { spack env view regenerate && spack install; }
+
+exit 0
+
 export INTEL_LICENSE_FILE=28518@lic1.flatironinstitute.org
 
 SPACK_INSTALL() {

@@ -5,9 +5,12 @@
 /var/spack/stage
 /var/spack/cache
 /var/spack/environments
+!/var/spack/environments/bootstrap/spack.yaml
+!/var/spack/environments/modules/spack.yaml
 /var/spack/repos/*/index.yaml
 /var/spack/repos/*/lock
 /opt
+/bootstrap
 # Ignore everything in /etc/spack except /etc/spack/defaults
 /etc/spack/*
 !/etc/spack/defaults

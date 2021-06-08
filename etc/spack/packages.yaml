@@ -1,11 +1,22 @@
 packages:
   all:
-    compiler: [gcc@7.4.0, intel@19.1.0.166, gcc@10.2.0]
+    target: [broadwell]
+    compiler: [gcc@7, gcc@4, intel, gcc@10]
     providers:
       mpi: [openmpi]
       blas: [openblas, intel-mkl]
       lapack: [openblas, intel-mkl]
       scalapack: [openblas, intel-mkl]
+    permissions:
+      write: group
+      group: spack
+  openssl:
+    externals:
+    - spec: openssl@1.0.2k
+      prefix: /usr
+  openssh:
+    permissions:
+      write: user
   slurm:
     buildable: false
     externals:
@@ -49,3 +60,5 @@ packages:
   hdf5:
     version: [1.10.7, 1.8.21]
     variants: +hl+fortran~mpi
+  #binutils:
+  #  variants: +gold +ld

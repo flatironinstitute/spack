@@ -1,5 +1,7 @@
 config:
+  install_tree:
+    root: /mnt/ceph/users/$user/spack
   build_stage:
-    - /dev/shm/$user/spack-stage
-
+  - /dev/shm/$user/spack-stage
+  source_cache: /mnt/ceph/users/spack/cache
   build_jobs: 28
