@@ -106,7 +106,7 @@ class Hdf5(AutotoolsPackage):
 
     # Several functions were removed from openmpi>=3, so replace those function calls with
     # supported ones
-    patch('hdf5-1.8.21-openmpi4.patch', when='@1.8.21+mpi')
+    patch('hdf5-1.8.21-openmpi4.patch', when='@1.8.21+mpi', sha256=None)
 
     # There are known build failures with intel@18.0.1. This issue is
     # discussed and patch is provided at

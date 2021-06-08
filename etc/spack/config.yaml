@@ -3,3 +3,4 @@ config:
     - /dev/shm/$user/spack-stage
 
   build_jobs: 28
+  concretizer: clingo

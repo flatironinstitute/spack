@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 source share/spack/setup-env.sh
+spack load clingo
 export INTEL_LICENSE_FILE=28518@lic1.flatironinstitute.org
 
 SPACK_INSTALL() {
@@ -69,6 +70,7 @@ declare -a python_packages=(
     "py-sphinx@3.2.0"
     "py-pytest@5.3.4"
     "py-hypothesis@5.3.0"
+    "py-ipdb@0.10.1"
 )
 
 compiler=%gcc@7.4.0
@@ -79,7 +81,7 @@ SPACK_INSTALL emacs@27.1 $compiler+X toolkit=athena \
       mathematica@11.3    $compiler \
       mathematica@12.1    $compiler \
       mathematica@12.2    $compiler \
-      matlab@R2018        $compiler \
+      matlab@R2018a       $compiler \
       matlab@R2018b       $compiler \
       matlab@R2020a       $compiler \
       cmake@3.18.4        $compiler \
@@ -119,13 +121,12 @@ for compiler in "${compilers[@]}"; do
      llvm@10.0.1                                   $compiler \
      llvm@11.0.1                                   $compiler \
      llvm@12.0.0                                   $compiler \
-     nfft@3.4.1 ^fftw@3.3.8~mpi \
+     nfft@3.5.2 ^fftw@3.3.8~mpi \
           precision=float,double,quad,long_double  $compiler \
      openblas@0.3.12 threads=none                  $compiler \
      openblas@0.3.12 threads=openmp                $compiler \
      openblas@0.3.12 threads=pthreads              $compiler \
      openmpi-opa@4.0.5                             $compiler
-
 
     # python time!
     # python default to multithreaded openblas
@@ -178,16 +179,10 @@ for compiler in "${compilers[@]}"; do
     spack load git%gcc@7.4.0
     CUDA_ARCH=35,60,70,80
     SPACK_INSTALL py-torch@1.7.0 cuda_arch=$CUDA_ARCH \
-          $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl cuda_arch=$CUDA_ARCH
+          $compiler ^openblas@0.3.12 threads=pthreads ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl@2.7.8-1 cuda_arch=$CUDA_ARCH
     SPACK_INSTALL py-torch@1.7.0 cuda_arch=$CUDA_ARCH \
-          $compiler ^intel-mkl@2020.3.279 ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl cuda_arch=$CUDA_ARCH
+          $compiler ^intel-mkl@2020.3.279 ^cudnn@8.0.4.30-11.1-linux-x64 ^nccl@2.7.8-1 cuda_arch=$CUDA_ARCH
     spack unload git
-
-    # ipython requires 7.18.1 requires py-prompt-toolkit@2, so ipdb needs this constraint since it tries for v3
-    SPACK_INSTALL py-ipdb@0.10.1 $compiler ^py-prompt-toolkit@2:2
-    if ! in_list py-ipdb@0.10.1 $active_python_extensions; then
-        SPACK_ACTIVATE py-ipdb@0.10.1 $compiler
-    fi
 
     # Anything dependent on MPI
     for mpi in "${mpis[@]}"; do
@@ -205,13 +200,10 @@ for compiler in "${compilers[@]}"; do
                   py-h5py@2.10.0 $compiler ^$mpi ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+mpi+fortran
         fi
 
-        mpi_hash=$(spack find --format "{hash}" $mpi$compiler)
-        SPACK_INSTALL boost@1.74.0+mpi     $compiler ^$mpi \
-              # boost@1.74.0%clang+mpi+clanglibcpp  ^bzip2$compiler ^zlib$compiler ^$mpi/$mpi_hash \
+        SPACK_INSTALL boost@1.74.0+mpi      $compiler ^$mpi \
               fftw@2.1.5                    $compiler ^$mpi \
               fftw@3.3.8                    $compiler ^$mpi \
               py-mpi4py@3.0.3               $compiler ^$mpi
-
     done
 done
 
