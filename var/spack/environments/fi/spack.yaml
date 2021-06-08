@@ -1,0 +1,315 @@
+spack:
+  config:
+    install_tree: /mnt/ceph/users/$user/spack
+    build_stage:
+    - /dev/shm/$user/spack-stage
+    source_cache: /mnt/ceph/users/spack/cache
+    install_missing_compilers: true
+  compilers:
+  - compiler:
+      spec: gcc@4.4.7
+      paths:
+        cc: /usr/bin/gcc44
+        cxx: /usr/bin/g++44
+        f77:
+        fc:
+      flags: {}
+      operating_system: centos7
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: gcc@4.8.5
+      paths:
+        cc: /usr/bin/gcc
+        cxx: /usr/bin/g++
+        f77: /usr/bin/gfortran
+        fc: /usr/bin/gfortran
+      flags: {}
+      operating_system: centos7
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: intel@19.1.0.166
+      paths:
+        cc: /cm/shared/sw/pkg/vendor/intel-pstudio/2020/compilers_and_libraries_2020.0.166/linux/bin/intel64/icc
+        cxx: /cm/shared/sw/pkg/vendor/intel-pstudio/2020/compilers_and_libraries_2020.0.166/linux/bin/intel64/icpc
+        f77: /cm/shared/sw/pkg/vendor/intel-pstudio/2020/compilers_and_libraries_2020.0.166/linux/bin/intel64/ifort
+        fc: /cm/shared/sw/pkg/vendor/intel-pstudio/2020/compilers_and_libraries_2020.0.166/linux/bin/intel64/ifort
+      flags: {}
+      operating_system: centos7
+      target: x86_64
+      modules: [gcc/7.4.0]
+      environment:
+        set:
+          INTEL_LICENSE_FILE: 28518@lic1.flatironinstitute.org
+      extra_rpaths: []
+  packages:
+    all:
+      permissions:
+        write: group
+        group: scc
+      compiler: [gcc@7]
+      providers:
+        mpi: [openmpi]
+        blas: [openblas, intel-mkl]
+        lapack: [openblas, intel-mkl]
+        scalapack: [openblas, intel-mkl]
+    gcc:
+      compiler: [gcc@7, gcc@4.8, gcc@10]
+    openssl:
+      externals:
+      - spec: openssl@1.0.2k
+        prefix: /usr
+    openssh:
+      permissions:
+        write: user
+    slurm:
+      buildable: false
+      externals:
+      - spec: slurm
+        prefix: /cm/shared/apps/slurm/current
+    openmpi:
+      buildable: false
+      externals:
+      - spec: openmpi@1.10.7
+        prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
+      - spec: openmpi@2.1.6
+        prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
+      - spec: openmpi@4.0.5
+        prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
+    mathematica:
+      buildable: false
+      externals:
+      - spec: mathematica@11.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.2
+      - spec: mathematica@11.3
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.3
+      - spec: mathematica@12.1
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.1
+      - spec: mathematica@12.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.2
+    matlab:
+      buildable: false
+      externals:
+      - spec: matlab@R2018a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018a
+      - spec: matlab@R2018b
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
+      - spec: matlab@R2020a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
+    llvm:
+      version: [11.0.1, 10.0.1, 12.0.0]
+      variants: +omp_tsan+python
+    openblas:
+      version: [0.3.12]
+      variants: threads=pthreads
+    hdf5:
+      version: [1.10.7, 1.8.21]
+      variants: +hl+fortran~mpi
+  modules:
+    enable:
+    - lmod
+    lmod:
+      hierarchy:
+      - mpi
+      hash_length: 0
+      core_compilers:
+      - gcc@7.5.0
+      - clang@11.0.1
+      core_specs:
+      - gcc@7.5.0
+      - gcc@10.2.0
+      blacklist:
+      - '%gcc@4.8.5'
+      - ^python
+      - lmod
+      - openmpi
+      blacklist_implicits: true
+      openmpi-opa:
+        environment:
+          set:
+            OMPI_MCA_pml: cm
+      openmpi:
+        environment:
+          set:
+            OPENMPI_VERSION: '{version}'
+      whitelist:
+      - py-mpi4py
+      - py-numpy
+      - py-scipy
+      - py-h5py
+      - py-pyqt5
+      - py-jupyter
+      - py-torch
+      - python-blas-backend^intel-mkl
+      - openmpi%gcc
+      - llvm # things that depend on python, so they get blocked without a whitelist
+      - vim
+      - gdb
+      - cmake
+      - mercurial
+      - gettext
+      - boost
+      all:
+        autoload: none
+        prerequisites: direct
+        environment:
+          set:
+            '{name}_BASE': '{prefix}'
+        suffixes:
+          ^mpi: mpi
+        filter:
+          environment_blacklist: [CC, FC, CXX, F77]
+      matlab:
+        environment:
+          set:
+            MLM_LICENSE_FILE: /cm/shared/sw/pkg/vendor/matlab/src/network.lic
+      slurm:
+        environment:
+          set:
+            CMD_WLM_CLUSTER_NAME: slurm
+            SLURM_CONF: /cm/shared/apps/slurm/var/etc/slurm/slurm.conf
+      hdf5:
+        environment:
+          set:
+            HDF5_ROOT: '{prefix}'
+      boost:
+        environment:
+          set:
+            BOOST_ROOT: '{prefix}'
+      projections:
+        boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
+        boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
+        boost: '{name}/{version}'
+        openblas threads=openmp: '{name}/{version}-openmp'
+        openblas threads=pthreads: '{name}/{version}-threaded'
+        openblas threads=none: '{name}/{version}-single'
+        py-numpy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
+        py-numpy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+        py-scipy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
+        py-scipy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+        py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
+        py-torch^intel-mkl: python-packages/{^python.version}/{name}/{version}-mkl
+        python-blas-backend^intel-mkl: python/{version}-mkl
+        gromacs+plumed: '{name}/{version}-plumed'
+        slurm: slurm/current
+        llvm: '{name}/{version}'
+        gdb: '{name}/{version}'
+        vim: '{name}/{version}'
+        mercurial: '{name}/{version}'
+        gsl^openblas: '{name}/{version}-openblas'
+        gsl^intel-mkl: '{name}/{version}-mkl'
+        ^python: python-packages/{^python.version}/{name}/{version}
+      python-blas-backend:
+        autoload: direct
+      py-torch:
+        autoload: direct
+  definitions:
+  - compiler:
+    - '%gcc@7.5.0'
+  - compilers:
+    - $compiler
+    - '%gcc@10.2.0'
+      #- '%intel'
+  - mpis:
+    - openmpi@1.10.7
+    - openmpi@2.1.6
+    - openmpi@4.0.5
+  - python_blas_packages:
+    - py-pandas@1.1.4
+    - py-scikit-learn@0.23.2
+    - py-numba@0.50.1
+    - py-emcee@2.2.1
+    - py-astropy@4.0.1.post1
+    - py-dask@2.16.0
+    - py-seaborn@0.9.0
+    - py-matplotlib@3.3.3
+  - python_packages:
+    - py-cherrypy@18.1.1
+    - py-flask@1.1.2
+    - py-pip@20.2
+    - py-ipython@7.18.1
+    - py-pyyaml@5.3.1
+    - py-pylint@2.3.1
+    - py-autopep8@1.4.4
+    - py-sqlalchemy@1.3.19
+    - py-nose@1.3.7
+    - py-mako@1.0.4
+    - py-pkgconfig@1.5.1
+    - py-virtualenv@16.7.6
+    - py-sympy@1.4
+    - py-pycairo@1.18.1
+    - py-sphinx@3.2.0
+    - py-pytest@5.3.4
+    - py-hypothesis@5.3.0
+  view: false
+  specs:
+  - slurm
+  - mathematica@11.2
+  - mathematica@11.3
+  - mathematica@12.1
+  - mathematica@12.2
+  - matlab@R2018
+  - matlab@R2018b
+  - matlab@R2020a
+  - gcc@7.5.0%gcc
+  - matrix:
+    - - $compiler
+    - - gcc@10.2.0
+      - emacs@27.1          +X toolkit=athena
+      - vim@8.2.1201        +x+python+gui+huge+cscope+lua+ruby
+      - zsh@5.8
+      - cmake@3.18.4
+      - git@2.29.0
+      - gdb@9.2
+      - mercurial@5.3
+      - node-js@12.18.4
+      - node-js@14.13.0
+      - go@1.15.2
+      - rclone@1.51.0
+      - subversion@1.14.0
+      - tmux@3.1b
+      - valgrind@3.15.0~mpi
+      - gperftools@2.7
+      - lftp@4.8.1
+      - curl@7.72.0
+      - r+X@4.0.3
+  - matrix:
+    - - $compilers
+    - - boost@1.74.0
+      - eigen@3.3.8
+      - cuda@11.1.0
+      - cudnn@8.0.4.30-11.1-linux-x64
+      - eigen@3.3.8
+      - fftw@2.1.5 mpi=false precision=float,double
+      - fftw@3.3.8 mpi=false precision=float,double,quad,long_double
+      - gsl@2.5+external-cblas ^openblas threads=none
+      - gsl@2.5+external-cblas ^intel-mkl
+      - hdf5@1.8.21+fortran~mpi+cxx
+      - hdf5@1.10.7+fortran~mpi+cxx
+      - intel-mkl@2020.3.279
+      - intel-oneapi-mkl@2021.1.1
+      - llvm@10.0.1
+      - llvm@11.0.1
+      - llvm@12.0.0
+      - nfft@3.4.1 ^fftw@3.3.8~mpi precision=float,double,quad,long_double
+      - openblas@0.3.12 threads=none
+      - openblas@0.3.12 threads=openmp
+      - openblas@0.3.12 threads=pthreads
+      - openmpi-opa@4.0.5
+      - python@3.8.6
+      - python-blas-backend@3.8.6 ^openblas@0.3.12 threads=pthreads
+      - python-blas-backend@3.8.6 ^intel-mkl@2020.3.279
+      - $python_packages
+      - py-pyqt5@5.13.1 ^py-sip@4.19.21 ^llvm@11.0.1
+      - py-jupyter@1.0.0 ^llvm@11.0.1
+      - py-h5py@2.10.0 mpi=false ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+fortran~mpi+cxx
+  - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7 ^zlib%gcc@7
+  - matrix:
+    - - $compilers
+    - - $python_blas_packages
+    - - ^openblas@0.3.12 threads=pthreads
