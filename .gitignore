@@ -12,8 +12,6 @@
 /opt
 /bootstrap
 # Ignore everything in /etc/spack except /etc/spack/defaults
-/etc/spack/*
-!/etc/spack/defaults
 /share/spack/modules
 /share/spack/lmod
 # Debug logs
