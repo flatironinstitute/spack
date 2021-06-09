@@ -14,6 +14,14 @@ packages:
     externals:
     - spec: openssl@1.0.2k
       prefix: /usr
+  cmake:
+    externals:
+    - spec: cmake@2.8.12.2
+      prefix: /
+  bison:
+    externals:
+    - spec: bison@3.0.4
+      prefix: /usr
   openssh:
     permissions:
       write: user

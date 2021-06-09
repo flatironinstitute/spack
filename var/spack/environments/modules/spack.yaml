@@ -150,7 +150,7 @@ spack:
   - matlab@R2018b
   - matlab@R2020a
   - matrix: # Utilities
-    - - %$compiler
+    - - '%$compiler'
     - - $compilers
       - emacs@27.1          +X toolkit=athena
       - vim@8.2.1201        +x+python+gui+huge+cscope+lua+ruby
@@ -171,7 +171,7 @@ spack:
       - curl@7.72.0
       - r+X@4.0.3
   - matrix: # Core libraries
-    - - %$compilers
+    - - '%$compilers'
     - - boost@1.74.0
       - eigen@3.3.8
       - cuda@11.1.0
@@ -203,23 +203,23 @@ spack:
       - py-h5py@2.10.0 mpi=false ^$openblas ^hdf5@1.10.7+fortran~mpi+cxx
   - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7 ^zlib%gcc@7
   - matrix: # python packages that implicitly depend on blas
-    - - %$compilers
+    - - '%$compilers'
     - - $python_blas_packages
     - - ^openblas@0.3.12 threads=pthreads
   - matrix:
-    - - %$compiler
+    - - '%$compiler'
     - - ^$mpis
     - - hdf5@1.8.21+mpi+fortran
       - hdf5@1.10.7+mpi+fortran
       - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi+forwran
   - matrix:
-    - - %$other_compilers
+    - - '%$other_compilers'
     - - ^$mpis
     - - hdf5@1.8.21+mpi~fortran
       - hdf5@1.10.7+mpi~fortran
       - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi~forwran
   - matrix:
-    - - %$compilers
+    - - '%$compilers'
     - - ^$mpis
     - - boost@1.74.0+mpi
       - fftw@2.1.5
