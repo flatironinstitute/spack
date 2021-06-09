@@ -36,6 +36,7 @@ modules:
       - 'py-disbatch'
       - 'python-blas-backend^intel-mkl'
       - 'openmpi%gcc'
+      - 'r'
       # things that depend on python, so they get blocked without a whitelist
       - 'llvm'
       - 'vim'
@@ -93,6 +94,7 @@ modules:
       gdb: '{name}/{version}'
       vim: '{name}/{version}'
       mercurial: '{name}/{version}'
+      r: '{name}/{version}'
       gsl^openblas: '{name}/{version}-openblas'
       gsl^intel-mkl: '{name}/{version}-mkl'
       # python packages
