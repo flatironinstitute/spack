@@ -34,6 +34,7 @@ spack:
       - py-pyqt5
       - py-jupyter
       - py-torch
+      - py-disbatch
       - python-blas-backend^intel-mkl
       - openmpi%gcc
       - llvm # things that depend on python, so they get blocked without a whitelist
@@ -71,6 +72,8 @@ spack:
           set:
             BOOST_ROOT: '{prefix}'
       projections:
+        # boost+clanglibcpp+mpi%clang^zlib%gcc@7: '{name}/{version}-libcpp'
+        # boost+clanglibcpp+mpi%clang^zlib%gcc@10: '{name}/{version}-libcpp'
         boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
         boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
         boost: '{name}/{version}'
@@ -83,15 +86,18 @@ spack:
         py-scipy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
         py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
         py-torch^intel-mkl: python-packages/{^python.version}/{name}/{version}-mkl
+        py-disbatch: 'disBatch/{version}'
         python-blas-backend^intel-mkl: python/{version}-mkl
         gromacs+plumed: '{name}/{version}-plumed'
         slurm: slurm/current
+        # depend on python, so would be picked up by the python-packages rule unless we do this
         llvm: '{name}/{version}'
         gdb: '{name}/{version}'
         vim: '{name}/{version}'
         mercurial: '{name}/{version}'
         gsl^openblas: '{name}/{version}-openblas'
         gsl^intel-mkl: '{name}/{version}-mkl'
+        # python packages
         ^python: python-packages/{^python.version}/{name}/{version}
       python-blas-backend:
         autoload: direct
