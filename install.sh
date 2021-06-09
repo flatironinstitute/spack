@@ -169,6 +169,11 @@ for compiler in "${compilers[@]}"; do
 
     SPACK_INSTALL py-jupyter@1.0.0 $compiler ^llvm@11.0.1
 
+    SPACK_INSTALL py-disBatch@1.4 $compiler ^py-kvsstcp@1.1
+    if ! in_list py-kvsstcp@1.1 $active_python_extensions; then
+        SPACK_ACTIVATE py-kvsstcp@1.1 $compiler
+    fi
+
     # h5py, since it uses a variant, needs its own install
     SPACK_INSTALL py-h5py@2.10.0 mpi=false $compiler ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+fortran~mpi+cxx
     if ! in_list py-h5py@2.10.0 $active_python_extensions; then

@@ -33,6 +33,7 @@ modules:
       - 'py-pyqt5'
       - 'py-jupyter'
       - 'py-torch'
+      - 'py-disbatch'
       - 'python-blas-backend^intel-mkl'
       - 'openmpi%gcc'
       # things that depend on python, so they get blocked without a whitelist
@@ -85,6 +86,7 @@ modules:
       py-scipy^intel-mkl: 'python-packages/{^python.version}/{name}/.{version}-mkl'
       py-torch^openblas: 'python-packages/{^python.version}/{name}/{version}-openblas'
       py-torch^intel-mkl: 'python-packages/{^python.version}/{name}/{version}-mkl'
+      py-disbatch: 'disBatch/{version}'
       python-blas-backend^intel-mkl: 'python/{version}-mkl'
       gromacs+plumed: '{name}/{version}-plumed'
       slurm: 'slurm/current'
@@ -101,3 +103,4 @@ modules:
       autoload: 'direct'
     py-torch:
       autoload: 'direct'
+
