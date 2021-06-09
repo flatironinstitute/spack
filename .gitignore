@@ -11,7 +11,9 @@
 /var/spack/repos/*/lock
 /opt
 /bootstrap
-# Ignore everything in /etc/spack except /etc/spack/defaults
+*~
+/etc/spackconfig
+/share/spack/dotkit
 /share/spack/modules
 /share/spack/lmod
 # Debug logs

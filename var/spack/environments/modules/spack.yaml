@@ -37,6 +37,7 @@ spack:
       - py-disbatch
       - python-blas-backend^intel-mkl
       - openmpi%gcc
+      - 'r'
       - llvm # things that depend on python, so they get blocked without a whitelist
       - vim
       - gdb
@@ -72,8 +73,6 @@ spack:
           set:
             BOOST_ROOT: '{prefix}'
       projections:
-        # boost+clanglibcpp+mpi%clang^zlib%gcc@7: '{name}/{version}-libcpp'
-        # boost+clanglibcpp+mpi%clang^zlib%gcc@10: '{name}/{version}-libcpp'
         boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
         boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
         boost: '{name}/{version}'
@@ -86,7 +85,7 @@ spack:
         py-scipy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
         py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
         py-torch^intel-mkl: python-packages/{^python.version}/{name}/{version}-mkl
-        py-disbatch: 'disBatch/{version}'
+        py-disbatch: disBatch/{version}
         python-blas-backend^intel-mkl: python/{version}-mkl
         gromacs+plumed: '{name}/{version}-plumed'
         slurm: slurm/current
@@ -95,6 +94,7 @@ spack:
         gdb: '{name}/{version}'
         vim: '{name}/{version}'
         mercurial: '{name}/{version}'
+        r: '{name}/{version}'
         gsl^openblas: '{name}/{version}-openblas'
         gsl^intel-mkl: '{name}/{version}-mkl'
         # python packages
@@ -105,9 +105,9 @@ spack:
         autoload: direct
   definitions:
   - compiler:
-    - 'gcc@7.5.0'
+    - gcc@7.5.0
   - other_compilers:
-    - 'gcc@10.2.0'
+    - gcc@10.2.0
     #- 'intel'
   - compilers:
     - $compiler
@@ -116,10 +116,8 @@ spack:
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
-  - openblas:
-    - openblas@0.3.12 threads=pthreads
-  - python_blas_packages: # python packages that implicitly depend on blas
-    - py-pandas@1.1.4
+  - python_blas_packages:
+    - py-pandas@1.1.4     # python packages that implicitly depend on blas
     - py-scikit-learn@0.23.2
     - py-numba@0.50.1
     - py-emcee@2.2.1
@@ -127,8 +125,8 @@ spack:
     - py-dask@2.16.0
     - py-seaborn@0.9.0
     - py-matplotlib@3.3.3
-  - python_packages: # python packages that don't depend on blas at all
-    - py-cherrypy@18.1.1
+  - python_packages:
+    - py-cherrypy@18.1.1 # python packages that don't depend on blas at all
     - py-flask@1.1.2
     - py-pip@20.2
     - py-ipython@7.18.1
@@ -152,11 +150,12 @@ spack:
   - mathematica@11.3
   - mathematica@12.1
   - mathematica@12.2
-  - matlab@R2018
+  - matlab@R2018a
   - matlab@R2018b
   - matlab@R2020a
-  - matrix: # Utilities
-    - - '%$compiler'
+  # Utilities
+  - matrix:
+    - - $%compiler
     - - $compilers
       - emacs@27.1          +X toolkit=athena
       - vim@8.2.1201        +x+python+gui+huge+cscope+lua+ruby
@@ -176,8 +175,8 @@ spack:
       - lftp@4.8.1
       - curl@7.72.0
       - r+X@4.0.3
-  - matrix: # Core libraries
-    - - '%$compilers'
+  - matrix:
+    - - $%compilers
     - - boost@1.74.0
       - eigen@3.3.8
       - cuda@11.1.0
@@ -197,36 +196,37 @@ spack:
       - nfft@3.4.1 ^fftw@3.3.8~mpi precision=float,double,quad,long_double
       - openblas@0.3.12 threads=none
       - openblas@0.3.12 threads=openmp
-      - $openblas
+      - openblas@0.3.12 threads=pthreads
       - $mpis
       - openmpi-opa@4.0.5
       - python@3.8.6
-      - python-blas-backend@3.8.6 ^$openblas
+      - python-blas-backend@3.8.6 ^openblas@0.3.12 threads=pthreads
       - python-blas-backend@3.8.6 ^intel-mkl@2020.3.279
       - $python_packages
       - py-pyqt5@5.13.1 ^py-sip@4.19.21 ^llvm@11.0.1
       - py-jupyter@1.0.0 ^llvm@11.0.1
-      - py-h5py@2.10.0 mpi=false ^$openblas ^hdf5@1.10.7+fortran~mpi+cxx
-  - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7 ^zlib%gcc@7
-  - matrix: # python packages that implicitly depend on blas
-    - - '%$compilers'
+      - py-h5py@2.10.0 mpi=false ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+fortran~mpi+cxx
+  - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7.5.0 ^zlib%gcc@7.5.0
+  # python packages that implicitly depend on blas
+  - matrix:
+    - - $%compilers
     - - $python_blas_packages
     - - ^openblas@0.3.12 threads=pthreads
   - matrix:
-    - - '%$compiler'
-    - - ^$mpis
+    - - $%compiler
+    - - $^mpis
     - - hdf5@1.8.21+mpi+fortran
       - hdf5@1.10.7+mpi+fortran
-      - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi+forwran
+      - py-h5py@2.10.0 ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+mpi+fortran
   - matrix:
-    - - '%$other_compilers'
-    - - ^$mpis
+    - - $%other_compilers
+    - - $^mpis
     - - hdf5@1.8.21+mpi~fortran
       - hdf5@1.10.7+mpi~fortran
-      - py-h5py@2.10.0 ^$openblas ^hdf5@1.10.7+mpi~forwran
+      - py-h5py@2.10.0 ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+mpi~fortran
   - matrix:
-    - - '%$compilers'
-    - - ^$mpis
+    - - $%compilers
+    - - $^mpis
     - - boost@1.74.0+mpi
       - fftw@2.1.5
       - py-mpi4py@3.0.3
