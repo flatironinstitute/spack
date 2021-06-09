@@ -1,2 +1,2 @@
 mirrors:
-  ceph: file:///mnt/ceph/users/spack/cache
+  home: file:///mnt/home/spack/cache

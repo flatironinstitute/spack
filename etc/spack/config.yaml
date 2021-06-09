@@ -1,8 +1,8 @@
 config:
   install_tree:
-    root: /mnt/ceph/users/$user/spack
+    root: /mnt/home/spack/root/$user
   build_stage:
   - /dev/shm/$user/spack-stage
-  source_cache: /mnt/ceph/users/spack/cache
+  source_cache: /mnt/home/spack/cache
   build_jobs: 28
   concretizer: clingo
