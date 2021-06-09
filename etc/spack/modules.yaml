@@ -72,8 +72,6 @@ modules:
         set:
           'BOOST_ROOT': '{prefix}'
     projections:
-      # boost+clanglibcpp+mpi%clang^zlib%gcc@7: '{name}/{version}-libcpp'
-      # boost+clanglibcpp+mpi%clang^zlib%gcc@10: '{name}/{version}-libcpp'
       boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
       boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
       boost: '{name}/{version}'
