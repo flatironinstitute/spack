@@ -225,7 +225,8 @@ class Lock(object):
 
         except IOError as e:
             # EAGAIN and EACCES == locked by another process (so try again)
-            if e.errno not in (errno.EAGAIN, errno.EACCES):
+            # and ENOLCK: FI hack for transient GPFS error at lock #200
+            if e.errno not in (errno.EAGAIN, errno.EACCES, errno.ENOLCK):
                 raise
 
         return False
