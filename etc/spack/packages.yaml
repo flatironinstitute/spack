@@ -12,8 +12,8 @@ packages:
       group: spack
   openssl:
     externals:
-    - spec: openssl@1.0.2k
-      prefix: /usr
+    - spec: openssl@1.0.2k-fips
+      prefix: /
   cmake:
     externals:
     - spec: cmake@2.8.12.2
@@ -22,6 +22,16 @@ packages:
     externals:
     - spec: bison@3.0.4
       prefix: /usr
+  ncurses:
+    externals:
+    - spec: ncurses@5.9.20130511+termlib abi=5
+      prefix: /usr
+  python:
+    externals:
+    - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib
+      prefix: /
+    - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib
+      prefix: /
   openssh:
     permissions:
       write: user

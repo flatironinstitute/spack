@@ -91,16 +91,14 @@ spack:
         python-blas-backend^intel-mkl: python/{version}-mkl
         gromacs+plumed: '{name}/{version}-plumed'
         slurm: slurm/current
-        # depend on python, so would be picked up by the python-packages rule unless we do this
-        llvm: '{name}/{version}'
+        llvm: '{name}/{version}' # depend on python, so would be picked up by the python-packages rule unless we do this
         gdb: '{name}/{version}'
         vim: '{name}/{version}'
         mercurial: '{name}/{version}'
         r: '{name}/{version}'
         gsl^openblas: '{name}/{version}-openblas'
         gsl^intel-mkl: '{name}/{version}-mkl'
-        # python packages
-        ^python: python-packages/{^python.version}/{name}/{version}
+        ^python: python-packages/{^python.version}/{name}/{version} # python packages
       python-blas-backend:
         autoload: direct
       py-torch:
@@ -177,10 +175,10 @@ spack:
       - lftp@4.8.1
       - curl@7.72.0
       - r+X@4.0.3
+  # Core libraries
   - matrix:
     - - $%compilers
     - - boost@1.74.0
-      - eigen@3.3.8
       - cuda@11.1.0
       - cudnn@8.0.4.30-11.1-linux-x64
       - eigen@3.3.8
@@ -201,19 +199,20 @@ spack:
       - openblas@0.3.12 threads=pthreads
       - $mpis
       - openmpi-opa@4.0.5
-      - python@3.8.6
-      - python-blas-backend@3.8.6 ^openblas@0.3.12 threads=pthreads
+      - python@3.8.6 # python default to multithreaded openblas
+      - python-blas-backend@3.8.6 ^openblas@0.3.12 threads=pthreads # python-blas-backend is a custom package that includes scipy/numpy
       - python-blas-backend@3.8.6 ^intel-mkl@2020.3.279
-      - $python_packages
+      - $python_packages # all non-blas python packages
       - py-pyqt5@5.13.1 ^py-sip@4.19.21 ^llvm@11.0.1
       - py-jupyter@1.0.0 ^llvm@11.0.1
       - py-h5py@2.10.0 mpi=false ^openblas@0.3.12 threads=pthreads ^hdf5@1.10.7+fortran~mpi+cxx
   - boost@1.74.0%clang+clanglibcpp ^bzip2%gcc@7.5.0 ^zlib%gcc@7.5.0
-  # python packages that implicitly depend on blas
+  # blas stuff requires a blas spec
   - matrix:
     - - $%compilers
     - - $python_blas_packages
     - - ^openblas@0.3.12 threads=pthreads
+  # Anything dependent on MPI
   - matrix:
     - - $%compiler
     - - $^mpis
@@ -231,4 +230,5 @@ spack:
     - - $^mpis
     - - boost@1.74.0+mpi
       - fftw@2.1.5
+      - fftw@3.3.8
       - py-mpi4py@3.0.3
