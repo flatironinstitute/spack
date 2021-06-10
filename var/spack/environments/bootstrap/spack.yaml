@@ -1,9 +1,10 @@
 spack:
+  config:
+    concretizer: original
   specs:
   - gcc@7.5.0%gcc@4.8.5
   - gcc@10.2.0%gcc@7.5.0
   - llvm@11.0.1%gcc@7.5.0
-  - clingo-bootstrap
   view:
     default:
       root: /mnt/home/dylan/spack/bootstrap
@@ -12,4 +13,3 @@ spack:
       select:
       - gcc
       - llvm
-      - python

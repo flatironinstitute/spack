@@ -1,4 +1,6 @@
 spack:
+  config:
+    concretizer: clingo
   modules:
     enable:
     - lmod
