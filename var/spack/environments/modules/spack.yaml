@@ -37,7 +37,7 @@ spack:
       - py-disbatch
       - python-blas-backend^intel-mkl
       - openmpi%gcc
-      - 'r'
+      - r
       - llvm # things that depend on python, so they get blocked without a whitelist
       - vim
       - gdb
