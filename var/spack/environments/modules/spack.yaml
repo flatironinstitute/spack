@@ -180,7 +180,7 @@ spack:
     - - $%compilers
     - - boost@1.74.0
       - cuda@11.1.0
-      - cudnn@8.0.4.30-11.1-linux-x64
+      - cudnn@8.0.4.30-11.1
       - eigen@3.3.8
       - fftw@2.1.5 mpi=false precision=float,double
       - fftw@3.3.8 mpi=false precision=float,double,quad,long_double

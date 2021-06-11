@@ -7,17 +7,17 @@ packages:
       lapack: [openblas, intel-mkl]
       scalapack: [openblas, intel-mkl]
     target: [broadwell]
-    permissions:
-      write: group
-      group: spack
+    #permissions:
+    #  write: group
+    #  group: spack
   openssl:
     externals:
     - spec: openssl@1.0.2k-fips
-      prefix: /
+      prefix: /usr
   cmake:
     externals:
     - spec: cmake@2.8.12.2
-      prefix: /
+      prefix: /usr
   bison:
     externals:
     - spec: bison@3.0.4
@@ -29,9 +29,9 @@ packages:
   python:
     externals:
     - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib
-      prefix: /
+      prefix: /usr
     - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib
-      prefix: /
+      prefix: /usr
   openssh:
     permissions:
       write: user
