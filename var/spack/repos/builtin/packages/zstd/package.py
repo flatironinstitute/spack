@@ -49,6 +49,7 @@ class Zstd(CMakePackage):
     depends_on('zlib', when='+zlib')
     depends_on('lzma', when='+lzma')
     depends_on('lz4', when='+lz4')
+    depends_on('cmake@3:', type='build')
 
     def cmake_args(self):
         return [
