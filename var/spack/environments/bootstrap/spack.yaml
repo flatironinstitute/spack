@@ -7,14 +7,16 @@ spack:
   - matrix:
     - - gcc@10.3.0
       - llvm@11.0.1
+      - intel-oneapi-compilers@2021.2.0
       - clingo-bootstrap@spack
     - - '%gcc@7.5.0 ^python@3.8.10'
   view:
     default:
-      root: /mnt/home/dylan/spack/bootstrap
+      root: $spack/bootstrap
       projections:
         all: '{name}-{version}'
       select:
       - gcc
       - llvm
+      - intel-oneapi-compilers
       - python
