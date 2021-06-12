@@ -297,9 +297,9 @@ class Hdf5(AutotoolsPackage):
             extra_args.append('--with-default-api-version=' + api)
 
         # Fix for gcc@10 compile issues
-        if self.spec.satisfies('@1.8.0:1.8.999'):
+        if self.spec.satisfies('@1.8.0:1.8.999%gcc@10:'):
             extra_args.extend([
-                'FCFLAGS="-fallow-invalid-boz"',
+                'FCFLAGS=-fallow-invalid-boz',
             ])
 
         if self.spec.satisfies('@1.10:'):
