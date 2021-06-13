@@ -23,11 +23,7 @@ filter_out () {
 
 echo '*** Activate python packages'
 # activate all non-MPI python packages
-for pkg in $(spack_ls '^python' | filter_out spack_ls '^python' '^mpi') ; do
-	if [[ $pkg = py-* ]] ; then
-		spack activate $pkg
-	fi
-done
+parallel spack activate -- $(spack_ls '^python' | filter_out spack_ls '^python' '^mpi' | grep '^py-')
 
 echo '*** Building lmod files'
 spack module lmod refresh -y --delete-tree
