@@ -1,109 +1,13 @@
 packages:
   all:
-    compiler: [gcc@7.5.0, gcc@4.8.4, gcc@10.3.0, intel, clang]
-    providers:
-      mpi: [openmpi]
-      blas: [openblas, intel-mkl]
-      lapack: [openblas, intel-mkl]
-      scalapack: [openblas, intel-mkl]
     target: [broadwell]
     #permissions:
     #  write: group
     #  group: spack
-  gcc:
-    externals:
-    - spec: gcc@4.4.7 languages=c,c++
-      prefix: /usr
-      extra_attributes:
-        compilers:
-          c: /usr/bin/gcc44
-          cxx: /usr/bin/g++44
-    - spec: gcc@4.8.5 languages=c,c++,fortran
-      prefix: /usr
-      extra_attributes:
-        compilers:
-          c: /usr/bin/x86_64-redhat-linux-gcc
-          cxx: /usr/bin/x86_64-redhat-linux-g++
-          fortran: /usr/bin/gfortran
-    version: [7.5.0, 10.3.0, 4.8.5]
+  openssh:
+    permissions:
+      write: user
   openssl:
     externals:
     - spec: openssl@1.0.2k-fips
       prefix: /usr
-  cmake:
-    externals:
-    - spec: cmake@2.8.12.2
-      prefix: /usr
-    version: [3.18.4, 2.8.12.2]
-  bison:
-    externals:
-    - spec: bison@3.0.4
-      prefix: /usr
-  ncurses:
-    externals:
-    - spec: ncurses@5.9.20130511+termlib abi=5
-      prefix: /usr
-    version: [6.2, 5.9.20130511]
-  python:
-    externals:
-    - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib
-      prefix: /usr
-    - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib
-      prefix: /usr
-    version: [3.8.6, 3.6.8, 2.7.5]
-  openssh:
-    permissions:
-      write: user
-  slurm:
-    buildable: false
-    externals:
-      - spec: slurm@20.02.5
-        prefix: /cm/shared/apps/slurm/current
-  openmpi:
-    buildable: false
-    externals:
-      - spec: openmpi@1.10.7
-        prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
-      - spec: openmpi@2.1.6
-        prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
-      - spec: openmpi@4.0.5
-        prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
-    version: [4.0.5, 2.1.6, 1.10.7]
-  mathematica:
-    buildable: false
-    externals:
-      - spec: mathematica@11.2
-        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.2
-      - spec: mathematica@11.3
-        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.3
-      - spec: mathematica@12.1
-        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.1
-      - spec: mathematica@12.2
-        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.2
-  matlab:
-    buildable: false
-    externals:
-      - spec: matlab@R2018a
-        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018a
-      - spec: matlab@R2018b
-        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
-      - spec: matlab@R2020a
-        prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
-  llvm:
-    version: [11.0.1, 10.0.1, 12.0.0]
-    variants: +omp_tsan+python
-  openblas:
-    version: [0.3.15]
-    variants: threads=pthreads
-  hdf5:
-    version: [1.10.7, 1.8.22]
-    variants: +hl+fortran+cxx~mpi
-  #binutils:
-  #  variants: +gold +ld
-  cuda:
-    version: [11.1.0]
-  cudnn:
-    version: [8.0.4.30-11.1]
-  fftw:
-    version: [3.3.9, 2.1.5]
-    variants: ~mpi precision=float,double,quad,long_double

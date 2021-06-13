@@ -1,22 +1,50 @@
 spack:
   config:
     concretizer: original
+  packages:
+    all:
+      compiler: [gcc@7.5.0, gcc@4.8.5]
+    gcc:
+      externals:
+      - spec: gcc@4.8.5 languages=c,c++,fortran
+        prefix: /usr
+        extra_attributes:
+          compilers:
+            c: /usr/bin/x86_64-redhat-linux-gcc
+            cxx: /usr/bin/x86_64-redhat-linux-g++
+            fortran: /usr/bin/gfortran
+    cmake:
+      externals:
+      - spec: cmake@2.8.12.2
+        prefix: /usr
+    bison:
+      externals:
+      - spec: bison@3.0.4
+        prefix: /usr
+    ncurses:
+      externals:
+      - spec: ncurses@5.9.20130511+termlib abi=5
+        prefix: /usr
+    python:
+      externals:
+      - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib
+        prefix: /usr
+      - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib
+        prefix: /usr
   specs:
   - gcc@7.5.0%gcc@4.8.5
-  - python@3.8.10%gcc@7.5.0
   - matrix:
     - - gcc@10.3.0
       - llvm@11.0.1
       - intel-oneapi-compilers@2021.2.0
-      - clingo-bootstrap@spack
-    - - '%gcc@7.5.0 ^python@3.8.10'
+    - - '%gcc@7.5.0'
   view:
     default:
       root: $spack/bootstrap
       projections:
+        python: 'llvm-11.0.1' # hack because llvm is being installed as python for some reason
         all: '{name}-{version}'
       select:
       - gcc
       - llvm
       - intel-oneapi-compilers
-      - python

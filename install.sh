@@ -2,10 +2,10 @@
 
 source share/spack/setup-env.sh
 
-spack env activate bootstrap
+spack env activate -V bootstrap
 spack install || { spack env view regenerate && spack install; }
 
-spack env activate modules
+spack env activate -V modules
 spack concretize
 spack install --only-concrete --fail-fast
 
