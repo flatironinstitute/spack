@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
 
 spack env activate -V bootstrap
