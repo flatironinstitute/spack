@@ -27,9 +27,9 @@ class PythonBlasBackend(BundlePackage):
     """FIXME: Put a proper description of your package here."""
 
     # FIXME: Add proper versions here.
-    version('3.8.6')
+    version('3.8.10')
 
     # FIXME: Add dependencies if required.
-    depends_on('python@3.8.6')
-    depends_on('py-numpy@1.19.4')
-    depends_on('py-scipy@1.5.4')
+    depends_on('python@3.8.10')
+    depends_on('py-numpy@1.20.3')
+    depends_on('py-scipy@1.6.3')

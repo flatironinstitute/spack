@@ -7,12 +7,11 @@ spack env activate -V bootstrap
 spack install || { spack env view regenerate && spack install; }
 
 spack env activate -V modules
-spack concretize
+spack concretize -f
 spack install --only-concrete --fail-fast
 
 spack module lmod refresh -y --delete-tree
-ln -s $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/7.4.0 \
-   $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default
+ln -s 7.5.0 $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default
 
 exit 0
 

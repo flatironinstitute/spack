@@ -20,38 +20,38 @@ spack:
     slurm:
       buildable: false
       externals:
-        - spec: slurm@20.02.5
-          prefix: /cm/shared/apps/slurm/current
+      - spec: slurm@20.02.5
+        prefix: /cm/shared/apps/slurm/current
     openmpi:
       buildable: false
       externals:
-        - spec: openmpi@1.10.7
-          prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
-        - spec: openmpi@2.1.6
-          prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
-        - spec: openmpi@4.0.5
-          prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
+      - spec: openmpi@1.10.7
+        prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
+      - spec: openmpi@2.1.6
+        prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
+      - spec: openmpi@4.0.5
+        prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
       version: [4.0.5, 2.1.6, 1.10.7]
     mathematica:
       buildable: false
       externals:
-        - spec: mathematica@11.2
-          prefix: /cm/shared/sw/pkg/vendor/mathematica/11.2
-        - spec: mathematica@11.3
-          prefix: /cm/shared/sw/pkg/vendor/mathematica/11.3
-        - spec: mathematica@12.1
-          prefix: /cm/shared/sw/pkg/vendor/mathematica/12.1
-        - spec: mathematica@12.2
-          prefix: /cm/shared/sw/pkg/vendor/mathematica/12.2
+      - spec: mathematica@11.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.2
+      - spec: mathematica@11.3
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/11.3
+      - spec: mathematica@12.1
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.1
+      - spec: mathematica@12.2
+        prefix: /cm/shared/sw/pkg/vendor/mathematica/12.2
     matlab:
       buildable: false
       externals:
-        - spec: matlab@R2018a
-          prefix: /cm/shared/sw/pkg/vendor/matlab/R2018a
-        - spec: matlab@R2018b
-          prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
-        - spec: matlab@R2020a
-          prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
+      - spec: matlab@R2018a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018a
+      - spec: matlab@R2018b
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2018b
+      - spec: matlab@R2020a
+        prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
     llvm:
       version: [11.0.1, 10.0.1, 12.0.0]
       variants: +omp_tsan+python
