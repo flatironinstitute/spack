@@ -231,7 +231,7 @@ spack:
   - zsh
   - cmake
   - git
-  - gdb
+  - gdb # needs python+debug
   - mercurial
   - node-js@:12
   - node-js
@@ -274,7 +274,7 @@ spack:
       - $python_packages # all non-blas python packages
       - 'py-pyqt5 ^llvm@11:'
       - 'py-jupyter ^llvm@11:'
-      - py-h5py@:2 mpi=false ^openblas
+      - py-h5py@:2 ~mpi ^openblas
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
   # blas stuff requires a blas spec
   - matrix:

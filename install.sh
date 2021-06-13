@@ -3,17 +3,38 @@
 export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
 
+echo '*** Bootstrapping compilers'
 spack env activate -V bootstrap
 spack install || { spack env view regenerate && spack install; }
 
+echo '*** Building modules'
 spack env activate -V modules
 spack concretize -f
+spack gc -y
 spack install --only-concrete --fail-fast
 
+spack_ls () {
+	spack find -cx --format '{name}@{version}/{hash:7}' "$@" | sort
+}
+
+filter_out () {
+	comm -23 - <("$@")
+}
+
+echo '*** Activate python packages'
+# activate all non-MPI python packages
+for pkg in $(spack_ls '^python' | filter_out spack_ls '^python' '^mpi') ; do
+	if [[ $pkg = py-* ]] ; then
+		spack activate $pkg
+	fi
+done
+
+echo '*** Building lmod files'
 spack module lmod refresh -y --delete-tree
 ln -s 7.5.0 $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default
 
 exit 0
+# old (non-environment-based) install follows
 
 spack load clingo
 export INTEL_LICENSE_FILE=28518@lic1.flatironinstitute.org
