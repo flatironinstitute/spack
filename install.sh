@@ -25,6 +25,9 @@ echo '*** Activate python packages'
 # activate all non-MPI python packages
 parallel spack activate -- $(spack_ls '^python' | filter_out spack_ls '^python' '^mpi' | grep '^py-')
 
+# TODO singularity.conf (and cgroup.conf)
+#sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
+
 echo '*** Building lmod files'
 spack module lmod refresh -y --delete-tree
 ln -s 7.5.0 $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default
