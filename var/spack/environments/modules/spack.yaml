@@ -147,8 +147,7 @@ spack:
             set:
               BOOST_ROOT: '{prefix}'
         projections:
-          boost+clanglibcpp%clang^zlib%gcc@7: '{name}/{version}-libcpp-gcc7'
-          boost+clanglibcpp%clang^zlib%gcc@10: '{name}/{version}-libcpp-gcc10'
+          boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
           openblas threads=openmp: '{name}/{version}-openmp'
           openblas threads=pthreads: '{name}/{version}-threaded'
