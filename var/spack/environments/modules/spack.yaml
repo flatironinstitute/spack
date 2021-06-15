@@ -6,9 +6,9 @@ spack:
       compiler: [gcc@7.5.0, gcc@10.3.0, intel, clang]
       providers:
         mpi: [openmpi]
-        blas: [openblas, intel-mkl]
-        lapack: [openblas, intel-mkl]
-        scalapack: [openblas, intel-mkl]
+        blas: [openblas, intel-oneapi-mkl]
+        lapack: [openblas, intel-oneapi-mkl]
+        scalapack: [openblas, intel-oneapi-mkl]
     gcc:
       version: [7.5.0, 10.3.0]
     cmake:
@@ -109,7 +109,7 @@ spack:
         - py-jupyter
         - py-torch
         - py-disbatch
-        - python-blas-backend^intel-mkl
+        - python-blas-backend^intel-oneapi-mkl
         - openmpi%gcc
         - r
         - llvm # things that depend on python, so they get blocked without a whitelist
@@ -153,13 +153,13 @@ spack:
           openblas threads=pthreads: '{name}/{version}-threaded'
           openblas threads=none: '{name}/{version}-single'
           py-numpy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-numpy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+          py-numpy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
           py-scipy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-scipy^intel-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+          py-scipy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
           py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
-          py-torch^intel-mkl: python-packages/{^python.version}/{name}/{version}-mkl
+          py-torch^intel-oneapi-mkl: python-packages/{^python.version}/{name}/{version}-mkl
           py-disbatch: disBatch/{version}
-          python-blas-backend^intel-mkl: python/{version}-mkl
+          python-blas-backend^intel-oneapi-mkl: python/{version}-mkl
           gromacs+plumed: '{name}/{version}-plumed'
           slurm: slurm/current
           llvm: '{name}/{version}' # depend on python, so would be picked up by the python-packages rule unless we do this
@@ -168,8 +168,8 @@ spack:
           mercurial: '{name}/{version}'
           r: '{name}/{version}'
           gsl^openblas: '{name}/{version}-openblas'
-          gsl^intel-mkl: '{name}/{version}-mkl'
-          ^python: python-packages/{^python.version}/{name}/{version} # python packages
+          gsl^intel-oneapi-mkl: '{name}/{version}-mkl'
+          ^python: python-packages/{^python.version}/{name}/{version}
         python-blas-backend:
           autoload: direct
         py-torch:
@@ -256,7 +256,7 @@ spack:
       - fftw@:2 precision=float,double
       - fftw
       - gsl+external-cblas ^openblas threads=none
-      - gsl+external-cblas ^intel-mkl
+      - gsl+external-cblas ^intel-oneapi-mkl
       - hdf5@:1.8
       - hdf5
       - intel-mkl
@@ -272,7 +272,7 @@ spack:
       - openmpi-opa@4.0.5
       - python # python default to multithreaded openblas
       - python-blas-backend ^openblas # python-blas-backend is a custom package that includes scipy/numpy
-      - python-blas-backend ^intel-mkl
+      - python-blas-backend ^intel-oneapi-mkl
       - $python_packages # all non-blas python packages
       - py-pyqt5 ^llvm@11:99
       - py-jupyter ^llvm@11:99
