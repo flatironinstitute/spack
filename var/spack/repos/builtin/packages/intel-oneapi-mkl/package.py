@@ -34,27 +34,18 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
     provides('lapack')
     provides('blas')
 
+    def setup_run_environment(self, env):
+        super().setup_run_environment(env)
+        env.append_path('CMAKE_PREFIX_PATH', self.component_path)
+
     def setup_dependent_build_environment(self, env, dependent_spec):
-        prefix_path = self.component_path
-        lib_path = join_path(self.component_path, 'lib', 'intel64')
+        self.setup_run_environment(env)
+
         include_path = join_path(self.component_path, 'include')
-
-        env_mods = {
-            'MKLROOT': prefix_path,
-            'SPACK_COMPILER_EXTRA_RPATHS': lib_path,
-            'CMAKE_PREFIX_PATH': prefix_path,
-            'CMAKE_LIBRARY_PATH': lib_path,
-            'CMAKE_INCLUDE_PATH': include_path,
-        }
-
-        env.set('MKLROOT', env_mods['MKLROOT'])
-        env.append_path('SPACK_COMPILER_EXTRA_RPATHS',
-                        env_mods['SPACK_COMPILER_EXTRA_RPATHS'])
-        env.append_path('CMAKE_PREFIX_PATH', env_mods['CMAKE_PREFIX_PATH'])
-        env.append_path('CMAKE_LIBRARY_PATH',
-                        env_mods['CMAKE_LIBRARY_PATH'])
-        env.append_path('CMAKE_INCLUDE_PATH',
-                        env_mods['CMAKE_INCLUDE_PATH'])
+        lib_path = join_path(self.component_path, 'lib', 'intel64')
+        env.append_path('CMAKE_LIBRARY_PATH', lib_path)
+        env.append_path('CMAKE_INCLUDE_PATH', include_path)
+        env.append_path('SPACK_COMPILER_EXTRA_RPATHS', lib_path)
 
     @property
     def component_dir(self):
