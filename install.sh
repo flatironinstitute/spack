@@ -10,7 +10,7 @@ spack install || { spack env view regenerate && spack install; }
 echo '*** Building modules'
 spack env activate -V modules
 spack concretize -f
-spack gc -y || true
+#spack gc -y || true
 spack install --only-concrete --fail-fast
 
 spack_ls () {
