@@ -466,7 +466,7 @@ def copy_tree(src, dest, symlinks=True, ignore=None, _permissions=False):
         mkdirp(abs_dest)
 
         for s, d, st in traverse_tree(abs_src, abs_dest, order='pre',
-                                  follow_symlinks=not symlinks,
+                                  follow_links=not symlinks,
                                   ignore=ignore,
                                   follow_nonexisting=True,
                                   with_stat=True):
