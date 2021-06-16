@@ -283,7 +283,7 @@ spack:
       - py-jupyter ^llvm@11:13
       - py-h5py@:2 ~mpi ^openblas
       - py-torch ^openblas
-      - py-torch ^intel-oneapi-mkl
+      - py-torch ^intel-mkl
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
   # blas stuff requires a blas spec
   - matrix:
