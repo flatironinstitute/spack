@@ -8,6 +8,7 @@
 from __future__ import print_function
 
 import os
+import stat
 import shutil
 import filecmp
 
@@ -45,43 +46,30 @@ class LinkTree(object):
 
         self._root = source_root
 
-    def find_conflict(self, dest_root, ignore=None,
-                      ignore_file_conflicts=False):
-        """Returns the first file in dest that conflicts with src"""
-        ignore = ignore or (lambda x: False)
-        conflicts = self.find_dir_conflicts(dest_root, ignore)
-
-        if not ignore_file_conflicts:
-            conflicts.extend(
-                dst for src, dst
-                in self.get_file_map(dest_root, ignore).items()
-                if os.path.exists(dst))
-
-        if conflicts:
-            return conflicts[0]
-
     def find_dir_conflicts(self, dest_root, ignore):
+        """Returns conflict descritions for all files/directories in dest incompatible with src."""
         conflicts = []
-        kwargs = {'follow_nonexisting': False, 'ignore': ignore}
-        for src, dest in traverse_tree(self._root, dest_root, **kwargs):
-            if os.path.isdir(src):
-                if os.path.exists(dest) and not os.path.isdir(dest):
+        kwargs = {'follow_nonexisting': False, 'ignore': ignore, 'with_stat': True}
+        for src, dest, src_stat in traverse_tree(self._root, dest_root, **kwargs):
+            if stat.S_ISDIR(src_stat.st_mode):
+                if not os.path.isdir(dest):
                     conflicts.append("File blocks directory: %s" % dest)
-            elif os.path.exists(dest) and os.path.isdir(dest):
-                conflicts.append("Directory blocks directory: %s" % dest)
+            elif os.path.isdir(dest):
+                conflicts.append("Directory blocks non-directory: %s" % dest)
         return conflicts
 
     def get_file_map(self, dest_root, ignore):
         merge_map = {}
-        kwargs = {'follow_nonexisting': True, 'ignore': ignore}
-        for src, dest in traverse_tree(self._root, dest_root, **kwargs):
-            if not os.path.isdir(src):
+        kwargs = {'follow_nonexisting': True, 'ignore': ignore, 'with_stat': True}
+        for src, dest, src_stat in traverse_tree(self._root, dest_root, **kwargs):
+            if not stat.S_ISDIR(src_stat.st_mode):
                 merge_map[src] = dest
         return merge_map
 
     def merge_directories(self, dest_root, ignore):
-        for src, dest in traverse_tree(self._root, dest_root, ignore=ignore):
-            if os.path.isdir(src):
+        """Create any missing directories in dest for all those in src."""
+        for src, dest, src_stat in traverse_tree(self._root, dest_root, ignore=ignore, with_stat=True):
+            if stat.S_ISDIR(src_stat.st_mode): # was this supposed to follow symlinks? (it did before)
                 if not os.path.exists(dest):
                     mkdirp(dest)
                     continue
@@ -90,27 +78,30 @@ class LinkTree(object):
                     raise ValueError("File blocks directory: %s" % dest)
 
                 # mark empty directories so they aren't removed on unmerge.
+                # (this only happens if it already exists because continue above!)
                 if not os.listdir(dest):
                     marker = os.path.join(dest, empty_file_name)
                     touch(marker)
 
     def unmerge_directories(self, dest_root, ignore):
-        for src, dest in traverse_tree(
-                self._root, dest_root, ignore=ignore, order='post'):
-            if os.path.isdir(src):
-                if not os.path.exists(dest):
-                    continue
-                elif not os.path.isdir(dest):
+        for src, dest, src_stat in traverse_tree(
+                self._root, dest_root, ignore=ignore, order='post', with_stat=True, follow_nonexisting=False):
+            if stat.S_ISDIR(src_stat.st_mode): # was this supposed to follow symlinks? (it did before)
+                # remove empty dir marker if present.
+                marker = os.path.join(dest, empty_file_name)
+                try:
+                    os.remove(marker)
+                except FileNotFoundError:
+                    pass
+                except NotADirectoryError:
                     raise ValueError("File blocks directory: %s" % dest)
 
                 # remove directory if it is empty.
-                if not os.listdir(dest):
-                    shutil.rmtree(dest, ignore_errors=True)
+                try:
+                    os.rmdir(dest)
+                except OSError:
+                    pass
 
-                # remove empty dir marker if present.
-                marker = os.path.join(dest, empty_file_name)
-                if os.path.exists(marker):
-                    os.remove(marker)
 
     def merge(self, dest_root, ignore_conflicts=False, ignore=None,
               link=os.symlink, relative=False):
@@ -131,26 +122,46 @@ class LinkTree(object):
             (default False)
 
         """
-        if ignore is None:
-            ignore = lambda x: False
+        if relative:
+            # needed absolute path to determine relative links
+            src_root = os.path.abspath(self._root)
+            dest_root = os.path.abspath(dest_root)
+        else:
+            src_root = self._root
 
-        conflict = self.find_conflict(
-            dest_root, ignore=ignore, ignore_file_conflicts=ignore_conflicts)
-        if conflict:
-            raise MergeConflictError(conflict)
-
-        self.merge_directories(dest_root, ignore)
+        mkdirs = []
+        links = []
         existing = []
-        for src, dst in self.get_file_map(dest_root, ignore).items():
-            if os.path.exists(dst):
+        for src, dst, src_stat in traverse_tree(src_root, dest_root, ignore=ignore, with_stat=True):
+            try:
+                dst_stat = os.lstat(dst)
+            except FileNotFoundError:
+                dst_stat = None
+
+            if stat.S_ISDIR(src_stat.st_mode):
+                if not dst_stat:
+                    mkdirs.append(dst)
+                elif not stat.S_ISDIR(dst_stat.st_mode):
+                    raise MergeConflictError("File blocks directory: %s" % dst)
+            elif not dst_stat:
+                links.append((src, dst))
+            elif stat.S_ISDIR(dst_stat.st_mode):
+                raise MergeConflictError("Directory blocks non-directory: %s" % dst)
+            elif ignore_conflicts:
                 existing.append(dst)
-            elif relative:
-                abs_src = os.path.abspath(src)
-                dst_dir = os.path.dirname(os.path.abspath(dst))
-                rel = os.path.relpath(abs_src, dst_dir)
-                link(rel, dst)
             else:
-                link(src, dst)
+                raise MergeConflictError(dst)
+
+        os.makedirs(dest_root)
+        for d in mkdirs:
+            os.mkdir(d)
+        # TODO: do we want empty_file_name markers for empty directories?
+        # they're not happening in most cases now anyway.
+
+        for src, dst in links:
+            if relative:
+                src = os.path.relpath(src, os.path.dirname(dst))
+            link(src, dst)
 
         for c in existing:
             tty.warn("Could not merge: %s" % c)
@@ -160,13 +171,25 @@ class LinkTree(object):
 
         Unlinks directories in dest if they are empty.
         """
-        if ignore is None:
-            ignore = lambda x: False
+        for src, dest, src_stat in traverse_tree(
+                self._root, dest_root, ignore=ignore, order='post', with_stat=True, follow_nonexisting=False):
+            if stat.S_ISDIR(src_stat.st_mode):
+                # remove empty dir marker if present.
+                marker = os.path.join(dest, empty_file_name)
+                try:
+                    os.remove(marker)
+                except FileNotFoundError:
+                    pass
+                except NotADirectoryError:
+                    raise ValueError("File blocks directory: %s" % dest)
 
-        for src, dst in self.get_file_map(dest_root, ignore).items():
-            remove_file(src, dst)
-        self.unmerge_directories(dest_root, ignore)
-
+                # remove directory if it is empty.
+                try:
+                    os.rmdir(dest)
+                except OSError:
+                    pass
+            else:
+                remove_file(src, dst)
 
 class MergeConflictError(Exception):
 
