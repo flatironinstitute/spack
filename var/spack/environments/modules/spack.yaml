@@ -72,6 +72,10 @@ spack:
     fftw:
       version: [3.3.9, 2.1.5]
       variants: ~mpi precision=float,double,quad,long_double
+    py-torch:
+      variants: cuda_arch=35,60,70,80
+    nccl:
+      variants: cuda_arch=35,60,70,80
   modules:
     default:
       enable:
@@ -245,6 +249,7 @@ spack:
   - lftp
   - curl
   - singularity
+  - py-disbatch
   - r +X
   # Core libraries
   - matrix:
@@ -274,9 +279,11 @@ spack:
       - python-blas-backend ^openblas # python-blas-backend is a custom package that includes scipy/numpy
       - python-blas-backend ^intel-oneapi-mkl
       - $python_packages # all non-blas python packages
-      - py-pyqt5 ^llvm@11:99
-      - py-jupyter ^llvm@11:99
+      - py-pyqt5 ^llvm@11:13
+      - py-jupyter ^llvm@11:13
       - py-h5py@:2 ~mpi ^openblas
+      - py-torch ^openblas
+      - py-torch ^intel-oneapi-mkl
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
   # blas stuff requires a blas spec
   - matrix:
