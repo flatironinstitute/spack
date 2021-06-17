@@ -152,9 +152,12 @@ class LinkTree(object):
             else:
                 raise MergeConflictError(dst)
 
-        os.makedirs(dest_root)
+        os.makedirs(dest_root, exist_ok=True)
         for d in mkdirs:
-            os.mkdir(d)
+            try:
+                os.mkdir(d)
+            except FileExistsError:
+                pass
         # TODO: do we want empty_file_name markers for empty directories?
         # they're not happening in most cases now anyway.
 
