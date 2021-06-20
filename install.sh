@@ -50,12 +50,14 @@ filter_out () {
 }
 
 echo '*** Activate python packages'
-# activate all non-MPI python packages
-parallel spack activate -- $(spack_ls '^python'
-	| filter_out spack_ls '^python' '^mpi'
-	| filter_out spack_ls '^python' '^openblas'
-	| filter_out spack_ls '^python' '^qt'
-	| grep '^py-')
+parallel spack activate -- $(spack_ls '^python'\
+        | filter_out spack_ls '^python' '^mpi'\
+        | filter_out spack_ls 'py-pyqt'\
+        | filter_out spack_ls 'py-torch'\
+        | filter_out spack_ls 'py-jupyter'\
+        | filter_out spack_ls 'py-h5py'\
+        | filter_out spack_ls '^intel-oneapi-mkl'\
+        | grep '^py-')
 
 #sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
 

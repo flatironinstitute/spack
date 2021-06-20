@@ -116,6 +116,7 @@ spack:
         - py-disbatch
         - python-blas-backend^intel-oneapi-mkl
         - openmpi%gcc
+        - intel-mpi
         - r
         - llvm # things that depend on python, so they get blocked without a whitelist
         - vim
@@ -191,7 +192,7 @@ spack:
     - $other_compilers
   - mpis:
     - intel-oneapi-mpi
-    - intel-mpi
+    - intel-mpi@2017.4.196
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
