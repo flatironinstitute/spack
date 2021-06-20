@@ -3,9 +3,9 @@ spack:
     concretizer: clingo
   packages:
     all:
-      compiler: [gcc@7.5.0, gcc@10.2.0 intel, clang]
+      compiler: [gcc@7.5.0, gcc@10.2.0, intel, clang]
       providers:
-        mpi: [openmpi, intel-oneapi-mpi]
+        mpi: [openmpi, intel-oneapi-mpi, intel-mpi]
         blas: [openblas, intel-oneapi-mkl]
         lapack: [openblas, intel-oneapi-mkl]
         scalapack: [openblas, intel-oneapi-mkl]
@@ -26,6 +26,11 @@ spack:
       externals:
       - spec: slurm@20.02.5
         prefix: /cm/shared/apps/slurm/current
+    intel-mpi:
+      buildable: false
+      externals:
+      - spec: intel-mpi@2017.4.196
+        prefix: /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/mpi
     openmpi:
       buildable: false
       externals:
@@ -186,6 +191,7 @@ spack:
     - $other_compilers
   - mpis:
     - intel-oneapi-mpi
+    - intel-mpi
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
@@ -243,6 +249,7 @@ spack:
       - intel-mkl
       - intel-oneapi-mkl
       - intel-oneapi-mpi
+      - intel-mpi
       - nfft
       - openblas threads=none
       - openblas threads=openmp
