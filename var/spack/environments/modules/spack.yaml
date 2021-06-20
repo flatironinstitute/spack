@@ -185,6 +185,7 @@ spack:
     - $compiler
     - $other_compilers
   - mpis:
+    - intel-oneapi-mpi
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
