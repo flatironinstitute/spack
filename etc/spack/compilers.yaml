@@ -54,12 +54,12 @@ compilers:
     environment: {}
     extra_rpaths: []
 - compiler:
-    spec: gcc@10.3.0
+    spec: gcc@10.2.0
     paths:
-      cc: $spack/bootstrap/gcc-10.3.0/bin/gcc
-      cxx: $spack/bootstrap/gcc-10.3.0/bin/g++
-      f77: $spack/bootstrap/gcc-10.3.0/bin/gfortran
-      fc: $spack/bootstrap/gcc-10.3.0/bin/gfortran
+      cc: $spack/bootstrap/gcc-10.2.0/bin/gcc
+      cxx: $spack/bootstrap/gcc-10.2.0/bin/g++
+      f77: $spack/bootstrap/gcc-10.2.0/bin/gfortran
+      fc: $spack/bootstrap/gcc-10.2.0/bin/gfortran
     flags: {}
     operating_system: centos7
     target: x86_64

@@ -3,14 +3,14 @@ spack:
     concretizer: clingo
   packages:
     all:
-      compiler: [gcc@7.5.0, gcc@10.3.0, intel, clang]
+      compiler: [gcc@7.5.0, gcc@10.2.0 intel, clang]
       providers:
-        mpi: [openmpi]
+        mpi: [openmpi, intel-oneapi-mpi]
         blas: [openblas, intel-oneapi-mkl]
         lapack: [openblas, intel-oneapi-mkl]
         scalapack: [openblas, intel-oneapi-mkl]
     gcc:
-      version: [7.5.0, 10.3.0]
+      version: [7.5.0, 10.2.0]
     cmake:
       version: [3.18.4]
     ncurses:
@@ -19,6 +19,8 @@ spack:
       version: [1.1.1k, 1.0.2k-fips]
     python:
       version: [3.8.10]
+    cairo:
+      variants: +X+fc+ft+gobject+pdf+png~svg
     slurm:
       buildable: false
       externals:
@@ -55,7 +57,7 @@ spack:
       - spec: matlab@R2020a
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
     llvm:
-      version: [11.0.1, 10.0.1, 12.0.0]
+      version: [11.0.1, 12.0.0, 10.0.1]
       variants: +omp_tsan+python
     openblas:
       version: [0.3.15]
@@ -63,12 +65,6 @@ spack:
     hdf5:
       version: [1.10.7, 1.8.22]
       variants: +hl+fortran+cxx~mpi
-    #binutils:
-    #  variants: +gold +ld
-    cuda:
-      version: [11.1.0]
-    cudnn:
-      version: [8.0.4.30-11.1]
     fftw:
       version: [3.3.9, 2.1.5]
       variants: ~mpi precision=float,double,quad,long_double
@@ -166,7 +162,7 @@ spack:
           python-blas-backend^intel-oneapi-mkl: python/{version}-mkl
           gromacs+plumed: '{name}/{version}-plumed'
           slurm: slurm/current
-          llvm: '{name}/{version}' # depend on python, so would be picked up by the python-packages rule unless we do this
+          llvm: '{name}/{version}'
           gdb: '{name}/{version}'
           vim: '{name}/{version}'
           mercurial: '{name}/{version}'
@@ -183,7 +179,7 @@ spack:
   - compiler:
     - gcc@7.5.0
   - other_compilers:
-    - gcc@10.3.0
+    - gcc@10.2.0
     #- 'intel'
   - compilers:
     - $compiler
@@ -192,33 +188,7 @@ spack:
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
-  - python_blas_packages:
-    - py-pandas     # python packages that implicitly depend on blas
-    - py-scikit-learn
-    - py-numba
-    - py-emcee
-    - py-astropy
-    - py-dask
-    - py-seaborn
-    - py-matplotlib
-  - python_packages:
-    - py-cherrypy # python packages that don't depend on blas at all
-    - py-flask
-    - py-pip
-    - py-ipython
-    - py-pyyaml
-    - py-pylint
-    - py-autopep8
-    - py-sqlalchemy
-    - py-nose
-    - py-mako
-    - py-pkgconfig
-    - py-virtualenv
-    - py-sympy
-    - py-pycairo
-    - py-sphinx
-    - py-pytest
-    - py-hypothesis
+
   specs:
   - slurm
   - mathematica@11.2
@@ -228,9 +198,13 @@ spack:
   - matlab@R2018a
   - matlab@R2018b
   - matlab@R2020a
+
   # Utilities
   - $compilers
-  - gcc@11.1.0
+  - gcc@10.2.0
+  - llvm@10.0.1
+  - llvm@11.0.1
+  - llvm@12.0.0
   - emacs +X toolkit=athena
   - vim   +x+python+gui+huge+cscope+lua+ruby
   - zsh
@@ -251,6 +225,7 @@ spack:
   - singularity
   - py-disbatch
   - r +X
+
   # Core libraries
   - matrix:
     - - $%compilers
@@ -266,9 +241,7 @@ spack:
       - hdf5
       - intel-mkl
       - intel-oneapi-mkl
-      - llvm@10.0.1
-      - llvm@11.0.1
-      - llvm@12.0.0
+      - intel-oneapi-mpi
       - nfft
       - openblas threads=none
       - openblas threads=openmp
@@ -278,17 +251,42 @@ spack:
       - python # python default to multithreaded openblas
       - python-blas-backend ^openblas # python-blas-backend is a custom package that includes scipy/numpy
       - python-blas-backend ^intel-oneapi-mkl
-      - $python_packages # all non-blas python packages
-      - py-pyqt5 ^llvm@11:13
-      - py-jupyter ^llvm@11:13
+      - py-cherrypy # python packages that don't depend on blas at all
+      - py-flask
+      - py-pip
+      - py-ipython
+      - py-pyyaml
+      - py-pylint
+      - py-autopep8
+      - py-sqlalchemy
+      - py-nose
+      - py-mako
+      - py-pkgconfig
+      - py-virtualenv
+      - py-sympy
+      - py-pycairo
+      - py-sphinx
+      - py-pytest
+      - py-hypothesis
+      - py-cython
       - py-h5py@:2 ~mpi ^openblas
       - py-torch ^openblas ^py-pybind11@2.6.2
       - py-torch ^intel-oneapi-mkl ^py-pybind11@2.6.2
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
+  - py-pyqt5 ^llvm@11:13%gcc@7.5.0
+  - py-jupyter ^llvm@11:13%gcc@7.5.0
+
   # blas stuff requires a blas spec
   - matrix:
     - - $%compilers
-    - - $python_blas_packages
+    - - py-pandas     # python packages that implicitly depend on blas
+      - py-scikit-learn
+      - py-emcee
+      - py-astropy
+      - py-dask
+      - py-seaborn
+      - py-matplotlib
+      - py-numba
     - - ^openblas
   # Anything dependent on MPI
   - matrix:
