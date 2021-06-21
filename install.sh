@@ -50,6 +50,7 @@ filter_out () {
 }
 
 echo '*** Activate python packages'
+# this can fail due to conflicts
 parallel spack activate -- $(spack_ls '^python'\
         | filter_out spack_ls '^python' '^mpi'\
         | filter_out spack_ls 'py-pyqt'\
@@ -57,7 +58,7 @@ parallel spack activate -- $(spack_ls '^python'\
         | filter_out spack_ls 'py-jupyter'\
         | filter_out spack_ls 'py-h5py'\
         | filter_out spack_ls '^intel-oneapi-mkl'\
-        | grep '^py-')
+        | grep '^py-') || true
 
 #sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
 
