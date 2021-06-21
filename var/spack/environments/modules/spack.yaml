@@ -21,6 +21,8 @@ spack:
       version: [3.8.10]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
+    py-pybind11:
+      version: [2.6.2]
     slurm:
       buildable: false
       externals:
