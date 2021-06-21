@@ -15,6 +15,10 @@ while getopts 'fgj:' o ; do case $o in
 		exit 1
 esac ; done
 
+mkdir -p /mnt/home/spack/root/$USER
+# work around gpfs lock bug by using ceph instead:
+ln -sfT /mnt/ceph/users/spack/db/$USER /mnt/home/spack/root/$USER/.spack-db || echo "*** Please move your .spack-db directory to ceph to enable locking!"
+
 export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
 
@@ -64,4 +68,5 @@ parallel spack activate -- $(spack_ls '^python'\
 
 echo '*** Building lmod files'
 spack module lmod refresh -y --delete-tree
+#spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
 ln -s 7.5.0 $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default

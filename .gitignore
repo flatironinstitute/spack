@@ -512,3 +512,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+/slurm-*.out
