@@ -46,7 +46,7 @@ spack concretize ${full:+-f}
 spack_install --only-concrete --fail-fast
 
 spack_ls () {
-	spack find -cx --format '{name}@{version}/{hash:7}' "$@" | sort
+	spack find -c --format '{name}@{version}/{hash:7}' "$@" | sort
 }
 
 filter_out () {
@@ -54,15 +54,14 @@ filter_out () {
 }
 
 echo '*** Activate python packages'
-# this can fail due to conflicts
-parallel spack activate -- $(spack_ls '^python'\
-        | filter_out spack_ls '^python' '^mpi'\
-        | filter_out spack_ls 'py-pyqt'\
-        | filter_out spack_ls 'py-torch'\
-        | filter_out spack_ls 'py-jupyter'\
-        | filter_out spack_ls 'py-h5py'\
-        | filter_out spack_ls '^intel-oneapi-mkl'\
-        | grep '^py-') || true
+## This needs some fixin' up
+# spack view -v --dependencies no symlink -i gcc7.5.0_view $(spack_ls "^python%gcc@7.5.0~debug"
+#         | filter_out spack_ls "^intel-oneapi-mkl"
+#         | filter_out spack_ls "^python" "^cuda"
+#         | filter_out spack_ls "^python" "^mpi"
+#         | grep -v disbatch
+#         | grep -v py-setuptools-scm
+#         | grep py-) python%gcc@7.5.0~debug
 
 #sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
 
