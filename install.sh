@@ -55,13 +55,12 @@ filter_out () {
 
 echo '*** Activate python packages'
 ## This needs some fixin' up
-# spack view -v --dependencies no symlink -i gcc7.5.0_view $(spack_ls "^python%gcc@7.5.0~debug"
+#spack env view regenerate
+#spack view --dependencies no -e 'disbatch|py-setuptools-scm' symlink -i gcc7.5.0_view $(spack_ls "^python%gcc@7.5.0~debug"
 #         | filter_out spack_ls "^intel-oneapi-mkl"
 #         | filter_out spack_ls "^python" "^cuda"
 #         | filter_out spack_ls "^python" "^mpi"
-#         | grep -v disbatch
-#         | grep -v py-setuptools-scm
-#         | grep py-) python%gcc@7.5.0~debug
+#         | grep '^py-') python%gcc@7.5.0~debug
 
 #sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
 
