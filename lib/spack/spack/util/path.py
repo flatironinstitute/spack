@@ -73,6 +73,7 @@ def substitute_config_variables(path):
     - $user      The current user's username
     - $tempdir   Default temporary directory returned by tempfile.gettempdir()
     - $env       The active Spack environment.
+    - $root      The install tree root.
 
     These are substituted case-insensitively into the path, and users can
     use either ``$var`` or ``${var}`` syntax for the variables. $env is only
@@ -86,11 +87,13 @@ def substitute_config_variables(path):
     else:
         # If a previous invocation added env, remove it
         replacements.pop('env', None)
+    import spack.store as store
+    replacements['root'] = store.root
 
     # Look up replacements
     def repl(match):
         m = match.group(0).strip('${}')
-        return replacements.get(m.lower(), match.group(0))
+        return str(replacements.get(m.lower(), match.group(0)))
 
     # Replace $var or ${var}.
     return re.sub(r'(\$\w+\b|\$\{\w+\})', repl, path)

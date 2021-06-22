@@ -37,15 +37,6 @@ else
 	}
 fi
 
-echo '*** Bootstrapping compilers'
-spack env activate -V bootstrap
-spack_install || { spack env view regenerate && spack_install --fail-fast; }
-
-echo '*** Building modules'
-spack env activate -V modules
-spack concretize ${full:+-f}
-spack_install --only-concrete --fail-fast
-
 spack_ls () {
 	spack find -c --format '{name}@{version}/{hash:7}' "$@" | sort
 }
@@ -54,14 +45,15 @@ filter_out () {
 	comm -23 - <("$@")
 }
 
-echo '*** Activate python packages'
-## This needs some fixin' up
-#spack env view regenerate
-#spack view --dependencies no -e 'disbatch|py-setuptools-scm' symlink -i gcc7.5.0_view $(spack_ls "^python%gcc@7.5.0~debug"
-#         | filter_out spack_ls "^intel-oneapi-mkl"
-#         | filter_out spack_ls "^python" "^cuda"
-#         | filter_out spack_ls "^python" "^mpi"
-#         | grep '^py-') python%gcc@7.5.0~debug
+echo '*** Bootstrapping compilers'
+spack env activate -V bootstrap
+spack_install || { spack env view regenerate && spack_install --fail-fast; }
+
+echo '*** Building modules'
+spack env activate -V modules
+spack concretize ${full:+-f}
+spack_install --only-concrete --fail-fast
+spack env view regenerate
 
 #sudo $(spack location -i singularity)/bin/spack_perms_fix.sh
 

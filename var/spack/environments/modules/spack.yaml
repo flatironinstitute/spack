@@ -85,6 +85,8 @@ spack:
     default:
       enable:
       - lmod
+      roots:
+        lmod: '$root/modules'
       lmod:
         hierarchy:
         - mpi
@@ -192,7 +194,7 @@ spack:
           autoload: direct
   view:
     python:
-      root: '/mnt/home/spack/root/$user/view/python'
+      root: '$root/view/python'
       projections:
         all: '{^python.version}/{compiler.name}-{compiler.version}'
       select:
