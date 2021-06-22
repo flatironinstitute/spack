@@ -29,7 +29,7 @@ fi
 
 if [[ -n $SLURM_JOB_ID ]] ; then
 	spack_install() {
-		srun -K0 -W0 -k spack -l install -j ${njobs:+-j $njobs} "$@"
+		srun -K0 -W0 -k spack -l install ${njobs:+-j $njobs} "$@"
 	}
 else
 	spack_install() {
