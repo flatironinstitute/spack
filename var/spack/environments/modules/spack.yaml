@@ -158,11 +158,11 @@ spack:
         python@3.8:3.8:
           environment:
             prepend_path:
-              PYTHONPATH: '{spack_install}/view/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
-              PATH: '{spack_install}/view/view/python/{version}/{compiler.name}-{compiler.version}/bin'
-              CPATH: '{spack_install}/view/view/python/{version}/{compiler.name}-{compiler.version}/include'
-              CMAKE_PREFIX_PATH: '{spack_install}/view/view/python/{version}/{compiler.name}-{compiler.version}'
-              PKG_CONFIG_PATH: '{spack_install}/view/view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
+              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
+              PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/bin'
+              CPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/include'
+              CMAKE_PREFIX_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}'
+              PKG_CONFIG_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
               MANPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/share/man'
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
