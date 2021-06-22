@@ -21,6 +21,8 @@ spack:
       version: [3.8.10]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
+    py-setuptools-scm:
+      variants: +toml
     slurm:
       buildable: false
       externals:
@@ -195,7 +197,6 @@ spack:
         - '^intel-mkl'
         - '^cuda'
         - '^mpi'
-        - py-setuptools-scm
         - python-blas-backend
         - py-disbatch
         # manually exclude other python dependencies (messy...)
