@@ -113,9 +113,6 @@ spack:
         - py-mpi4py
         - py-numpy
         - py-scipy
-        - py-h5py
-        - py-pyqt5
-        - py-jupyter
         - py-torch
         - py-disbatch
         - python-blas-backend^intel-oneapi-mkl
@@ -156,6 +153,12 @@ spack:
           environment:
             set:
               BOOST_ROOT: '{prefix}'
+        python@3.8:3.8:
+          environment:
+            prepend_path:
+              PYTHONPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
+            prepend_path:
+              PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/bin'
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
@@ -186,32 +189,33 @@ spack:
           autoload: direct
   view:
     python:
-      root: python
+      root: '/mnt/home/spack/root/$user/view/python'
       projections:
         all: '{^python.version}/{compiler.name}-{compiler.version}'
       select:
-        - 'python~debug'
-        - '^python~debug'
+      - python~debug
+      - ^python~debug
       exclude:
-        - '^intel-oneapi-mkl'
-        - '^intel-mkl'
-        - '^cuda'
-        - '^mpi'
-        - python-blas-backend
-        - py-disbatch
+      - ^intel-oneapi-mkl
+      - ^intel-mkl
+      - ^cuda
+      - ^mpi
+      - python-blas-backend
+      - py-disbatch
+
         # manually exclude other python dependencies (messy...)
-        - llvm
-        - cairo
-        - glib
-        - gobject-introspection
-        - harfbuzz
-        - mercurial
-        - mesa
-        - pango
-        - qt
-        - r
-        - vim
-        - z3
+      - llvm
+      - cairo
+      - glib
+      - gobject-introspection
+      - harfbuzz
+      - mercurial
+      - mesa
+      - pango
+      - qt
+      - r
+      - vim
+      - z3
   definitions:
   - compiler:
     - gcc@7.5.0
