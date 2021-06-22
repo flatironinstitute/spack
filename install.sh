@@ -1,6 +1,7 @@
 #!/bin/bash -e
 #SBATCH -c 8
 
+njobs=$SLURM_CPUS_PER_TASK
 while getopts 'fgj:' o ; do case $o in
 	(f) full=1 ;;
 	(g) gc=1 ;;
@@ -28,7 +29,7 @@ fi
 
 if [[ -n $SLURM_JOB_ID ]] ; then
 	spack_install() {
-		srun -K0 -W0 -k spack -l install -j ${njobs:-${SLURM_CPUS_PER_TASK:-40}} "$@"
+		srun -K0 -W0 -k spack -l install -j ${njobs:+-j $njobs} "$@"
 	}
 else
 	spack_install() {
