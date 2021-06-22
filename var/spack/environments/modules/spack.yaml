@@ -157,8 +157,11 @@ spack:
           environment:
             prepend_path:
               PYTHONPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
-            prepend_path:
               PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/bin'
+              CPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/include'
+              CMAKE_PREFIX_PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}'
+              PKG_CONFIG_PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
+              MANPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/share/man'
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
