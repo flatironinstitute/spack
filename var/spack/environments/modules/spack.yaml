@@ -21,6 +21,8 @@ spack:
       version: [3.8.10]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
+    py-setuptools-scm:
+      variants: +toml
     slurm:
       buildable: false
       externals:
@@ -111,9 +113,6 @@ spack:
         - py-mpi4py
         - py-numpy
         - py-scipy
-        - py-h5py
-        - py-pyqt5
-        - py-jupyter
         - py-torch
         - py-disbatch
         - python-blas-backend^intel-oneapi-mkl
@@ -154,6 +153,15 @@ spack:
           environment:
             set:
               BOOST_ROOT: '{prefix}'
+        python@3.8:3.8:
+          environment:
+            prepend_path:
+              PYTHONPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
+              PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/bin'
+              CPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/include'
+              CMAKE_PREFIX_PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}'
+              PKG_CONFIG_PATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
+              MANPATH: '{prefix}/../../../view/python/{version}/{compiler.name}-{compiler.version}/share/man'
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
@@ -184,33 +192,33 @@ spack:
           autoload: direct
   view:
     python:
-      root: python
+      root: '/mnt/home/spack/root/$user/view/python'
       projections:
         all: '{^python.version}/{compiler.name}-{compiler.version}'
       select:
-        - 'python~debug'
-        - '^python~debug'
+      - python~debug
+      - ^python~debug
       exclude:
-        - '^intel-oneapi-mkl'
-        - '^intel-mkl'
-        - '^cuda'
-        - '^mpi'
-        - py-setuptools-scm
-        - python-blas-backend
-        - py-disbatch
+      - ^intel-oneapi-mkl
+      - ^intel-mkl
+      - ^cuda
+      - ^mpi
+      - python-blas-backend
+      - py-disbatch
+
         # manually exclude other python dependencies (messy...)
-        - llvm
-        - cairo
-        - glib
-        - gobject-introspection
-        - harfbuzz
-        - mercurial
-        - mesa
-        - pango
-        - qt
-        - r
-        - vim
-        - z3
+      - llvm
+      - cairo
+      - glib
+      - gobject-introspection
+      - harfbuzz
+      - mercurial
+      - mesa
+      - pango
+      - qt
+      - r
+      - vim
+      - z3
   definitions:
   - compiler:
     - gcc@7.5.0
