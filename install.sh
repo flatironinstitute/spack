@@ -59,5 +59,4 @@ spack env view regenerate
 
 echo '*** Building lmod files'
 spack module lmod refresh -y --delete-tree
-#spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
-ln -s 7.5.0 $SPACK_ROOT/share/spack/lmod/linux-centos7-x86_64/Core/gcc/default
+spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
