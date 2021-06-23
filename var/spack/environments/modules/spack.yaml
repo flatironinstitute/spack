@@ -271,7 +271,8 @@ spack:
   - lftp
   - curl
   - singularity
-  - py-disbatch
+  - py-disbatch@1.4
+  - py-disbatch@2.0-rc1
   - r +X
 
   # Core libraries
