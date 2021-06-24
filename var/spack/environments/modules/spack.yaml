@@ -270,7 +270,7 @@ spack:
   - gperftools
   - gromacs
   - hdfview
-  - i3
+  #- i3 #needs some xcb things
   - imagemagick
   - ior
   - julia
@@ -282,7 +282,7 @@ spack:
   - node-js@:12
   - octave
   - openjdk
-  - pdftk
+  #- pdftk #needs gcc java (gcj)
   - perl
   - petsc
   - postgresql
