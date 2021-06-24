@@ -24,7 +24,7 @@ class Llvm(CMakePackage, CudaPackage):
     git = "https://github.com/llvm/llvm-project"
     maintainers = ['trws', 'naromero77']
 
-    # family = "compiler"  # Used by lmod
+    family = "compiler"  # Used by lmod
 
     # fmt: off
     version('main', branch='main')
@@ -410,7 +410,7 @@ class Llvm(CMakePackage, CudaPackage):
         return(flags, None, None)
 
     def setup_run_environment(self, env):
-        if False and "+clang" in self.spec:
+        if "+clang" in self.spec:
             env.set("CC", join_path(self.spec.prefix.bin, "clang"))
             env.set("CXX", join_path(self.spec.prefix.bin, "clang++"))
         if "+flang" in self.spec:
