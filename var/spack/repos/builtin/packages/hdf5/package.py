@@ -112,10 +112,6 @@ class Hdf5(AutotoolsPackage):
     #    described in #2 we allow for such combination.
     # conflicts('+mpi+cxx')
 
-    # Several functions were removed from openmpi>=3, so replace those function calls with
-    # supported ones
-    patch('hdf5-1.8.21-openmpi4.patch', when='@1.8.21+mpi', sha256=None)
-
     # There are known build failures with intel@18.0.1. This issue is
     # discussed and patch is provided at
     # https://software.intel.com/en-us/forums/intel-fortran-compiler-for-linux-and-mac-os-x/topic/747951.
@@ -295,12 +291,6 @@ class Hdf5(AutotoolsPackage):
         api = self.spec.variants['api'].value
         if api != 'none':
             extra_args.append('--with-default-api-version=' + api)
-
-        # Fix for gcc@10 compile issues
-        if self.spec.satisfies('@1.8.0:1.8.999%gcc@10:'):
-            extra_args.extend([
-                'FCFLAGS=-fallow-invalid-boz',
-            ])
 
         if self.spec.satisfies('@1.10:'):
             if '+debug' in self.spec:

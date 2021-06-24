@@ -194,10 +194,6 @@ class Openmpi(AutotoolsPackage):
     # gcc versions on x86_64, Refs. open-mpi/ompi#8603
     patch('opal_assembly_arch.patch', when='@4.0.0:4.0.5,4.1.0')
 
-    # Add custom patches from Andras for IB and other things
-    patch('openmpi-1.10.7.PATCH', when='@1.10.7')
-    patch('openmpi-2.1.6.PATCH', when='@2.1.6')
-
     variant(
         'fabrics',
         values=disjoint_sets(
@@ -832,14 +828,6 @@ class Openmpi(AutotoolsPackage):
 
         filter_lang_rpaths(['c++', 'CC', 'cxx'], self.compiler.cxx_rpath_arg)
         filter_lang_rpaths(['fort', 'f77', 'f90'], self.compiler.fc_rpath_arg)
-
-    @run_after('install')
-    def update_conf_for_bnl(self):
-        mca_conf_path = os.path.join(self.prefix.etc, "openmpi-mca-params.conf")
-        with open(mca_conf_path, 'a') as f:
-            f.write("\n")
-            f.write("oob_tcp_if_exclude = idrac,lo,ib0\n")
-            f.write("btl_tcp_if_exclude = idrac,lo,ib0\n")
 
     @when('@:3.0.4+wrapper-rpath')
     @run_after('install')
