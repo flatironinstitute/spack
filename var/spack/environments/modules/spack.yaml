@@ -238,6 +238,7 @@ spack:
     - openmpi@4.0.5
 
   specs:
+  # Externals
   - slurm
   - mathematica@11.2
   - mathematica@11.3
@@ -247,33 +248,60 @@ spack:
   - matlab@R2018b
   - matlab@R2020a
 
-  # Utilities
+  # Compliers
   - $compilers
   - gcc@10.2.0
   - llvm@10.0.1
   - llvm@11.0.1
   - llvm@12.0.0
-  - emacs +X toolkit=athena
-  - vim   +x+python+gui+huge+cscope+lua+ruby
-  - zsh
+
+  # Utilities
   - cmake
-  - git
-  - gdb # needs python+debug
-  - mercurial
-  - node-js@:12
-  - node-js
-  - go
-  - rclone
-  - subversion
-  - tmux
-  - valgrind ~mpi
-  - gperftools
-  - lftp
   - curl
-  - singularity
-  - py-disbatch@1.4
-  - py-disbatch@2.0-rc1
+  - distcc
+  - emacs +X toolkit=athena
+  - fio
+  - gdal
+  - gdb # needs python+debug
+  - ghostscript
+  - git
+  - git-lfs
+  - go
+  - gperftools
+  - gromacs
+  - hdfview
+  - i3
+  - imagemagick
+  - ior
+  - julia
+  - keepassxc
+  - lftp
+  - lftp
+  - mercurial
+  - node-js
+  - node-js@:12
+  - octave
+  - openjdk
+  - pdftk
+  - perl
+  - petsc
+  - postgresql
   - r +X
+  - rclone
+  - rclone
+  - rust
+  - singularity
+  - smartmontools
+  - subversion
+  - swig
+  - texlive
+  - tmux
+  - udunits
+  - unison
+  - valgrind ~mpi
+  - vim   +x+python+gui+huge+cscope+lua+ruby
+  - vtk
+  - zsh
 
   # Core libraries
   - matrix:
@@ -338,6 +366,7 @@ spack:
       - py-matplotlib
       - py-numba
     - - ^openblas
+
   # Anything dependent on MPI
   - matrix:
     - - $%compiler
@@ -346,6 +375,7 @@ spack:
       - hdf5+mpi+fortran
       - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
       - valgrind +mpi
+      - osu-micro-benchmarks
   - matrix:
     - - $%other_compilers
     - - $^mpis
@@ -359,3 +389,7 @@ spack:
       - fftw@:2
       - fftw
       - py-mpi4py
+
+  # local stuff
+  - py-disbatch@1.4
+  - py-disbatch@2.0-rc1
