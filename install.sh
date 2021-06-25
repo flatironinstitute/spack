@@ -44,10 +44,6 @@ if [[ $rel ]] ; then
 	spack config --scope user add config:install_tree:root:$rel
 fi
 
-if [[ $gc ]] ; then
-	spack gc -y || true
-fi
-
 if [[ -n $SLURM_JOB_ID ]] ; then
 	spack_install() {
 		srun -K0 -W0 -k spack -l install ${njobs:+-j $njobs} "$@"
@@ -65,6 +61,12 @@ spack_ls () {
 filter_out () {
 	comm -23 - <("$@")
 }
+
+spack gpg trust /mnt/home/spack/cache/build_cache/_pgp/*.pub
+
+if [[ $gc ]] ; then
+	spack gc -y || true
+fi
 
 echo '*** Bootstrapping compilers'
 spack env activate -V bootstrap
