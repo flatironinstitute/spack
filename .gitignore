@@ -11,8 +11,6 @@
 /var/spack/repos/*/lock
 /opt
 /bootstrap
-*~
-/etc/spackconfig
 /share/spack/dotkit
 /share/spack/modules
 /share/spack/lmod
