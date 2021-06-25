@@ -268,11 +268,10 @@ spack:
   - git-lfs
   - go
   - gperftools
-  - gromacs
+  - gromacs ~mpi
   - hdfview
   #- i3 #needs some xcb things
   - imagemagick
-  - ior
   - julia
   - keepassxc
   - lftp
@@ -284,7 +283,7 @@ spack:
   - openjdk
   #- pdftk #needs gcc java (gcj)
   - perl
-  - petsc
+  - petsc ~mpi
   - postgresql
   - r +X
   - rclone
@@ -374,8 +373,11 @@ spack:
     - - hdf5@:1.8+mpi+fortran
       - hdf5+mpi+fortran
       - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
-      - valgrind +mpi
+      - gromacs +mpi
+      - ior
       - osu-micro-benchmarks
+      - petsc +mpi
+      - valgrind +mpi
   - matrix:
     - - $%other_compilers
     - - $^mpis
