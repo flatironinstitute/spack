@@ -81,158 +81,7 @@ spack:
       variants: cuda_arch=35,60,70,80
     py-pybind11:
       version: [2.6.2]
-  modules:
-    default:
-      enable:
-      - lmod
-      roots:
-        lmod: '$root/modules'
-      lmod:
-        hierarchy:
-        - mpi
-        hash_length: 0
-        core_compilers:
-        - gcc@7.5.0
-        - clang@11.0.1
-        core_specs:
-        - gcc@7.5.0
-        - gcc@10.2.0
-        blacklist:
-        - '%gcc@4.8.5'
-        - ^python
-        - lmod
-        - openmpi
-        blacklist_implicits: true
-        openmpi-opa:
-          environment:
-            set:
-              OMPI_MCA_pml: cm
-        openmpi:
-          environment:
-            set:
-              OPENMPI_VERSION: '{version}'
-        whitelist:
-        - py-mpi4py
-        - py-numpy
-        - py-scipy
-        - py-torch
-        - py-disbatch
-        - python-blas-backend^intel-oneapi-mkl
-        - openmpi%gcc
-        - intel-mpi
-        - r
-        - llvm # things that depend on python, so they get blocked without a whitelist
-        - vim
-        - gdb
-        - cmake
-        - mercurial
-        - gettext
-        - boost
-        all:
-          autoload: none
-          prerequisites: direct
-          environment:
-            set:
-              '{name}_BASE': '{prefix}'
-          suffixes:
-            ^mpi: mpi
-          filter:
-            environment_blacklist: [CC, FC, CXX, F77]
-        matlab:
-          environment:
-            set:
-              MLM_LICENSE_FILE: /cm/shared/sw/pkg/vendor/matlab/src/network.lic
-        slurm:
-          environment:
-            set:
-              CMD_WLM_CLUSTER_NAME: slurm
-              SLURM_CONF: /cm/shared/apps/slurm/var/etc/slurm/slurm.conf
-        hdf5:
-          environment:
-            set:
-              HDF5_ROOT: '{prefix}'
-        boost:
-          environment:
-            set:
-              BOOST_ROOT: '{prefix}'
-        python@3.8:3.8:
-          environment:
-            prepend_path:
-              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
-              PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/bin'
-              CPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/include'
-              CMAKE_PREFIX_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}'
-              PKG_CONFIG_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
-              MANPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/share/man'
-        projections:
-          boost+clanglibcpp: '{name}/{version}-libcpp'
-          boost: '{name}/{version}'
-          openblas threads=openmp: '{name}/{version}-openmp'
-          openblas threads=pthreads: '{name}/{version}-threaded'
-          openblas threads=none: '{name}/{version}-single'
-          py-numpy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-numpy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
-          py-scipy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-scipy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
-          py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
-          py-torch^intel-oneapi-mkl: python-packages/{^python.version}/{name}/{version}-mkl
-          py-disbatch: disBatch/{version}
-          python-blas-backend^intel-oneapi-mkl: python/{version}-mkl
-          gromacs+plumed: '{name}/{version}-plumed'
-          slurm: slurm/current
-          llvm: '{name}/{version}'
-          gdb: '{name}/{version}'
-          vim: '{name}/{version}'
-          mercurial: '{name}/{version}'
-          r: '{name}/{version}'
-          gsl^openblas: '{name}/{version}-openblas'
-          gsl^intel-oneapi-mkl: '{name}/{version}-mkl'
-          ^python: python-packages/{^python.version}/{name}/{version}
-        python-blas-backend:
-          autoload: direct
-        py-torch:
-          autoload: direct
-  view:
-    python:
-      root: '$root/view/python'
-      projections:
-        all: '{^python.version}/{compiler.name}-{compiler.version}'
-      select:
-      - python~debug
-      - ^python~debug
-      exclude:
-      - ^intel-oneapi-mkl
-      - ^intel-mkl
-      - ^cuda
-      - ^mpi
-      - python-blas-backend
-      - py-disbatch
 
-        # manually exclude other python dependencies (messy...)
-      - atk
-      - ^atk
-      - cairo
-      - dbus
-      - ^dbus
-      - gdk-pixbuf
-      - glew
-      - glib
-      - gobject-introspection
-      - harfbuzz
-      - llvm
-      - libcroco
-      - ^libcroco
-      - libepoxy
-      - ^libepoxy
-      - mercurial
-      - mesa
-      - pango
-      - qt
-      - r
-      - shared-mime-info
-      - ^shared-mime-info
-      - vim
-      - z3
   definitions:
   - compiler:
     - gcc@7.5.0
@@ -406,3 +255,157 @@ spack:
   # local stuff
   - py-disbatch@1.4
   - py-disbatch@2.0-rc1
+
+  view:
+    python:
+      root: '$root/view/python'
+      projections:
+        all: '{^python.version}/{compiler.name}-{compiler.version}'
+      select:
+      - python~debug
+      - ^python~debug
+      exclude:
+      - ^intel-oneapi-mkl
+      - ^intel-mkl
+      - ^cuda
+      - ^mpi
+      - python-blas-backend
+      - py-disbatch
+
+        # manually exclude other python dependencies (messy...)
+      - atk
+      - ^atk
+      - cairo
+      - dbus
+      - ^dbus
+      - gdk-pixbuf
+      - glew
+      - glib
+      - gobject-introspection
+      - harfbuzz
+      - llvm
+      - libcroco
+      - ^libcroco
+      - libepoxy
+      - ^libepoxy
+      - mercurial
+      - mesa
+      - pango
+      - qt
+      - r
+      - shared-mime-info
+      - ^shared-mime-info
+      - vim
+      - z3
+
+  modules:
+    default:
+      enable:
+      - lmod
+      roots:
+        lmod: '$root/modules'
+      lmod:
+        hierarchy:
+        - mpi
+        hash_length: 0
+        core_compilers:
+        - gcc@7.5.0
+        - clang@11.0.1
+        core_specs:
+        - gcc@7.5.0
+        - gcc@10.2.0
+        blacklist:
+        - '%gcc@4.8.5'
+        - ^python
+        - lmod
+        - openmpi
+        blacklist_implicits: true
+        openmpi-opa:
+          environment:
+            set:
+              OMPI_MCA_pml: cm
+        openmpi:
+          environment:
+            set:
+              OPENMPI_VERSION: '{version}'
+        whitelist:
+        - py-mpi4py
+        - py-numpy
+        - py-scipy
+        - py-torch
+        - py-disbatch
+        - python-blas-backend^intel-oneapi-mkl
+        - openmpi%gcc
+        - intel-mpi
+        - r
+        - llvm # things that depend on python, so they get blocked without a whitelist
+        - vim
+        - gdb
+        - cmake
+        - mercurial
+        - gettext
+        - boost
+        all:
+          autoload: none
+          prerequisites: direct
+          environment:
+            set:
+              '{name}_BASE': '{prefix}'
+          suffixes:
+            ^mpi: mpi
+          filter:
+            environment_blacklist: [CC, FC, CXX, F77]
+        matlab:
+          environment:
+            set:
+              MLM_LICENSE_FILE: /cm/shared/sw/pkg/vendor/matlab/src/network.lic
+        slurm:
+          environment:
+            set:
+              CMD_WLM_CLUSTER_NAME: slurm
+              SLURM_CONF: /cm/shared/apps/slurm/var/etc/slurm/slurm.conf
+        hdf5:
+          environment:
+            set:
+              HDF5_ROOT: '{prefix}'
+        boost:
+          environment:
+            set:
+              BOOST_ROOT: '{prefix}'
+        python@3.8:3.8:
+          environment:
+            prepend_path:
+              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
+              PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/bin'
+              CPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/include'
+              CMAKE_PREFIX_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}'
+              PKG_CONFIG_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
+              MANPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/share/man'
+        projections:
+          boost+clanglibcpp: '{name}/{version}-libcpp'
+          boost: '{name}/{version}'
+          openblas threads=openmp: '{name}/{version}-openmp'
+          openblas threads=pthreads: '{name}/{version}-threaded'
+          openblas threads=none: '{name}/{version}-single'
+          py-numpy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
+          py-numpy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+          py-scipy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
+          py-scipy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+          py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
+          py-torch^intel-oneapi-mkl: python-packages/{^python.version}/{name}/{version}-mkl
+          py-disbatch: disBatch/{version}
+          python-blas-backend^intel-oneapi-mkl: python/{version}-mkl
+          gromacs+plumed: '{name}/{version}-plumed'
+          slurm: slurm/current
+          llvm: '{name}/{version}'
+          gdb: '{name}/{version}'
+          vim: '{name}/{version}'
+          mercurial: '{name}/{version}'
+          r: '{name}/{version}'
+          gsl^openblas: '{name}/{version}-openblas'
+          gsl^intel-oneapi-mkl: '{name}/{version}-mkl'
+          ^python: python-packages/{^python.version}/{name}/{version}
+        python-blas-backend:
+          autoload: direct
+        py-torch:
+          autoload: direct
