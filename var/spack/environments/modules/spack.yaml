@@ -275,7 +275,6 @@ spack:
   - julia
   - keepassxc
   - lftp
-  - lftp
   - mercurial
   - node-js
   - node-js@:12
@@ -286,7 +285,6 @@ spack:
   - petsc ~mpi
   - postgresql
   - r +X
-  - rclone
   - rclone
   - rust
   - singularity
