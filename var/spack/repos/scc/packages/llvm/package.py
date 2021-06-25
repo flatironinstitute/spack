@@ -10,3 +10,8 @@ class Llvm(builtin.Llvm):
 
     def setup_run_environment(self, env):
         pass
+
+    @run_before("install")
+    def fix_module_vars(self):
+        if "+python" in self.spec:
+            builtin.site_packages_dir = site_packages_dir
