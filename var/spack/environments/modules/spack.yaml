@@ -209,16 +209,28 @@ spack:
       - py-disbatch
 
         # manually exclude other python dependencies (messy...)
-      - llvm
+      - atk
+      - ^atk
       - cairo
+      - dbus
+      - ^dbus
+      - gdk-pixbuf
+      - glew
       - glib
       - gobject-introspection
       - harfbuzz
+      - llvm
+      - libcroco
+      - ^libcroco
+      - libepoxy
+      - ^libepoxy
       - mercurial
       - mesa
       - pango
       - qt
       - r
+      - shared-mime-info
+      - ^shared-mime-info
       - vim
       - z3
   definitions:
