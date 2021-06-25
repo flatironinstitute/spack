@@ -359,6 +359,7 @@ spack:
       - py-h5py@:2 ~mpi ^openblas
       - py-torch ^openblas
       - py-torch ^intel-oneapi-mkl
+      - py-jupyterlab
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
   - py-pyqt5 ^llvm@11:13%gcc@7.5.0
   - py-jupyter ^llvm@11:13%gcc@7.5.0
