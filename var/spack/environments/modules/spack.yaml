@@ -18,7 +18,7 @@ spack:
     openssl:
       version: [1.1.1k, 1.0.2k-fips]
     python:
-      version: [3.8.10]
+      version: [3.8.10, 3.9.5, 2.7.18]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
     py-setuptools-scm:
@@ -65,6 +65,8 @@ spack:
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
     llvm:
       version: [11.0.1, 12.0.0, 10.0.1]
+      # this doesn't really work:
+      compiler: [gcc@7.5.0]
       variants: +omp_tsan+python
     openblas:
       version: [0.3.15]
@@ -81,6 +83,15 @@ spack:
       variants: cuda_arch=35,60,70,80
     py-pybind11:
       version: [2.6.2]
+    # these don't really work either:
+    intel-mkl:
+      compiler: [gcc@7.5.0]
+    intel-oneapi-mkl:
+      compiler: [gcc@7.5.0]
+    intel-oneapi-mpi:
+      compiler: [gcc@7.5.0]
+    intel-mpi:
+      compiler: [gcc@7.5.0]
 
   definitions:
   - compiler:
@@ -97,6 +108,11 @@ spack:
     - openmpi@1.10.7
     - openmpi@2.1.6
     - openmpi@4.0.5
+  - pythons:
+    # this doesn't work yet
+    - python@3.8.10
+    #- python@3.9.5
+    #- python@2.7.18
 
   specs:
   # Externals
@@ -111,7 +127,6 @@ spack:
 
   # Compliers
   - $compilers
-  - gcc@10.2.0
   - llvm@10.0.1
   - llvm@11.0.1
   - llvm@12.0.0
@@ -161,6 +176,12 @@ spack:
   - vtk
   - zsh
 
+  - intel-mkl
+  - intel-oneapi-mkl
+  - intel-oneapi-mpi
+  - intel-mpi
+  - nvhpc
+
   # Core libraries
   - matrix:
     - - $%compilers
@@ -174,20 +195,22 @@ spack:
       - gsl+external-cblas ^intel-oneapi-mkl
       - hdf5@:1.8
       - hdf5
-      - intel-mkl
-      - intel-oneapi-mkl
-      - intel-oneapi-mpi
-      - intel-mpi
       - nfft
       - openblas threads=none
       - openblas threads=openmp
       - openblas threads=pthreads
       - $mpis
       - openmpi-opa@4.0.5
-      - python # python default to multithreaded openblas
-      - python-blas-backend ^openblas # python-blas-backend is a custom package that includes scipy/numpy
+      - $pythons # python default to multithreaded openblas
+  - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
+
+  # python packages that don't depend on blas at all
+  - matrix:
+    - - $%compilers
+    - - $^pythons
+    - - python-blas-backend ^openblas # python-blas-backend is a custom package that includes scipy/numpy
       - python-blas-backend ^intel-oneapi-mkl
-      - py-cherrypy # python packages that don't depend on blas at all
+      - py-cherrypy
       - py-flask
       - py-pip
       - py-ipython
@@ -209,13 +232,16 @@ spack:
       - py-torch ^openblas
       - py-torch ^intel-oneapi-mkl
       - py-jupyterlab
-  - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
-  - py-pyqt5 ^llvm@11:13%gcc@7.5.0
-  - py-jupyter ^llvm@11:13%gcc@7.5.0
+
+  - matrix:
+    - - $^pythons
+    - - py-pyqt5
+      - py-jupyter
 
   # blas stuff requires a blas spec
   - matrix:
     - - $%compilers
+    - - $^pythons
     - - py-pandas     # python packages that implicitly depend on blas
       - py-scikit-learn
       - py-emcee
@@ -232,25 +258,39 @@ spack:
     - - $^mpis
     - - hdf5@:1.8+mpi+fortran
       - hdf5+mpi+fortran
-      - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
       - gromacs +mpi
       - ior
       - osu-micro-benchmarks
       - petsc +mpi
       - valgrind +mpi
   - matrix:
+    - - $%compiler
+    - - $^mpis
+    - - $^pythons
+    - - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
+
+  - matrix:
     - - $%other_compilers
     - - $^mpis
     - - hdf5@:1.8+mpi~fortran
       - hdf5+mpi~fortran
-      - py-h5py@:2 ^openblas ^hdf5+mpi~fortran
+  - matrix:
+    - - $%other_compilers
+    - - $^mpis
+    - - $^pythons
+    - - py-h5py@:2 ^openblas ^hdf5+mpi~fortran
+
   - matrix:
     - - $%compilers
     - - $^mpis
     - - boost+mpi
       - fftw@:2
       - fftw
-      - py-mpi4py
+  - matrix:
+    - - $%compilers
+    - - $^mpis
+    - - $^pythons
+    - - py-mpi4py
 
   # local stuff
   - py-disbatch@1.4
@@ -272,13 +312,17 @@ spack:
       - python-blas-backend
       - py-disbatch
 
-        # manually exclude other python dependencies (messy...)
+      # manually exclude other python dependencies (messy... see also module whitelist below)
       - atk
       - ^atk
+      - boost
       - cairo
+      - cmake
       - dbus
       - ^dbus
+      - gdb
       - gdk-pixbuf
+      - getttext
       - glew
       - glib
       - gobject-introspection
@@ -337,14 +381,15 @@ spack:
         - python-blas-backend^intel-oneapi-mkl
         - openmpi%gcc
         - intel-mpi
-        - r
-        - llvm # things that depend on python, so they get blocked without a whitelist
-        - vim
-        - gdb
-        - cmake
-        - mercurial
-        - gettext
+        # things that depend on python, so they get blocked without a whitelist:
         - boost
+        - cmake
+        - gdb
+        - gettext
+        - llvm
+        - mercurial
+        - r
+        - vim
         all:
           autoload: none
           prerequisites: direct
