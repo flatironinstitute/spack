@@ -18,7 +18,7 @@ spack:
     openssl:
       version: [1.1.1k, 1.0.2k-fips]
     python:
-      version: [3.8.10, 3.9.5, 2.7.18]
+      version: [3.8.11, 3.9.6, 2.7.18]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
     py-setuptools-scm:
@@ -90,8 +90,6 @@ spack:
       compiler: [gcc@7.5.0]
     intel-oneapi-mpi:
       compiler: [gcc@7.5.0]
-    intel-mpi:
-      compiler: [gcc@7.5.0]
 
   definitions:
   - compiler:
@@ -110,8 +108,8 @@ spack:
     - openmpi@4.0.5
   - pythons:
     # this doesn't work yet
-    - python@3.8.10
-    #- python@3.9.5
+    - python@3.8.11
+    #- python@3.9.6
     #- python@2.7.18
 
   specs:
