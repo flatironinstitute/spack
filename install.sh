@@ -74,7 +74,7 @@ spack_install || { spack env view regenerate && spack_install --fail-fast; }
 
 echo '*** Building modules'
 spack env activate -V modules
-spack concretize ${full:+-f}
+spack concretize ${full:+-f} | tee concretize.log
 spack_install --only-concrete --fail-fast
 spack env view regenerate
 
