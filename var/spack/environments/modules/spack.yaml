@@ -81,6 +81,8 @@ spack:
       variants: cuda_arch=35,60,70,80
     nccl:
       variants: cuda_arch=35,60,70,80
+    magma:
+      variants: cuda_arch=35,60,70,80
     py-pybind11:
       version: [2.6.2]
     # these don't really work either:

@@ -26,3 +26,4 @@ fi
 echo "Caching packages:"
 echo "$pkgs"
 echo spack buildcache create "${opts[@]}" "$@"
+exec spack buildcache create "${opts[@]}" "$@"

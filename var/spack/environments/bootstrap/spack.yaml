@@ -42,7 +42,7 @@ spack:
     default:
       root: $spack/bootstrap
       projections:
-        python: 'llvm-11.0.1' # hack because llvm is being installed as python for some reason
+        python: llvm-11.0.1 # hack because llvm is being installed as python for some reason
         all: '{name}-{version}'
       select:
       - gcc
