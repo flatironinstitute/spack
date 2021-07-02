@@ -1557,7 +1557,7 @@ class Environment(object):
         """
         self.install_specs(None, args=args, **install_args)
 
-    def install_specs(self, specs=None, args=None, **install_args):
+    def install_specs(self, specs=None, args=None, regenerate=True, **install_args):
         from spack.installer import PackageInstaller
 
         tty.debug('Assessing installation status of environment packages')
@@ -1617,8 +1617,9 @@ class Environment(object):
                         tty.warn('Could not install log links for {0}: {1}'
                                  .format(spec.name, str(e)))
 
-            with self.write_transaction():
-                self.regenerate_views()
+            if regenerate:
+                with self.write_transaction():
+                    self.regenerate_views()
 
     def all_specs(self):
         """Return all specs, even those a user spec would shadow."""

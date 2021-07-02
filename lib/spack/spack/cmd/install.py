@@ -49,6 +49,7 @@ def update_kwargs_from_args(args, kwargs):
         'stop_at': args.until,
         'unsigned': args.unsigned,
         'full_hash_match': args.full_hash_match,
+        'regenerate': not args.no_regenerate,
     })
 
     kwargs.update({
@@ -143,6 +144,9 @@ remote spec matches that of the local spec""")
         '--no-add', action='store_true', default=False,
         help="""(with environment) only install specs provided as argument
 if they are already in the concretized environment""")
+    subparser.add_argument(
+        '--no-regenerate', action='store_true', default=False,
+        help="""(with environment) don't regenerate views""")
     subparser.add_argument(
         '-f', '--file', action='append', default=[],
         dest='specfiles', metavar='SPEC_YAML_FILE',
@@ -355,12 +359,13 @@ environment variables:
             with reporter('build'):
                 env.install_all(args, **kwargs)
 
-            tty.debug("Regenerating environment views for {0}"
-                      .format(env.name))
-            with env.write_transaction():
-                # write env to trigger view generation and modulefile
-                # generation
-                env.write()
+            if not args.no_regenerate:
+                tty.debug("Regenerating environment views for {0}"
+                          .format(env.name))
+                with env.write_transaction():
+                    # write env to trigger view generation and modulefile
+                    # generation
+                    env.write()
             return
         else:
             msg = "install requires a package argument or active environment"
