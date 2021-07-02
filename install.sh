@@ -100,3 +100,9 @@ fi
 echo '*** Building lmod files'
 run spack module lmod refresh -y --delete-tree
 run spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
+
+if [[ $rel ]] ; then
+	echo "Now you can test ${rel}/modules and, when ready:"
+	echo "    ln -sfn `basename $foo` `dirname $foo`/current"
+	echo "    git tag -a fi-${rel##*/} `git rev-parse HEAD`"
+fi
