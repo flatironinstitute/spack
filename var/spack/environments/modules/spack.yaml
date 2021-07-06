@@ -164,7 +164,7 @@ spack:
   - udunits
   - unison
   - valgrind ~mpi
-  - vim   +x+python+gui+huge+cscope+lua+ruby
+  - vim   features=huge +x+python+gui+cscope+lua+ruby
   - vtk
   - zsh
 
