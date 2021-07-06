@@ -172,7 +172,7 @@ spack:
   - intel-oneapi-mkl
   - intel-oneapi-mpi
   - intel-mpi
-  - nvhpc
+  - nvhpc +mpi
 
   # Core libraries
   - matrix:
