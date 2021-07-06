@@ -1,5 +1,6 @@
 #!/bin/bash -e
 #SBATCH -c 8
+set -o pipefail
 
 njobs=$SLURM_CPUS_PER_TASK
 
