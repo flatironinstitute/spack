@@ -34,15 +34,7 @@ spack:
       - spec: intel-mpi@2017.4.196
         prefix: /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/mpi
     openmpi:
-      buildable: false
-      externals:
-      - spec: openmpi@1.10.7
-        prefix: /cm/shared/sw/pkg/devel/openmpi/1.10.7-hfi-slurm17.11
-      - spec: openmpi@2.1.6
-        prefix: /cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm18.08
-      - spec: openmpi@4.0.5
-        prefix: /cm/shared/sw/pkg/devel/openmpi/4.0.5-hfi-slurm18.08
-      version: [4.0.5, 2.1.6, 1.10.7]
+      version: [4.0.6, 2.1.6, 1.10.7]
     mathematica:
       buildable: false
       externals:
@@ -107,7 +99,7 @@ spack:
     - intel-mpi@2017.4.196
     - openmpi@1.10.7
     - openmpi@2.1.6
-    - openmpi@4.0.5
+    - openmpi@4.0.6
   - pythons:
     # this doesn't work yet
     - python@3.8.11
@@ -200,7 +192,7 @@ spack:
       - openblas threads=openmp
       - openblas threads=pthreads
       - $mpis
-      - openmpi-opa@4.0.5
+      - openmpi-opa@4.0.6
       - $pythons # python default to multithreaded openblas
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
 
@@ -347,7 +339,7 @@ spack:
       enable:
       - lmod
       roots:
-        lmod: '$root/modules'
+        lmod: $root/modules
       lmod:
         hierarchy:
         - mpi
