@@ -248,41 +248,25 @@ spack:
   - matrix:
     - - $%compiler
     - - $^mpis
-    - - hdf5@:1.8+mpi+fortran
-      - hdf5+mpi+fortran
-      - gromacs +mpi
+    - - gromacs +mpi
       - ior
       - osu-micro-benchmarks
       - petsc +mpi
       - valgrind +mpi
-  - matrix:
-    - - $%compiler
-    - - $^mpis
-    - - $^pythons
-    - - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
-
-  - matrix:
-    - - $%other_compilers
-    - - $^mpis
-    - - hdf5@:1.8+mpi~fortran
-      - hdf5+mpi~fortran
-  - matrix:
-    - - $%other_compilers
-    - - $^mpis
-    - - $^pythons
-    - - py-h5py@:2 ^openblas ^hdf5+mpi~fortran
-
   - matrix:
     - - $%compilers
     - - $^mpis
     - - boost+mpi
       - fftw@:2
       - fftw
+      - hdf5@:1.8+mpi+fortran
+      - hdf5+mpi+fortran
   - matrix:
     - - $%compilers
     - - $^mpis
     - - $^pythons
     - - py-mpi4py
+      - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
 
   # local stuff
   - py-disbatch@1.4
