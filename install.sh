@@ -86,7 +86,7 @@ echo '*** Bootstrapping compilers'
 run spack env activate -V bootstrap
 spack_install || { run spack env view regenerate && spack_install --fail-fast; }
 
-echo '*** Building modules'
+echo '*** Building modules (see concretize.log)'
 run spack env activate -V modules
 run spack concretize ${full:+-f} | tee concretize.log
 spack_install --only-concrete --fail-fast

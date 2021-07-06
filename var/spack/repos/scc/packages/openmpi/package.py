@@ -1,3 +1,4 @@
+import os
 from spack import *
 import spack.pkg.builtin.openmpi
 
