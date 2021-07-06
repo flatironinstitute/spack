@@ -439,7 +439,7 @@ spack:
           py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
           py-torch^intel-oneapi-mkl: python-packages/{^python.version}/{name}/{version}-mkl
           py-disbatch: disBatch/{version}
-          python-blas-backend^intel-oneapi-mkl: python/{version}-mkl
+          python-blas-backend^intel-oneapi-mkl: python/{^python.version}-mkl
           gromacs+plumed: '{name}/{version}-plumed'
           slurm: slurm/current
           llvm: '{name}/{version}'
