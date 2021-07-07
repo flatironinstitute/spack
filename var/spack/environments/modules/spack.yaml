@@ -193,7 +193,7 @@ spack:
       - openblas threads=openmp
       - openblas threads=pthreads
       - $mpis
-      - openmpi-opa@4.0.6
+      - openmpi-opa
       - $pythons # python default to multithreaded openblas
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
 
@@ -406,6 +406,7 @@ spack:
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
+          openmpi-opa: '{^openmpi.name}/{^openmpi.version}-opa'
           openblas threads=openmp: '{name}/{version}-openmp'
           openblas threads=pthreads: '{name}/{version}-threaded'
           openblas threads=none: '{name}/{version}-single'

@@ -35,7 +35,7 @@ class OpenmpiOpa(BundlePackage):
     # maintainers = ['github_user1', 'github_user2']
 
     # FIXME: Add proper versions here.
-    version('4.0.5')
+    version('1')
 
     # FIXME: Add dependencies if required.
     depends_on('openmpi@4:')
