@@ -35,7 +35,7 @@ spack:
         prefix: /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/mpi
     openmpi:
       version: [4.0.6, 2.1.6, 1.10.7]
-      variants: +pmi fabrics=psm,psm2,ofi,ucx schedulers=slurm
+      variants: fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
     mathematica:
       buildable: false
       externals:
