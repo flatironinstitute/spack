@@ -1,11 +1,12 @@
 from spack import *
 from shutil import move
 from os import getcwd
+from os.path import join
 
 class Slack(Package):
     """FI Slack no-sandbox"""
 
-    url      = "/mnt/home/spack/cache/slack/slack-4.17.0-0.1.fc21.x86_64.tar.xz"
+    url      = join(spack.config.get("config:source_cache"), "slack/slack-4.17.0-0.1.fc21.x86_64.tar.xz")
 
     maintainers = ['alexdotc']
 
