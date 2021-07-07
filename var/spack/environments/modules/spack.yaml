@@ -26,7 +26,7 @@ spack:
     slurm:
       buildable: false
       externals:
-      - spec: slurm@20.02.5
+      - spec: slurm@20.02.5 sysconfdir=/cm/shared/apps/slurm/var/etc/slurm +pmix+hwloc
         prefix: /cm/shared/apps/slurm/current
     intel-mpi:
       buildable: false
