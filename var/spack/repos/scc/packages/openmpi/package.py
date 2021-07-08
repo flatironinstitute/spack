@@ -21,6 +21,6 @@ class Openmpi(spack.pkg.builtin.openmpi.Openmpi):
             if self.spec.satisfies("@4.0:"):
                 f.write("\n")
                 #f.write("btl_openib_receive_queues=P,128,2048,1024,32:S,2048,2048,1024,64:S,12288,2048,1024,64:S,65536,2048,1024,64\n")
-                f.write("btl=^openib,usnix")
-                f.write("mtl=^psm,ofi")
-                f.write("pml=ucx")
+                f.write("btl=^openib,usnix\n")
+                f.write("mtl=^psm,ofi\n")
+                f.write("pml=ucx\n")
