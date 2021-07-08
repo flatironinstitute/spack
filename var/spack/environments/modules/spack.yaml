@@ -98,9 +98,10 @@ spack:
   - mpis:
     - intel-oneapi-mpi
     - intel-mpi@2017.4.196
-    - openmpi@1.10.7
-    - openmpi@2.1.6
-    - openmpi@4.0.6
+    # without the explicit fabrics ucx is lost in dependencies
+    - openmpi@1.10.7 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@2.1.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
   - pythons:
     # this doesn't work yet
     - python@3.8.11
@@ -147,7 +148,7 @@ spack:
   - mercurial
   - node-js
   - node-js@:12
-  - octave
+  - octave ^openblas
   - openjdk
   #- pdftk #needs gcc java (gcj)
   - perl
@@ -193,7 +194,7 @@ spack:
       - openblas threads=openmp
       - openblas threads=pthreads
       - $mpis
-      - openmpi-opa
+      - openmpi-opa ^openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
       - $pythons # python default to multithreaded openblas
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
 
