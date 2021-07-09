@@ -37,7 +37,11 @@ spack:
         prefix: /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/mpi
     openmpi:
       version: [4.0.6, 2.1.6, 1.10.7]
-      variants: fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+      variants: fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    ucx:
+      variants: +thread_multiple+cma+rc+dc+ud+mlx5-dv+ib-hw-tm
+    libfabric:
+      variants: fabrics=udp,rxd,shm,sockets,tcp,rxm,verbs,psm2,psm,mlx
     mathematica:
       buildable: false
       externals:
@@ -101,9 +105,9 @@ spack:
     - intel-oneapi-mpi
     - intel-mpi@2017.4.196
     # without the explicit fabrics ucx is lost in dependencies
-    - openmpi@1.10.7 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
-    - openmpi@2.1.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
-    - openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@1.10.7 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@2.1.6 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
   - pythons:
     # this doesn't work yet
     - python@3.8.11
@@ -196,7 +200,7 @@ spack:
       - openblas threads=openmp
       - openblas threads=pthreads
       - $mpis
-      - openmpi-opa ^openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2 schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+      - openmpi-opa ^openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
       - $pythons # python default to multithreaded openblas
   - boost%clang+clanglibcpp ^bzip2%gcc ^zlib%gcc
 
@@ -254,7 +258,6 @@ spack:
     - - $^mpis
     - - gromacs +mpi
       - ior
-      - osu-micro-benchmarks
       - petsc +mpi
       - valgrind +mpi
   - matrix:
@@ -265,6 +268,7 @@ spack:
       - fftw
       - hdf5@:1.8+mpi+fortran
       - hdf5+mpi+fortran
+      - osu-micro-benchmarks
   - matrix:
     - - $%compilers
     - - $^mpis

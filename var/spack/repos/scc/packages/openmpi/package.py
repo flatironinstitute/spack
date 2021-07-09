@@ -8,6 +8,11 @@ class Openmpi(spack.pkg.builtin.openmpi.Openmpi):
     patch('openmpi-1.10-gcc.PATCH', when='@:1.10')
     patch('openmpi-2.1.6.PATCH', when='@2.1.6')
 
+    def configure_args(self):
+        args = super().configure_args()
+        args.append('CPPFLAGS=-I/usr/include/infiniband')
+        return args
+
     @run_after('install')
     def update_conf(self):
         mca_conf_path = os.path.join(self.prefix.etc, "openmpi-mca-params.conf")
