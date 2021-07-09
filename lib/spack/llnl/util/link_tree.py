@@ -7,13 +7,13 @@
 
 from __future__ import print_function
 
+import filecmp
 import os
 import stat
 import shutil
-import filecmp
 
-from llnl.util.filesystem import traverse_tree, mkdirp, touch
 import llnl.util.tty as tty
+from llnl.util.filesystem import mkdirp, touch, traverse_tree
 
 __all__ = ['LinkTree']
 
