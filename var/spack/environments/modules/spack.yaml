@@ -15,8 +15,10 @@ spack:
       version: [3.18.4]
     ncurses:
       version: [6.2]
-    openssl:
-      version: [1.1.1k, 1.0.2k-fips]
+    #openssl:
+    # version:
+    #   - 1.0.2k-fips # system version breaks rust
+    #   - 1.1.1k
     python:
       version: [3.8.11, 3.9.6, 2.7.18]
     cairo:

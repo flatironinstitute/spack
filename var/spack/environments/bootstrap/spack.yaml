@@ -13,6 +13,10 @@ spack:
             c: /usr/bin/x86_64-redhat-linux-gcc
             cxx: /usr/bin/x86_64-redhat-linux-g++
             fortran: /usr/bin/gfortran
+    openssl:
+      externals:
+      - spec: openssl@1.0.2k-fips
+        prefix: /usr
     cmake:
       externals:
       - spec: cmake@2.8.12.2

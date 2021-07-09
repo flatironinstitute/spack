@@ -5,3 +5,4 @@ config:
   - /dev/shm/$user/spack-stage
   source_cache: /mnt/home/spack/cache
   build_jobs: 28
+  db_lock_timeout: 30

@@ -7,7 +7,3 @@ packages:
   openssh:
     permissions:
       write: user
-  openssl:
-    externals:
-    - spec: openssl@1.0.2k-fips
-      prefix: /usr
