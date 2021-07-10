@@ -105,8 +105,9 @@ spack:
     - intel-oneapi-mpi
     - intel-mpi@2017.4.196
     # without the explicit fabrics ucx is lost in dependencies
-    - openmpi@1.10.7 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
-    - openmpi@2.1.6 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    - openmpi@1.10.7 fabrics=ofi,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
+    # openmpi 2 on ib reports: "unknown link width 0x10" and is a bit slow
+    - openmpi@2.1.6 fabrics=ofi,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
     - openmpi@4.0.6 fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
   - pythons:
     # this doesn't work yet
