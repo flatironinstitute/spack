@@ -77,7 +77,7 @@ spack:
       version: [3.3.9]
       variants: ~mpi precision=float,double,quad,long_double
     py-torch:
-      variants: cuda_arch=35,60,70,80
+      variants: cuda_arch=35,60,70,80 ~mpi ~valgrind
     nccl:
       variants: cuda_arch=35,60,70,80
     magma:
@@ -95,6 +95,10 @@ spack:
       variants: +dbus+opengl
     harfbuzz:
       variants: +graphite2
+    valgrind:
+      variants: ~mpi
+    vtk:
+      variants: ~mpi
 
   definitions:
   - compiler:
@@ -177,9 +181,9 @@ spack:
   - tmux
   - udunits
   - unison
-  - valgrind ~mpi
+  - valgrind
   - vim   features=huge +x+python+gui+cscope+lua+ruby
-  - vtk ~mpi
+  - vtk
   - zsh
 
   - intel-mkl
@@ -235,8 +239,8 @@ spack:
       - py-hypothesis
       - py-cython
       - py-h5py@:2 ~mpi ^openblas
-      - py-torch ^openblas ^openmpi
-      - py-torch ^intel-oneapi-mkl ^openmpi
+      - py-torch ^openblas
+      - py-torch ^intel-oneapi-mkl
       - py-jupyterlab
 
   - matrix:
@@ -297,7 +301,6 @@ spack:
       exclude:
       - ^intel-oneapi-mkl
       - ^intel-mkl
-      - ^cuda
       - ^mpi
       - python-blas-backend
       - py-disbatch

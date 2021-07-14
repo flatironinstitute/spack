@@ -94,8 +94,8 @@ elif [[ -f concretize.log ]] ; then
 	mv -f concretize.log concretize.log.old
 fi
 run spack concretize ${full:+-f} | tee $teeargs concretize.log
-spack_install --only-concrete --fail-fast
-#run spack env view regenerate
+spack_install --only-concrete --fail-fast --no-regenerate
+run spack env view regenerate
 
 if [[ $prod ]] ; then
 	for sing in $(spack location -i singularity) ; do
