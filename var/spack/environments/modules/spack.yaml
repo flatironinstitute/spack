@@ -303,13 +303,13 @@ spack:
       - py-disbatch
 
       # manually exclude other python dependencies (messy... see also module whitelist below)
+      - at-spi2-core
       - atk
       - ^atk
       - boost
       - cairo
       - cmake
       - dbus
-      - ^dbus
       - gdb
       - gdk-pixbuf
       - getttext
@@ -317,6 +317,7 @@ spack:
       - glib
       - gobject-introspection
       - harfbuzz
+      - keepassxc
       - llvm
       - libcroco
       - ^libcroco
@@ -325,10 +326,12 @@ spack:
       - mercurial
       - mesa
       - pango
+      - poppler
       - qt
       - r
       - shared-mime-info
       - ^shared-mime-info
+      - texstudio
       - vim
       - z3
 
