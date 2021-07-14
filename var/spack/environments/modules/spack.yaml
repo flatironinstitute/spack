@@ -3,14 +3,14 @@ spack:
     concretizer: clingo
   packages:
     all:
-      compiler: [gcc@7.5.0, gcc@10.2.0, intel, clang]
+      compiler: [gcc@7.5.0]
       providers:
-        mpi: [openmpi, intel-oneapi-mpi, intel-mpi]
-        blas: [openblas, intel-oneapi-mkl]
-        lapack: [openblas, intel-oneapi-mkl]
-        scalapack: [openblas, intel-oneapi-mkl]
+        mpi: [openmpi@4.0.6]
+        blas: [openblas]
+        lapack: [openblas]
+        scalapack: [openblas]
     gcc:
-      version: [7.5.0, 10.2.0]
+      version: [7.5.0]
     cmake:
       version: [3.18.4]
     ncurses:
@@ -20,7 +20,7 @@ spack:
     #   - 1.0.2k-fips # system version breaks rust
     #   - 1.1.1k
     python:
-      version: [3.8.11, 3.9.6, 2.7.18]
+      version: [3.8.11]
     cairo:
       variants: +X+fc+ft+gobject+pdf+png~svg
     py-setuptools-scm:
@@ -36,7 +36,7 @@ spack:
       - spec: intel-mpi@2017.4.196
         prefix: /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/mpi
     openmpi:
-      version: [4.0.6, 2.1.6, 1.10.7]
+      version: [4.0.6]
       variants: fabrics=ofi,ucx,psm,psm2,verbs schedulers=slurm +pmi~static+thread_multiple+legacylaunchers
     ucx:
       variants: +thread_multiple+cma+rc+dc+ud+mlx5-dv+ib-hw-tm
@@ -63,7 +63,7 @@ spack:
       - spec: matlab@R2020a
         prefix: /cm/shared/sw/pkg/vendor/matlab/R2020a
     llvm:
-      version: [11.0.1, 12.0.0, 10.0.1]
+      version: [11.0.1]
       # this doesn't really work:
       compiler: [gcc@7.5.0]
       variants: +omp_tsan+python
@@ -71,10 +71,10 @@ spack:
       version: [0.3.15]
       variants: threads=pthreads
     hdf5:
-      version: [1.10.7, 1.8.22]
+      version: [1.10.7]
       variants: +hl+fortran+cxx~mpi
     fftw:
-      version: [3.3.9, 2.1.5]
+      version: [3.3.9]
       variants: ~mpi precision=float,double,quad,long_double
     py-torch:
       variants: cuda_arch=35,60,70,80
@@ -179,7 +179,7 @@ spack:
   - unison
   - valgrind ~mpi
   - vim   features=huge +x+python+gui+cscope+lua+ruby
-  - vtk
+  - vtk ~mpi
   - zsh
 
   - intel-mkl
@@ -235,8 +235,8 @@ spack:
       - py-hypothesis
       - py-cython
       - py-h5py@:2 ~mpi ^openblas
-      - py-torch ^openblas
-      - py-torch ^intel-oneapi-mkl
+      - py-torch ^openblas ^openmpi
+      - py-torch ^intel-oneapi-mkl ^openmpi
       - py-jupyterlab
 
   - matrix:

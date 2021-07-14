@@ -90,6 +90,8 @@ echo '*** Building modules (see concretize.log)'
 run spack env activate -V modules
 if [[ -z $full ]] ; then
 	teeargs="-a"
+elif [[ -f concretize.log ]] ; then
+	mv -f concretize.log concretize.log.old
 fi
 run spack concretize ${full:+-f} | tee $teeargs concretize.log
 spack_install --only-concrete --fail-fast
