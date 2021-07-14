@@ -91,6 +91,10 @@ spack:
       compiler: [gcc@7.5.0]
     intel-oneapi-mpi:
       compiler: [gcc@7.5.0]
+    qt:
+      variants: +dbus+opengl
+    harfbuzz:
+      variants: +graphite2
 
   definitions:
   - compiler:
@@ -169,6 +173,7 @@ spack:
   - subversion
   - swig
   - texlive
+  - texstudio
   - tmux
   - udunits
   - unison
@@ -371,10 +376,18 @@ spack:
         - cmake
         - gdb
         - gettext
+        - ghostscript
+        - imagemagick
+        - keepassxc
         - llvm
         - mercurial
+        - qt
+        - texlive
+        - texstudio
+        - qt
         - r
         - vim
+        - vtk
         all:
           autoload: none
           prerequisites: direct
@@ -402,15 +415,22 @@ spack:
           environment:
             set:
               BOOST_ROOT: '{prefix}'
-        python@3.8:3.8:
+        python:
           environment:
             prepend_path:
-              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
               PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/bin'
               CPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/include'
               CMAKE_PREFIX_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}'
               PKG_CONFIG_PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/pkgconfig'
               MANPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/share/man'
+        python@3.8:3.8:
+          environment:
+            prepend_path:
+              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.8/site-packages'
+        python@3.9:3.9:
+          environment:
+            prepend_path:
+              PYTHONPATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/lib/python3.9/site-packages'
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           boost: '{name}/{version}'
