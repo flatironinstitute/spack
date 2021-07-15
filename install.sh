@@ -53,6 +53,7 @@ if [[ $rel ]] ; then
 			run git clone $PWD $rel/spack
 		fi
 		run cd $rel/spack
+		run git remote update
 		run git checkout --detach $commit
 	fi
 
