@@ -2,20 +2,30 @@
 #SBATCH -c 8
 set -o pipefail
 
-njobs=$SLURM_CPUS_PER_TASK
-
-if [[ $USER == spack ]] ; then
-	prod=1
-fi
-
 PRODROOT=/cm/shared/sw/spack
+
+run() {
+	echo "> $*"
+	"$@"
+}
+
+njobs=$SLURM_CPUS_PER_TASK
 
 while getopts 'fgj:p:rR:' o ; do case $o in
 	(f) full=1 ;;
 	(g) gc=1 ;;
 	(j) njobs="$OPTARG" ;;
 	(p) parallel="$OPTARG" ;;
-	(r|R) rel=${OPTARG:-$(date +%Y%m%d)} ;;
+	(r)
+		if [[ $PWD == $PRODROOT/*/spack ]] ; then
+			rel=${PWD%/spack}
+		else
+			rel=$PRODROOT/$(date +%Y%m%d)
+		fi
+		;;
+	(R)
+		rel="$PRODROOT/$OPTARG"
+		;;
 	(*)
 		echo "Usage: ./install.sh [-g] [-f] [-j N]"
 		echo "       sbatch -n N install.sh [-g] [-f]"
@@ -24,26 +34,41 @@ while getopts 'fgj:p:rR:' o ; do case $o in
 		echo " -f      concretize -f"
 		echo " -j N    parallel jobs within each build"
 		echo " -p N    parallel builds"
-		echo " -r      use (new) production release named $PRODROOT/YYYYMMDD"
-		echo " -R PATH use install root or production release [$PRODROOT/]PATH"
+		echo " -r      do a production release: either with current directory (if in $PRODROOT/*/spack) or in $PRODROOT/YYYYMMDD"
+		echo " -R PATH do a production release in $PRODROOT/PATH"
 		exit 1
 esac ; done
 
-mkdir -p /mnt/home/spack/root/$USER
-# work around gpfs lock bug by using ceph instead:
-ln -sfT /mnt/ceph/users/spack/db/$USER /mnt/home/spack/root/$USER/.spack-db || echo "*** Please move your .spack-db directory to ceph to enable locking!"
+if [[ $rel ]] ; then
+	relname=${rel#$PRODROOT/}
+	if [[ $USER != spack || `hostname -s` != worker1000 ]] ; then
+		echo "Production should be run as spack@worker1000.  This probably won't work..."
+	fi
+
+	commit=$(git rev-parse HEAD)
+	if [[ $PWD != $rel/spack ]] ; then
+		if [[ -d $rel/spack ]] ; then
+			echo "Using existing $rel/spack"
+		else
+			run git clone $PWD $rel/spack
+		fi
+		run cd $rel/spack
+		run git checkout --detach $commit
+	fi
+
+	tag=$(git show-ref --tags -s fi-$relname || true)
+	if [[ $tag && $tag != $commit ]] ; then
+		echo "Release tag already exists at different commit: fi-$relname $tag"
+		exit 2
+	fi
+else
+	mkdir -p /mnt/home/spack/root/$USER
+	# work around gpfs lock bug by using ceph instead:
+	ln -sfT /mnt/ceph/users/spack/db/$USER /mnt/home/spack/root/$USER/.spack-db || echo "*** Please move your .spack-db directory to ceph to enable locking!"
+fi
 
 export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
-
-if [[ $prod && ( $USER != spack || $HOST != worker1000 ) || ( -z $prod && $rel ) ]] ; then
-	echo "Production should be run as spack@worker1000.  This probably won't work..."
-fi
-
-run() {
-	echo "> $*"
-	"$@"
-}
 
 spack_install() {
 	set -- spack -l install ${njobs:+-j $njobs} "$@"
