@@ -54,7 +54,7 @@ if [[ $rel ]] ; then
 		fi
 		run cd $rel/spack
 		run git remote update
-		run git checkout --detach $commit
+		run git checkout -f --detach $commit
 	fi
 
 	tag=$(git show-ref --tags -s fi-$relname || true)
