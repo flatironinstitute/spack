@@ -287,8 +287,8 @@ spack:
       - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
 
   # local stuff
-  - py-disbatch@1.4
-  - py-disbatch@2.0-rc1
+  - disBatch@1.4
+  - disBatch@2.0-rc1
 
   view:
     python:
@@ -302,7 +302,6 @@ spack:
       - ^intel-oneapi-mkl
       - ^intel-mkl
       - ^mpi
-      - py-disbatch
 
   modules:
     default:
@@ -342,7 +341,6 @@ spack:
         - py-numpy
         - py-scipy
         - py-torch
-        - py-disbatch
         all:
           autoload: none
           prerequisites: direct
@@ -399,7 +397,6 @@ spack:
           openblas threads=openmp: '{name}/{version}-openmp'
           openblas threads=pthreads: '{name}/{version}-threaded'
           openmpi-opa: '{name}/{^openmpi.version}'
-          py-disbatch: disBatch/{version}
           py-*^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
           py-*^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
           python-blas-backend^intel-oneapi-mkl: python/{^python.version}-mkl
