@@ -52,3 +52,6 @@ spack:
       - gcc
       - llvm
       - intel-oneapi-compilers
+  modules:
+    default:
+      enable: []
