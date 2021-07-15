@@ -297,46 +297,12 @@ spack:
         all: '{^python.version}/{compiler.name}-{compiler.version}'
       select:
       - python~debug
-      - ^python~debug
+      - py-*^python~debug
       exclude:
       - ^intel-oneapi-mkl
       - ^intel-mkl
       - ^mpi
-      - python-blas-backend
       - py-disbatch
-
-      # manually exclude other python dependencies (messy... see also module whitelist below)
-      - at-spi2-core
-      - atk
-      - ^atk
-      - boost
-      - cairo
-      - cmake
-      - dbus
-      - gdb
-      - gdk-pixbuf
-      - getttext
-      - glew
-      - glib
-      - gobject-introspection
-      - harfbuzz
-      - keepassxc
-      - llvm
-      - libcroco
-      - ^libcroco
-      - libepoxy
-      - ^libepoxy
-      - mercurial
-      - mesa
-      - pango
-      - poppler
-      - qt
-      - r
-      - shared-mime-info
-      - ^shared-mime-info
-      - texstudio
-      - vim
-      - z3
 
   modules:
     default:
@@ -356,9 +322,10 @@ spack:
         - gcc@10.2.0
         blacklist:
         - '%gcc@4.8.5'
-        - ^python
         - lmod
         - openmpi
+        - python-blas-backend
+        - py-*^python
         blacklist_implicits: true
         openmpi-opa:
           environment:
@@ -369,30 +336,13 @@ spack:
             set:
               OPENMPI_VERSION: '{version}'
         whitelist:
+        - openmpi%gcc
+        - python-blas-backend^intel-oneapi-mkl
         - py-mpi4py
         - py-numpy
         - py-scipy
         - py-torch
         - py-disbatch
-        - python-blas-backend^intel-oneapi-mkl
-        - openmpi%gcc
-        - intel-mpi
-        # things that depend on python, so they get blocked without a whitelist (see also projections below):
-        - boost
-        - cmake
-        - gdb
-        - gettext
-        - ghostscript
-        - imagemagick
-        - keepassxc
-        - llvm
-        - mercurial
-        - qt
-        - texlive
-        - texstudio
-        - r
-        - vim
-        - vtk
         all:
           autoload: none
           prerequisites: direct
@@ -442,32 +392,16 @@ spack:
           autoload: direct
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
-          boost: '{name}/{version}'
-          gdb: '{name}/{version}'
           gromacs+plumed: '{name}/{version}-plumed'
-          ghostscript: '{name}/{version}'
           gsl^intel-oneapi-mkl: '{name}/{version}-mkl'
           gsl^openblas: '{name}/{version}-openblas'
-          imagemagick: '{name}/{version}'
-          keepassxc: '{name}/{version}'
-          llvm: '{name}/{version}'
-          mercurial: '{name}/{version}'
           openblas threads=none: '{name}/{version}-single'
           openblas threads=openmp: '{name}/{version}-openmp'
           openblas threads=pthreads: '{name}/{version}-threaded'
           openmpi-opa: '{name}/{^openmpi.version}'
           py-disbatch: disBatch/{version}
-          py-numpy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
-          py-numpy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-scipy^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
-          py-scipy^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
-          py-torch^intel-oneapi-mkl: python-packages/{^python.version}/{name}/{version}-mkl
-          py-torch^openblas: python-packages/{^python.version}/{name}/{version}-openblas
+          py-*^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
+          py-*^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
           python-blas-backend^intel-oneapi-mkl: python/{^python.version}-mkl
-          qt: '{name}/{version}'
-          r: '{name}/{version}'
           slurm: slurm/current
-          texlive: '{name}/{version}'
-          texstudio: '{name}/{version}'
-          vim: '{name}/{version}'
-          ^python: python-packages/{^python.version}/{name}/{version}
+          py-*^python: python-packages/{^python.version}/{name}/{version}
