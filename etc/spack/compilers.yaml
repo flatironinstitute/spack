@@ -43,10 +43,10 @@ compilers:
 - compiler:
     spec: gcc@7.5.0
     paths:
-      cc: $spack/bootstrap/gcc-7.5.0/bin/gcc
-      cxx: $spack/bootstrap/gcc-7.5.0/bin/g++
-      f77: $spack/bootstrap/gcc-7.5.0/bin/gfortran
-      fc: $spack/bootstrap/gcc-7.5.0/bin/gfortran
+      cc: $root/view/bootstrap/gcc-7.5.0/bin/gcc
+      cxx: $root/view/bootstrap/gcc-7.5.0/bin/g++
+      f77: $root/view/bootstrap/gcc-7.5.0/bin/gfortran
+      fc: $root/view/bootstrap/gcc-7.5.0/bin/gfortran
     flags: {}
     operating_system: centos7
     target: x86_64
@@ -56,10 +56,10 @@ compilers:
 - compiler:
     spec: gcc@10.2.0
     paths:
-      cc: $spack/bootstrap/gcc-10.2.0/bin/gcc
-      cxx: $spack/bootstrap/gcc-10.2.0/bin/g++
-      f77: $spack/bootstrap/gcc-10.2.0/bin/gfortran
-      fc: $spack/bootstrap/gcc-10.2.0/bin/gfortran
+      cc: $root/view/bootstrap/gcc-10.2.0/bin/gcc
+      cxx: $root/view/bootstrap/gcc-10.2.0/bin/g++
+      f77: $root/view/bootstrap/gcc-10.2.0/bin/gfortran
+      fc: $root/view/bootstrap/gcc-10.2.0/bin/gfortran
     flags: {}
     operating_system: centos7
     target: x86_64
@@ -69,8 +69,8 @@ compilers:
 - compiler:
     spec: clang@11.0.1
     paths:
-      cc: $spack/bootstrap/llvm-11.0.1/bin/clang
-      cxx: $spack/bootstrap/llvm-11.0.1/bin/clang++
+      cc: $root/view/bootstrap/llvm-11.0.1/bin/clang
+      cxx: $root/view/bootstrap/llvm-11.0.1/bin/clang++
       f77: null
       fc: null
     flags: {}
@@ -82,10 +82,10 @@ compilers:
 - compiler:
     spec: intel@2021.2.0
     paths:
-      cc: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/icc
-      cxx: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/icpc
-      f77: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/ifort
-      fc: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/ifort
+      cc: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/icc
+      cxx: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/icpc
+      f77: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/ifort
+      fc: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/intel64/ifort
     flags: {}
     operating_system: centos7
     target: x86_64
@@ -95,10 +95,10 @@ compilers:
 - compiler:
     spec: oneapi@2021.2.0
     paths:
-      cc: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/icx
-      cxx: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/icpx
-      f77: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/ifx
-      fc: $spack/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/ifx
+      cc: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/icx
+      cxx: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/icpx
+      f77: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/ifx
+      fc: $root/view/bootstrap/intel-oneapi-compilers-2021.2.0/compiler/2021.2.0/linux/bin/ifx
     flags: {}
     operating_system: centos7
     target: x86_64
