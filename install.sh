@@ -2,13 +2,16 @@
 #SBATCH -c 8
 set -o pipefail
 
-PRODROOT=/cm/shared/sw/spack
+# make sure we have a normal path (in particular, needs slurm for some builds)
+export PATH=/bin:/usr/bin:/usr/local/bin:/cm/shared/apps/slurm/current/bin
+export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 
 run() {
 	echo "> $*"
 	"$@"
 }
 
+PRODROOT=/cm/shared/sw/spack
 njobs=$SLURM_CPUS_PER_TASK
 
 while getopts 'fgj:p:rR:' o ; do case $o in
@@ -68,7 +71,6 @@ else
 	ln -sfT /mnt/ceph/users/spack/db/$USER /mnt/home/spack/root/$USER/.spack-db || echo "*** Please move your .spack-db directory to ceph to enable locking!"
 fi
 
-export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
 
 if [[ $rel ]] ; then
