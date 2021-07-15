@@ -70,6 +70,10 @@ fi
 export LC_ALL=en_US.UTF-8 # work around spack bugs processing log files
 source share/spack/setup-env.sh
 
+if [[ $rel ]] ; then
+	run spack config --scope site add config:install_tree:root:$rel
+fi
+
 spack_install() {
 	set -- spack -l install ${njobs:+-j $njobs} "$@"
 	if [[ -n $parallel ]] ; then
@@ -93,13 +97,6 @@ spack_ls () {
 filter_out () {
 	comm -23 - <("$@")
 }
-
-if [[ $rel ]] ; then
-	if [[ $rel != /* ]] ; then
-		rel=$PRODROOT/$rel
-	fi
-	run spack config --scope user add config:install_tree:root:$rel
-fi
 
 run spack gpg trust /mnt/home/spack/cache/build_cache/_pgp/*.pub
 
