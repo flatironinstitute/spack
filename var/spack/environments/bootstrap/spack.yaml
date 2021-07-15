@@ -44,7 +44,7 @@ spack:
     - - '%gcc@7.5.0'
   view:
     default:
-      root: $spack/bootstrap
+      root: $root/view/bootstrap
       projections:
         python: llvm-11.0.1 # hack because llvm is being installed as python for some reason
         all: '{name}-{version}'
