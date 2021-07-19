@@ -83,6 +83,8 @@ append_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 remove_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 {% elif command_name == 'SetEnv' %}
 setenv("{{ cmd.name }}", "{{ cmd.value }}")
+{% elif command_name == 'PushEnv' %}
+pushenv("{{ cmd.name }}", "{{ cmd.value }}")
 {% elif command_name == 'UnsetEnv' %}
 unsetenv("{{ cmd.name }}")
 {% endif %}

@@ -22,6 +22,7 @@ definition = {
     'additionalProperties': False,
     'properties': {
         'set': dictionary_of_strings_or_num,
+        'push': dictionary_of_strings_or_num,
         'unset': array_of_strings_or_num,
         'prepend_path': dictionary_of_strings_or_num,
         'append_path': dictionary_of_strings_or_num,
