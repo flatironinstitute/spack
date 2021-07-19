@@ -355,6 +355,7 @@ spack:
   # local stuff
   - disBatch@1.4
   - disBatch@2.0-rc1
+  - modules-traditional
 
   view:
     python:
@@ -454,6 +455,10 @@ spack:
           autoload: direct
         py-torch:
           autoload: direct
+        modules-traditional::
+          environment:
+            prepend_path:
+              MODULEPATH: /cm/shared/sw/modules
         projections:
           boost+clanglibcpp: '{name}/{version}-libcpp'
           gromacs+plumed: '{name}/{version}-plumed'
@@ -466,5 +471,6 @@ spack:
           py-*^intel-oneapi-mkl: python-packages/{^python.version}/{name}/.{version}-mkl
           py-*^openblas: python-packages/{^python.version}/{name}/.{version}-openblas
           python-blas-backend^intel-oneapi-mkl: python/{^python.version}-mkl
-          slurm: slurm/current
+          slurm: '{name}/current'
           py-*^python: python-packages/{^python.version}/{name}/{version}
+          modules-traditional: '{name}'
