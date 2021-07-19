@@ -328,6 +328,10 @@ environment variables:
         else:
             return False
 
+    # Parse cli arguments and construct a dictionary
+    # that will be passed to the package installer
+    update_kwargs_from_args(args, kwargs)
+
     if not args.spec and not args.specfiles:
         # if there are no args but an active environment
         # then install the packages from it.
@@ -385,10 +389,6 @@ environment variables:
 
     if args.deprecated:
         spack.config.set('config:deprecated', True, scope='command_line')
-
-    # Parse cli arguments and construct a dictionary
-    # that will be passed to the package installer
-    update_kwargs_from_args(args, kwargs)
 
     # 1. Abstract specs from cli
     abstract_specs = spack.cmd.parse_specs(args.spec)
