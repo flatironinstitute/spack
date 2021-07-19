@@ -20,6 +20,9 @@ def setup_parser(subparser):
         help="""Concretize with test dependencies. When 'root' is chosen, test
 dependencies are only added for the environment's root specs. When 'all' is
 chosen, test dependencies are enabled for all packages in the environment.""")
+    subparser.add_argument(
+        '--no-regenerate', action='store_true', default=False,
+        help="""Don't regenerate views.""")
 
 
 def concretize(parser, args):
@@ -35,4 +38,4 @@ def concretize(parser, args):
     with env.write_transaction():
         concretized_specs = env.concretize(force=args.force, tests=tests)
         ev.display_specs(concretized_specs)
-        env.write()
+        env.write(regenerate=not args.no_regenerate)
