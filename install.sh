@@ -107,9 +107,11 @@ if [[ $gc ]] ; then
 	run spack gc -y || true
 fi
 
-echo '*** Bootstrapping compilers'
-run spack env activate -V bootstrap
+echo '*** Bootstrapping compilers and python'
+run spack env activate -v bootstrap
 spack_install || ( run spack env view regenerate && spack_install --fail-fast )
+# switch to bootstrapped python (with clingo)
+export SPACK_PYTHON=$(which python3)
 
 echo '*** Building modules (see concretize.log)'
 run spack env activate -V modules
@@ -122,7 +124,7 @@ run spack concretize ${full:+-f} | tee $teeargs concretize.log
 spack_install --only-concrete --fail-fast --no-regenerate
 run spack env view regenerate
 
-if [[ $prod ]] ; then
+if [[ $rel ]] ; then
 	for sing in $(spack location -i singularity) ; do
 		run sudo $sing/bin/spack_perms_fix.sh
 	done
@@ -134,6 +136,6 @@ run spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
 
 if [[ $rel ]] ; then
 	echo "Now you can test ${rel}/modules and, when ready:"
-	echo "    ln -sfn `basename $foo` `dirname $foo`/current"
+	echo "    ln -sfn `basename $rel` `dirname $rel`/current"
 	echo "    git tag -a fi-${rel##*/} `git rev-parse HEAD`"
 fi
