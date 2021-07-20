@@ -120,7 +120,7 @@ if [[ -z $full ]] ; then
 elif [[ -f concretize.log ]] ; then
 	mv -f concretize.log concretize.log.old
 fi
-run spack concretize ${full:+-f} | tee $teeargs concretize.log
+run spack concretize --no-regenerate ${full:+-f} | tee $teeargs concretize.log
 spack_install --only-concrete --fail-fast --no-regenerate
 run spack env view regenerate
 

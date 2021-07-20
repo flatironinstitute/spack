@@ -20,7 +20,7 @@ spack:
       compiler: [gcc@7.5.0, gcc@4.8.5]
     gcc:
       externals:
-      - spec: gcc@4.8.5 languages=c,c++,fortran %gcc@4.8.5
+      - spec: gcc@4.8.5 languages=c,c++,fortran
         prefix: /usr
         extra_attributes:
           compilers:
@@ -29,25 +29,25 @@ spack:
             fortran: /usr/bin/gfortran
     openssl:
       externals:
-      - spec: openssl@1.0.2k-fips %gcc@4.8.5
+      - spec: openssl@1.0.2k-fips
         prefix: /usr
     cmake:
       externals:
-      - spec: cmake@2.8.12.2 %gcc@4.8.5
+      - spec: cmake@2.8.12.2
         prefix: /usr
     bison:
       externals:
-      - spec: bison@3.0.4 %gcc@4.8.5
+      - spec: bison@3.0.4
         prefix: /usr
     ncurses:
       externals:
-      - spec: ncurses@5.9.20130511+termlib abi=5 %gcc@4.8.5
+      - spec: ncurses@5.9.20130511+termlib abi=5
         prefix: /usr
     python:
       externals:
-      - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib %gcc@4.8.5
+      - spec: python@3.6.8+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl~tix~tkinter+uuid+zlib
         prefix: /usr
-      - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib %gcc@4.8.5
+      - spec: python@2.7.5+bz2+ctypes+dbm+lzma+nis+pyexpat+readline+sqlite3+ssl+tix+tkinter+uuid+zlib
         prefix: /usr
   specs:
   - matrix:
@@ -72,7 +72,7 @@ spack:
     compilers:
       root: $root/view/compilers
       projections:
-        python@3.6.8: llvm-11.0.1 # hack because llvm is being installed as python for some reason
+        python@3.6.8: llvm-11.0.1 # hack because llvm is being installed as python (as a python package?)
         all: '{name}-{version}'
       select:
       - gcc%gcc@7.5.0

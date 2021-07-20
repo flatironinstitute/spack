@@ -165,6 +165,8 @@ spack:
       variants: ~mpi
     vtk:
       variants: ~mpi
+    r:
+      variants: +X
 
   definitions:
   - compiler:
@@ -235,7 +237,8 @@ spack:
   - perl
   - petsc ~mpi
   - postgresql
-  - r +X
+  - r
+  - r-irkernel
   - rclone
   - rust
   - singularity
@@ -307,12 +310,11 @@ spack:
       - py-h5py@:2 ~mpi ^openblas
       - py-torch ^openblas
       - py-torch ^intel-oneapi-mkl
-      - py-jupyterlab
+      - py-ipykernel
 
   - matrix:
     - - $^pythons
     - - py-pyqt5
-      - py-jupyter
 
   # blas stuff requires a blas spec
   - matrix:
@@ -351,6 +353,11 @@ spack:
     - - $^pythons
     - - py-mpi4py
       - py-h5py@:2 ^openblas ^hdf5+mpi+fortran
+
+  # jupyterhub stuff
+  - py-jupyter
+  - py-jupyterlab
+  - py-bash-kernel
 
   # local stuff
   - disBatch@1.4
