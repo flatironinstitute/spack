@@ -132,7 +132,9 @@ fi
 
 echo '*** Building lmod files'
 run spack module lmod refresh -y --delete-tree
-run spack module lmod setdefault gcc@7.5.0%gcc@7.5.0
+for d in 'gcc@7.5.0%gcc@7.5.0' 'python@3.8.11%gcc@7.5.0~debug' 'python@3.8.11%gcc@10.2.0~debug' ; do
+	run spack module lmod setdefault "$d"
+done
 
 if [[ $rel ]] ; then
 	echo "Now you can test ${rel}/modules and, when ready:"

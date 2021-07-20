@@ -188,7 +188,7 @@ spack:
   - pythons:
     # this doesn't work yet
     - python@3.8.11
-    #- python@3.9.6
+    - python@3.9.6
     #- python@2.7.18
 
   specs:
