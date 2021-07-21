@@ -1,0 +1,21 @@
+diff --git a/qt5/src/poppler-page.cc b/qt5/src/poppler-page.cc
+index c4d00a6..e72c26b 100644
+--- a/qt5/src/poppler-page.cc
++++ b/qt5/src/poppler-page.cc
+@@ -106,6 +106,8 @@
+     QVariant payload;
+ };
+ 
++#if defined(HAVE_SPLASH)
++
+ class Qt5SplashOutputDev : public SplashOutputDev, public OutputDevCallbackHelper
+ {
+ public:
+@@ -172,6 +174,7 @@
+ };
+ 
+ Qt5SplashOutputDev::~Qt5SplashOutputDev() = default;
++#endif
+ 
+ class QImageDumpingQPainterOutputDev : public QPainterOutputDev, public OutputDevCallbackHelper
+ {
