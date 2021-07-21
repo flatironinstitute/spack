@@ -67,7 +67,7 @@ spack:
         all: '{name}-{version}'
       select:
       - gcc@7.5.0%gcc@4.8.5
-      - python%gcc@7.5.0
+      - python@3.8.11%gcc@7.5.0
       - clingo-bootstrap%gcc@7.5.0
     compilers:
       root: $root/view/compilers

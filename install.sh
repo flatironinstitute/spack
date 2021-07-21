@@ -78,7 +78,7 @@ if [[ $rel ]] ; then
 fi
 
 spack_install() {
-	set -- spack -l install ${njobs:+-j $njobs} "$@"
+	set -- spack -l install --no-regenerate ${njobs:+-j $njobs} "$@"
 	if [[ -n $parallel ]] ; then
 		# is there some better way?
 		l="${@:$#}"
@@ -90,7 +90,7 @@ spack_install() {
 	elif [[ -n $SLURM_JOB_ID ]] ; then
 		set -- srun -K0 -W0 -k "$@"
 	fi
-	run "$@"
+	run "$@" && run spack env view regenerate
 }
 
 spack_ls () {
@@ -121,8 +121,7 @@ elif [[ -f concretize.log ]] ; then
 	mv -f concretize.log concretize.log.old
 fi
 run spack concretize --no-regenerate ${full:+-f} | tee $teeargs concretize.log
-spack_install --only-concrete --fail-fast --no-regenerate
-run spack env view regenerate
+spack_install --only-concrete --fail-fast
 
 if [[ $rel ]] ; then
 	for sing in $(spack location -i singularity) ; do
