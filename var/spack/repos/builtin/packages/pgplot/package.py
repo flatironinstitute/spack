@@ -39,7 +39,7 @@ class Pgplot(MakefilePackage):
                           "-Wno-error=implicit-function-declaration")),
             ('@FCOMPL@', self.compiler.f77),
             ('@FFLAGC@', "-Wall -fPIC -O -ffixed-line-length-none" +
-                ("-fallow-invalid-boz" if self.spec.satisfies('%gcc@10:') else "")),
+                (" -fallow-invalid-boz" if spec.satisfies('%gcc@10:') else "")),
             ('@LIBS@', "-lgfortran"),
             ('@SHARED_LD@', self.compiler.cc + " -shared -o $SHARED_LIB -lgfortran"),
         ]
