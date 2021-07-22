@@ -1,0 +1,4 @@
+source share/spack/setup-env.sh
+spack env activate -v bootstrap
+export SPACK_PYTHON=$(which python3)
+spack env activate -V modules
