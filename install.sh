@@ -137,6 +137,6 @@ done
 
 if [[ $rel ]] ; then
 	echo "Now you can test ${rel}/modules and, when ready:"
-	echo "    ln -sfn `basename $rel` `dirname $rel`/current"
+	echo "    ln -sfn $relname $PRODROOT/current"
 	echo "    git tag -a fi-${rel##*/} `git rev-parse HEAD`"
 fi
