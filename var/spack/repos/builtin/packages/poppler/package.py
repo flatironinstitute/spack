@@ -67,7 +67,7 @@ class Poppler(CMakePackage):
     # to be present.
     patch('poppler_page_splash.patch', when='@0.64.0:0.90.0 ^qt@5.0:')
     patch('poppler_page_splash.0.90.1.patch', when='@0.90.1:2 ^qt@5.0:')
-    patch('poppler_page_splash.21.07.0.patch', when='@21.0: ^qt@5.0:')
+    #patch('poppler_page_splash.21.07.0.patch', when='@21.0: ^qt@5.0:')
 
     # Only needed to run `make test`
     resource(
