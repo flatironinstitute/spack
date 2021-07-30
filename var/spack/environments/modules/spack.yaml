@@ -230,6 +230,7 @@ spack:
   - julia
   - keepassxc
   - lftp
+  - likwid
   - mercurial
   - node-js
   - node-js@:12
