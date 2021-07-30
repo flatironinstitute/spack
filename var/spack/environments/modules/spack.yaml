@@ -276,6 +276,7 @@ spack:
       - gsl+external-cblas ^intel-oneapi-mkl
       - hdf5@:1.8
       - hdf5
+      - magma
       - nfft
       - openblas threads=none
       - openblas threads=openmp
@@ -447,6 +448,7 @@ spack:
             set:
               BOOST_ROOT: '{prefix}'
         python:
+          #use_view: python
           environment:
             prepend_path:
               PATH: '{spack_install}/view/python/{version}/{compiler.name}-{compiler.version}/bin'
