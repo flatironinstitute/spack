@@ -232,6 +232,9 @@ spack:
   - lftp
   - likwid
   - mercurial
+  - mplayer
+  - mpv
+  - mupdf
   - node-js
   - node-js@:12
   - octave ^openblas
