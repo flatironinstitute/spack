@@ -1,9 +1,0 @@
-packages:
-  all:
-    target: [broadwell]
-    #permissions:
-    #  write: group
-    #  group: spack
-  openssh:
-    permissions:
-      write: user
