@@ -208,7 +208,7 @@ def install_specs(cli_args, kwargs, specs):
     """
 
     # handle active environment, if any
-    env = ev.get_env(cli_args, 'install')
+    env = ev.active_environment()
 
     try:
         if env:
@@ -335,7 +335,7 @@ environment variables:
     if not args.spec and not args.specfiles:
         # if there are no args but an active environment
         # then install the packages from it.
-        env = ev.get_env(args, 'install')
+        env = ev.active_environment()
         if env:
             tests = get_tests(env.user_specs)
             kwargs['tests'] = tests
@@ -360,7 +360,7 @@ environment variables:
 
             tty.msg("Installing environment {0}".format(env.name))
             with reporter('build'):
-                env.install_all(args, **kwargs)
+                env.install_all(**kwargs)
 
             if not args.no_regenerate:
                 tty.debug("Regenerating environment views for {0}"
