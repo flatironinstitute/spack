@@ -12,6 +12,7 @@ class Nix(AutotoolsPackage):
     homepage = "http://nixos.org/nix"
     url      = "https://github.com/NixOS/nix/archive/2.2.1.zip"
 
+    version('2.3.15', sha256='7bf04e47960e7895655ad40461f2cf8038b97e98165672db7a7ac1990fc77a22')
     version('2.2.1', sha256='b591664dd1b04a8f197407d445799ece41140a3117bcbdf8e3c5e94cd3f59854')
     version('2.1.3', sha256='80d0834f3e34b3e91bd20969733d8010b3e253517ea64bf12258c5f450f86425')
     version('2.0.4', sha256='49c78122b20e3ad894f546dd2a2f01c32ec528de790314820b1f1335276e3c22')
