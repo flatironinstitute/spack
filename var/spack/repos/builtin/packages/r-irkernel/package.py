@@ -13,7 +13,8 @@ class RIrkernel(RPackage):
     homepage = "https://irkernel.github.io/"
     git      = "https://github.com/IRkernel/IRkernel.git"
 
-    version('master', tag='0.7')
+    version('1.2', tag='1.2')
+    version('0.7', tag='0.7')
 
     depends_on('r-repr', type=('build', 'run'))
     depends_on('r-irdisplay', type=('build', 'run'))
