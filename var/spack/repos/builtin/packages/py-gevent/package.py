@@ -9,7 +9,7 @@ from spack import *
 class PyGevent(PythonPackage):
     """gevent is a coroutine-based Python networking library."""
 
-    homepage = "http://www.gevent.org"
+    homepage = "https://www.gevent.org"
     pypi = "gevent/gevent-1.3a2.tar.gz"
 
     version('21.1.2', sha256='520cc2a029a9eef436e4e56b007af7859315cafa21937d43c1d5269f12f2c981')

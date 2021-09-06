@@ -9,7 +9,7 @@ from spack import *
 class Nix(AutotoolsPackage):
     """Nix, the purely functional package manager"""
 
-    homepage = "http://nixos.org/nix"
+    homepage = "https://nixos.org/nix"
     url      = "https://github.com/NixOS/nix/archive/2.2.1.zip"
 
     version('2.3.15', sha256='7bf04e47960e7895655ad40461f2cf8038b97e98165672db7a7ac1990fc77a22')
