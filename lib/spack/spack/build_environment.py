@@ -171,6 +171,9 @@ def clean_environment():
 
     env.unset('CMAKE_PREFIX_PATH')
 
+    # Affects GNU make, can e.g. indirectly inhibit enabling parallel build
+    env.unset('MAKEFLAGS')
+
     # Avoid that libraries of build dependencies get hijacked.
     env.unset('LD_PRELOAD')
     env.unset('DYLD_INSERT_LIBRARIES')
