@@ -58,7 +58,7 @@ class GromacsChainCoordinate(CMakePackage):
 
     depends_on('mpi', when='+mpi')
     depends_on('fftw-api@3')
-    depends_on('cmake@3.16.0:3.99.99', type='build')
+    depends_on('cmake@3.16.0:3', type='build')
     depends_on('cuda', when='+cuda')
     depends_on('sycl', when='+sycl')
     depends_on('lapack', when='+lapack')
@@ -77,3 +77,11 @@ class GromacsChainCoordinate(CMakePackage):
 
     def cmake_args(self):
         return super(GromacsChainCoordinate, self).cmake_args()
+
+    def check(self):
+        """The default 'test' targets does not compile the test programs"""
+        with working_dir(self.build_directory):
+            if self.generator == 'Unix Makefiles':
+                self._if_make_target_execute('check')
+            elif self.generator == 'Ninja':
+                self._if_ninja_target_execute('check')

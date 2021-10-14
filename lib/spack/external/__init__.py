@@ -11,7 +11,7 @@ archspec
 
 * Homepage: https://pypi.python.org/pypi/archspec
 * Usage: Labeling, comparison and detection of microarchitectures
-* Version: 0.1.2 (commit 4dbf253daf37e4a008e4beb6489f347b4a35aed4)
+* Version: 0.1.2 (commit 85757b6666422fca86aa882a769bf78b0f992f54)
 
 argparse
 --------
@@ -38,6 +38,7 @@ distro
 * Homepage: https://pypi.python.org/pypi/distro
 * Usage: Provides a more stable linux distribution detection.
 * Version: 1.0.4 (last version supporting Python 2.6)
+* Note: Patched to disable lsb_release by default to improve Spack's startup time.
 
 functools
 ---------
