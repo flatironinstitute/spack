@@ -617,7 +617,7 @@ sysconfdir = "etc"
             )
 
     def build(self, spec, prefix):
-        python('./x.py', 'build', extra_env={
+        python('./x.py', 'build', '-j', str(make_jobs), extra_env={
             # vendored libgit2 wasn't correctly building (couldn't find the
             # vendored libssh2), so let's just have spack build it
             'LIBSSH2_SYS_USE_PKG_CONFIG': '1',
