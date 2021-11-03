@@ -16,6 +16,7 @@ import spack.concretize
 import spack.error
 import spack.platforms
 import spack.repo
+import spack.variant as vt
 from spack.concretize import find_spec
 from spack.spec import Spec
 from spack.util.mock_package import MockPackageMultiRepo
@@ -739,6 +740,41 @@ class TestConcretize(object):
         assert s.satisfies(expected_str)
 
     @pytest.mark.parametrize('spec_str,expected,unexpected', [
+        ('conditional-variant-pkg@1.0',
+         ['two_whens'],
+         ['version_based', 'variant_based']),
+        ('conditional-variant-pkg@2.0',
+         ['version_based', 'variant_based'],
+         ['two_whens']),
+        ('conditional-variant-pkg@2.0~version_based',
+         ['version_based'],
+         ['variant_based', 'two_whens']),
+        ('conditional-variant-pkg@2.0+version_based+variant_based',
+         ['version_based', 'variant_based', 'two_whens'],
+         [])
+    ])
+    def test_conditional_variants(self, spec_str, expected, unexpected):
+        s = Spec(spec_str).concretized()
+
+        for var in expected:
+            assert s.satisfies('%s=*' % var)
+        for var in unexpected:
+            assert not s.satisfies('%s=*' % var)
+
+    @pytest.mark.parametrize('bad_spec', [
+        '@1.0~version_based',
+        '@1.0+version_based',
+        '@2.0~version_based+variant_based',
+        '@2.0+version_based~variant_based+two_whens',
+    ])
+    def test_conditional_variants_fail(self, bad_spec):
+        with pytest.raises(
+                (spack.error.UnsatisfiableSpecError,
+                 vt.InvalidVariantForSpecError)
+        ):
+            _ = Spec('conditional-variant-pkg' + bad_spec).concretized()
+
+    @pytest.mark.parametrize('spec_str,expected,unexpected', [
         ('py-extension3 ^python@3.5.1', [], ['py-extension1']),
         ('py-extension3 ^python@2.7.11', ['py-extension1'], []),
         ('py-extension3@1.0 ^python@2.7.11', ['patchelf@0.9'], []),
@@ -1274,3 +1310,17 @@ class TestConcretize(object):
         # package doesn't end up using a later implementation
         s = spack.spec.Spec('hpcviewer@2019.02').concretized()
         assert s['java'].satisfies('virtual-with-versions@1.8.0')
+
+    @pytest.mark.regression('26866')
+    def test_non_default_provider_of_multiple_virtuals(self):
+        s = spack.spec.Spec(
+            'many-virtual-consumer ^low-priority-provider'
+        ).concretized()
+        assert s['mpi'].name == 'low-priority-provider'
+        assert s['lapack'].name == 'low-priority-provider'
+
+        for virtual_pkg in ('mpi', 'lapack'):
+            for pkg in spack.repo.path.providers_for(virtual_pkg):
+                if pkg.name == 'low-priority-provider':
+                    continue
+                assert pkg not in s

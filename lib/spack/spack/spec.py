@@ -1568,6 +1568,14 @@ class Spec(object):
         """
         return self._cached_hash(ht.build_hash, length)
 
+    def process_hash(self, length=None):
+        """Hash used to store specs in environments.
+
+        This hash includes build and test dependencies and is only used to
+        serialize a spec and pass it around among processes.
+        """
+        return self._cached_hash(ht.process_hash, length)
+
     def full_hash(self, length=None):
         """Hash  to determine when to rebuild packages in the build pipeline.
 
@@ -1833,6 +1841,7 @@ class Spec(object):
                 not self._hashes_final)                     # lazily compute
             if write_full_hash:
                 node[ht.full_hash.name] = self.full_hash()
+
             write_build_hash = 'build' in hash.deptype and (
                 self._hashes_final and self._build_hash or  # cached and final
                 not self._hashes_final)                     # lazily compute
@@ -1840,8 +1849,12 @@ class Spec(object):
                 node[ht.build_hash.name] = self.build_hash()
         else:
             node['concrete'] = False
+
         if hash.name == 'build_hash':
             node[hash.name] = self.build_hash()
+        elif hash.name == 'process_hash':
+            node[hash.name] = self.process_hash()
+
         return node
 
     def to_yaml(self, stream=None, hash=ht.dag_hash):
@@ -1975,7 +1988,8 @@ class Spec(object):
                 # new format: elements of dependency spec are keyed.
                 for key in (ht.full_hash.name,
                             ht.build_hash.name,
-                            ht.dag_hash.name):
+                            ht.dag_hash.name,
+                            ht.process_hash.name):
                     if key in elt:
                         dep_hash, deptypes = elt[key], elt['type']
                         hash_type = key
@@ -2595,10 +2609,7 @@ class Spec(object):
             return
 
         result = spack.solver.asp.solve([self], tests=tests)
-        if not result.satisfiable:
-            result.print_cores()
-            raise spack.error.UnsatisfiableSpecError(
-                self, "unknown", "Unsatisfiable!")
+        result.raise_if_unsat()
 
         # take the best answer
         opt, i, answer = min(result.answers)
@@ -3071,7 +3082,7 @@ class Spec(object):
         if not isinstance(values, tuple):
             values = (values,)
 
-        pkg_variant = self.package_class.variants[variant_name]
+        pkg_variant, _ = self.package_class.variants[variant_name]
 
         for value in values:
             if self.variants.get(variant_name):
@@ -4431,7 +4442,7 @@ class Spec(object):
         return hash(lang.tuplify(self._cmp_iter))
 
     def __reduce__(self):
-        return _spec_from_dict, (self.to_dict(hash=ht.build_hash),)
+        return _spec_from_dict, (self.to_dict(hash=ht.process_hash),)
 
 
 def merge_abstract_anonymous_specs(*abstract_specs):
@@ -4741,8 +4752,12 @@ class SpecParser(spack.parse.Parser):
         # Generate lookups for git-commit-based versions
         for spec in specs:
             # Cannot do lookups for versions in anonymous specs
-            # Only allow concrete versions using git for now
-            if spec.name and spec.versions.concrete and spec.version.is_commit:
+            # Only allow Version objects to use git for now
+            # Note: VersionRange(x, x) is currently concrete, hence isinstance(...).
+            if (
+                spec.name and spec.versions.concrete and
+                isinstance(spec.version, vn.Version) and spec.version.is_commit
+            ):
                 pkg = spec.package
                 if hasattr(pkg, 'git'):
                     spec.version.generate_commit_lookup(pkg)
