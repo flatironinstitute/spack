@@ -78,8 +78,8 @@ class Trilinos(CMakePackage, CudaPackage):
     variant('wrapper', default=False, description="Use nvcc-wrapper for CUDA build")
 
     # TPLs (alphabet order)
-    variant('boost',        default=False, description='Compile with Boost')
     variant('adios2',       default=False, description='Enable ADIOS2')
+    variant('boost',        default=False, description='Compile with Boost')
     variant('hdf5',         default=False, description='Compile with HDF5')
     variant('hypre',        default=False, description='Compile with Hypre preconditioner')
     variant('mpi',          default=True, description='Compile with MPI parallelism')
@@ -275,6 +275,9 @@ class Trilinos(CMakePackage, CudaPackage):
     conflicts('+wrapper', when='~cuda')
     conflicts('+wrapper', when='%clang')
 
+    # Old trilinos fails with new CUDA (see #27180)
+    conflicts('@:13.0.1 +cuda', when='^cuda@11:')
+
     # stokhos fails on xl/xl_r
     conflicts('+stokhos', when='%xl')
     conflicts('+stokhos', when='%xl_r')
@@ -292,6 +295,7 @@ class Trilinos(CMakePackage, CudaPackage):
     depends_on('hypre~internal-superlu~int64', when='+hypre')
     depends_on('kokkos-nvcc-wrapper', when='+wrapper')
     depends_on('lapack')
+    # depends_on('perl', type=('build',)) # TriBITS finds but doesn't use...
     depends_on('libx11', when='+x11')
     depends_on('matio', when='+exodus')
     depends_on('metis', when='+zoltan')
@@ -435,20 +439,18 @@ class Trilinos(CMakePackage, CudaPackage):
         options.extend([
             define('Trilinos_VERBOSE_CONFIGURE', False),
             define_from_variant('BUILD_SHARED_LIBS', 'shared'),
-            define_from_variant("CMAKE_CXX_STANDARD", "cxxstd"),
-            define_trilinos_enable('TESTS', False),
-            define_trilinos_enable('EXAMPLES', False),
+            define_from_variant('CMAKE_CXX_STANDARD', 'cxxstd'),
+            define_trilinos_enable('ALL_OPTIONAL_PACKAGES', False),
+            define_trilinos_enable('ALL_PACKAGES', False),
             define_trilinos_enable('CXX11', True),
             define_trilinos_enable('DEBUG', 'debug'),
+            define_trilinos_enable('EXAMPLES', False),
+            define_trilinos_enable('SECONDARY_TESTED_CODE', True),
+            define_trilinos_enable('TESTS', False),
             define_trilinos_enable('Fortran'),
             define_trilinos_enable('OpenMP'),
             define_trilinos_enable('EXPLICIT_INSTANTIATION',
                                    'explicit_template_instantiation')
-            # The following can cause problems on systems that don't have
-            # static libraries available for things like dl and pthreads
-            # for example when trying to build static libs
-            # define_from_variant('TPL_FIND_SHARED_LIBS', 'shared')
-            # define('Trilinos_LINK_SEARCH_START_STATIC', '+shared' not in spec)
         ])
 
         # ################## Trilinos Packages #####################
@@ -553,47 +555,57 @@ class Trilinos(CMakePackage, CudaPackage):
 
         # ######################### TPLs #############################
 
-        # Enable TPLs based on whether they're in our spec, not whether they're
-        # variant names: packages/features should disable availability
-        tpl_dep_map = [
+        def define_tpl(trilinos_name, spack_name, have_dep):
+            options.append(define('TPL_ENABLE_' + trilinos_name, have_dep))
+            if not have_dep:
+                return
+            depspec = spec[spack_name]
+            libs = depspec.libs
+            options.extend([
+                define(trilinos_name + '_INCLUDE_DIRS', depspec.headers.directories),
+                define(trilinos_name + '_ROOT', depspec.prefix),
+                define(trilinos_name + '_LIBRARY_NAMES', libs.names),
+                define(trilinos_name + '_LIBRARY_DIRS', libs.directories),
+            ])
+
+        # Enable these TPLs explicitly from variant options.
+        tpl_variant_map = [
             ('ADIOS2', 'adios2'),
-            ('BLAS', 'blas'),
             ('Boost', 'boost'),
-            ('CGNS', 'cgns'),
+            ('CUDA', 'cuda'),
             ('HDF5', 'hdf5'),
             ('HYPRE', 'hypre'),
+            ('MUMPS', 'mumps'),
+            ('UMFPACK', 'suite-sparse'),
+            ('SuperLU', 'superlu'),
+            ('SuperLUDist', 'superlu-dist'),
+            ('X11', 'x11'),
+        ]
+        if spec.satisfies('@13.0.2:'):
+            tpl_variant_map.append(('STRUMPACK', 'strumpack'))
+
+        for tpl_name, var_name in tpl_variant_map:
+            define_tpl(tpl_name, var_name, spec.variants[var_name].value)
+
+        # Enable these TPLs based on whether they're in our spec; prefer to
+        # require this way so that packages/features disable availability
+        tpl_dep_map = [
+            ('BLAS', 'blas'),
+            ('CGNS', 'cgns'),
             ('LAPACK', 'lapack'),
             ('Matio', 'matio'),
             ('METIS', 'metis'),
-            ('MUMPS', 'mumps'),
             ('Netcdf', 'netcdf-c'),
             ('SCALAPACK', 'scalapack'),
-            ('SuperLU', 'superlu'),
-            ('SuperLUDist', 'superlu-dist'),
-            ('UMFPACK', 'suite-sparse'),
-            ('X11', 'libx11'),
             ('Zlib', 'zlib'),
         ]
         if spec.satisfies('@12.12.1:'):
             tpl_dep_map.append(('Pnetcdf', 'parallel-netcdf'))
         if spec.satisfies('@13:'):
             tpl_dep_map.append(('HWLOC', 'hwloc'))
-        if spec.satisfies('@13.0.2:'):
-            tpl_dep_map.append(('STRUMPACK', 'strumpack'))
 
         for tpl_name, dep_name in tpl_dep_map:
-            have_dep = (dep_name in spec)
-            options.append(define('TPL_ENABLE_' + tpl_name, have_dep))
-            if not have_dep:
-                continue
-            depspec = spec[dep_name]
-            libs = depspec.libs
-            options.extend([
-                define(tpl_name + '_INCLUDE_DIRS', depspec.prefix.include),
-                define(tpl_name + '_ROOT', depspec.prefix),
-                define(tpl_name + '_LIBRARY_NAMES', libs.names),
-                define(tpl_name + '_LIBRARY_DIRS', libs.directories),
-            ])
+            define_tpl(tpl_name, dep_name, dep_name in spec)
 
         # MPI settings
         options.append(define_tpl_enable('MPI'))
@@ -618,10 +630,9 @@ class Trilinos(CMakePackage, CudaPackage):
                     spec['parmetis'].prefix.lib, spec['metis'].prefix.lib
                 ]),
                 define('ParMETIS_LIBRARY_NAMES', ['parmetis', 'metis']),
-                define('TPL_ParMETIS_INCLUDE_DIRS', [
-                    spec['parmetis'].prefix.include,
-                    spec['metis'].prefix.include
-                ]),
+                define('TPL_ParMETIS_INCLUDE_DIRS',
+                       spec['parmetis'].headers.directories +
+                       spec['metis'].headers.directories),
             ])
 
         if spec.satisfies('^superlu-dist@4.0:'):
@@ -686,7 +697,6 @@ class Trilinos(CMakePackage, CudaPackage):
             ])
             if '+cuda' in spec:
                 options.extend([
-                    define_tpl_enable('CUDA', True),
                     define_kok_enable('CUDA_UVM', True),
                     define_kok_enable('CUDA_LAMBDA', True),
                     define_kok_enable('CUDA_RELOCATABLE_DEVICE_CODE', 'cuda_rdc')
