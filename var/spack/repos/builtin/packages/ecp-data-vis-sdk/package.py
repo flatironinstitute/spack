@@ -30,6 +30,7 @@ class EcpDataVisSdk(BundlePackage, CudaPackage):
     variant('veloc', default=False, description="Enable VeloC")
 
     # Vis
+    variant('sensei', default=False, description="Enable Sensei")
     variant('ascent', default=False, description="Enable Ascent")
     variant('paraview', default=False, description="Enable ParaView")
     variant('sz', default=False, description="Enable SZ")
@@ -40,8 +41,6 @@ class EcpDataVisSdk(BundlePackage, CudaPackage):
     variant('cinema', default=False, description="Enable Cinema")
 
     # Outstanding build issues
-    variant('catalyst', default=False, description="Enable Catalyst")
-    conflicts('+catalyst')
     variant('visit', default=False, description="Enable VisIt")
     conflicts('+visit')
 
@@ -109,15 +108,19 @@ class EcpDataVisSdk(BundlePackage, CudaPackage):
 
     dav_sdk_depends_on('veloc', when='+veloc')
 
+    # Currenly only develop has necessary patches. Update this after SC21 release
+    propagate_to_sensei = [(v, v) for v in ['adios2', 'ascent', 'hdf5', 'vtkm']]
+    propagate_to_sensei.extend([('paraview', 'catalyst'), ('visit', 'libsim')])
+    dav_sdk_depends_on('sensei@develop +vtkio +python ~miniapps', when='+sensei',
+                       propagate=dict(propagate_to_sensei))
+
     dav_sdk_depends_on('ascent+shared+mpi+fortran+openmp+python+vtkh+dray',
                        when='+ascent')
-
-    dav_sdk_depends_on('catalyst', when='+catalyst')
 
     depends_on('py-cinemasci', when='+cinema')
 
     # +adios2 is not yet enabled in the paraview package
-    paraview_base_spec = 'paraview+mpi+python3+kits'
+    paraview_base_spec = 'paraview +mpi +python3 +kits'
     # Want +shared when not using cuda
     dav_sdk_depends_on(paraview_base_spec + '+shared ~cuda',
                        when='+paraview ~cuda',
