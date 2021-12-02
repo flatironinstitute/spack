@@ -7,6 +7,7 @@ import glob
 import os
 
 from spack import *
+import llnl.util.filesystem as fs
 
 
 class Ncurses(AutotoolsPackage, GNUMirrorPackage):
@@ -149,17 +150,52 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
         with working_dir('build_ncursesw'):
             make('install')
 
-        # fix for packages that use "#include <ncurses.h>" (use non-wide by default)
-        headers = glob.glob(os.path.join(prefix.include, 'ncurses', '*.h'))
+        # fix for packages that use "#include <ncurses.h>" (use wide by default)
+        headers = glob.glob(os.path.join(prefix.include, 'ncursesw', '*.h'))
         for header in headers:
             h = os.path.basename(header)
-            os.symlink(os.path.join('ncurses', h), os.path.join(prefix.include, h))
+            os.symlink(os.path.join('ncursesw', h), os.path.join(prefix.include, h))
+
+    def query_parameter_options(self):
+        """Use query parameters passed to spec (e.g., "spec[ncurses:wide]")
+        to select wide, non-wide, or default/both."""
+        query_parameters = self.spec.last_query.extra_parameters
+        return 'nowide' in query_parameters, 'wide' in query_parameters
+
+    @property
+    def headers(self):
+        nowide, wide = self.query_parameter_options()
+        include = self.prefix.include
+        hdirs = []
+        if not (nowide or wide):
+            # default (top-level, wide)
+            hdirs.append(include)
+        if nowide:
+            hdirs.append(include.ncurses)
+        if wide:
+            hdirs.append(include.ncursesw)
+
+        headers = []
+        for hdir in hdirs:
+            headers.extend(fs.find_headers('*', root=hdir, recursive=False))
+        return headers
 
     @property
     def libs(self):
-        libraries = ['libncurses', 'libncursesw']
+        nowide, wide = self.query_parameter_options()
+        if not (nowide or wide):
+            # default (both)
+            nowide = True
+            wide = True
 
+        libs = ['libncurses']
         if '+termlib' in self.spec:
-            libraries += ['libtinfo', 'libtinfow']
+            libs.append('libtinfo')
+        wlibs = [l+'w' for l in libs]
 
+        libraries = []
+        if nowide:
+            libraries.extend(libs)
+        if wide:
+            libraries.extend(wlibs)
         return find_libraries(libraries, root=self.prefix, recursive=True)
