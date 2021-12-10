@@ -175,7 +175,7 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
         if wide:
             hdirs.append(include.ncursesw)
 
-        headers = fs.HeaderList()
+        headers = fs.HeaderList([])
         for hdir in hdirs:
             headers = headers + fs.find_headers('*', root=hdir, recursive=False).headers
         headers.directories = hdirs
