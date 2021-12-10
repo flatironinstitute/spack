@@ -7,6 +7,7 @@ import glob
 import os
 
 from spack import *
+import llnl.util.filesystem as fs
 
 
 class Ncurses(AutotoolsPackage, GNUMirrorPackage):
@@ -155,11 +156,47 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
             h = os.path.basename(header)
             os.symlink(os.path.join('ncursesw', h), os.path.join(prefix.include, h))
 
+    def query_parameter_options(self):
+        """Use query parameters passed to spec (e.g., "spec[ncurses:wide]")
+        to select wide, non-wide, or default/both."""
+        query_parameters = self.spec.last_query.extra_parameters
+        return 'nowide' in query_parameters, 'wide' in query_parameters
+
+    @property
+    def headers(self):
+        nowide, wide = self.query_parameter_options()
+        include = self.prefix.include
+        hdirs = []
+        if not (nowide or wide):
+            # default (top-level, wide)
+            hdirs.append(include)
+        if nowide:
+            hdirs.append(include.ncurses)
+        if wide:
+            hdirs.append(include.ncursesw)
+
+        headers = fs.HeaderList()
+        for hdir in hdirs:
+            headers = headers + fs.find_headers('*', root=hdir, recursive=False).headers
+        headers.directories = hdirs
+        return headers
+
     @property
     def libs(self):
-        libraries = ['libncurses', 'libncursesw']
+        nowide, wide = self.query_parameter_options()
+        if not (nowide or wide):
+            # default (both)
+            nowide = True
+            wide = True
 
+        libs = ['libncurses']
         if '+termlib' in self.spec:
-            libraries += ['libtinfo', 'libtinfow']
+            libs.append('libtinfo')
+        wlibs = [l+'w' for l in libs]
 
+        libraries = []
+        if nowide:
+            libraries.extend(libs)
+        if wide:
+            libraries.extend(wlibs)
         return find_libraries(libraries, root=self.prefix, recursive=True)
