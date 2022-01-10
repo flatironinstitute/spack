@@ -271,6 +271,13 @@ class Python(AutotoolsPackage):
         python = Executable(exes[0])
 
         variants = ''
+        for exe in exes:
+            if os.path.basename(exe) == 'python':
+                variants += '+pythoncmd'
+                break
+        else:
+            variants += '~pythoncmd'
+
         for module in ['readline', 'sqlite3', 'dbm', 'nis',
                        'zlib', 'bz2', 'lzma', 'ctypes', 'uuid']:
             try:
@@ -511,7 +518,7 @@ class Python(AutotoolsPackage):
             ])
 
         # https://docs.python.org/3.8/library/sqlite3.html#f1
-        if spec.satisfies('@3.2: +sqlite3'):
+        if spec.satisfies('@3.2: +sqlite3 ^sqlite+dynamic_extensions'):
             config_args.append('--enable-loadable-sqlite-extensions')
 
         if spec.satisfies('%oneapi'):
