@@ -77,17 +77,13 @@ def _try_import_from_store(module, query_spec, query_info=None):
     installed_specs = spack.store.db.query(query_spec, installed=True)
 
     for candidate_spec in installed_specs:
-        python_spec = candidate_spec['python']
-        lib_spd = python_spec.package.default_site_packages_dir
-        lib64_spd = lib_spd.replace('lib/', 'lib64/')
-        lib_debian_derivative = os.path.join(
-            'lib', 'python{0}'.format(python_spec.version.up_to(1)), 'dist-packages'
-        )
+        pkg = candidate_spec['python'].package
+        purelib = pkg.config_vars['python_lib']['false']['false']
+        platlib = pkg.config_vars['python_lib']['true']['false']
 
         module_paths = [
-            os.path.join(candidate_spec.prefix, lib_debian_derivative),
-            os.path.join(candidate_spec.prefix, lib_spd),
-            os.path.join(candidate_spec.prefix, lib64_spd)
+            os.path.join(candidate_spec.prefix, purelib),
+            os.path.join(candidate_spec.prefix, platlib),
         ]
         sys.path.extend(module_paths)
 
@@ -579,7 +575,9 @@ def ensure_executables_in_path_or_raise(executables, abstract_spec):
                         root=True, order='post', deptype=('link', 'run')
                 ):
                     env_mods.extend(
-                        spack.user_environment.environment_modifications_for_spec(dep)
+                        spack.user_environment.environment_modifications_for_spec(
+                            dep, set_package_py_globals=False
+                        )
                     )
                 cmd.add_default_envmod(env_mods)
                 return cmd
