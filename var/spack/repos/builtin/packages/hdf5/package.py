@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -159,6 +159,8 @@ class Hdf5(CMakePackage):
     # The issue is described here: https://github.com/spack/spack/issues/18625
     patch('hdf5_1.8_gcc10.patch', when='@:1.8.21',
           sha256='0e20187cda3980a4fdff410da92358b63de7ebef2df1d7a425371af78e50f666')
+
+    patch('fortran-kinds.patch', when='@1.10.7')
 
     # The argument 'buf_size' of the C function 'h5fget_file_image_c' is
     # declared as intent(in) though it is modified by the invocation. As a

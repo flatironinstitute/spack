@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -120,7 +120,7 @@ def compiler_info(args):
     compilers = spack.compilers.compilers_for_spec(cspec, scope=args.scope)
 
     if not compilers:
-        tty.error("No compilers match spec %s" % cspec)
+        tty.die("No compilers match spec %s" % cspec)
     else:
         for c in compilers:
             print(str(c.spec) + ":")

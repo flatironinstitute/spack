@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -425,7 +425,7 @@ class Petsc(Package, CudaPackage, ROCmPackage):
                 ('superlu-dist', 'superlu_dist', True, True),
                 ('scotch', 'ptscotch', True, True),
                 ('suite-sparse:umfpack,klu,cholmod,btf,ccolamd,colamd,camd,amd, \
-                suitesparseconfig', 'suitesparse', True, True),
+                suitesparseconfig,spqr', 'suitesparse', True, True),
                 ('hdf5:hl,fortran', 'hdf5', True, True),
                 'zlib',
                 'mumps',

@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -1293,7 +1293,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         """Get the prefix into which this package should be installed."""
         return self.spec.prefix
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @memoized
     def compiler(self):
         """Get the spack.compiler.Compiler object used to build this package"""

@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -82,7 +82,6 @@ import itertools
 import operator
 import os
 import re
-import sys
 import warnings
 
 import ruamel.yaml as yaml
@@ -92,6 +91,7 @@ import llnl.util.filesystem as fs
 import llnl.util.lang as lang
 import llnl.util.tty as tty
 import llnl.util.tty.color as clr
+from llnl.util.compat import Mapping
 
 import spack.compiler
 import spack.compilers
@@ -117,12 +117,6 @@ import spack.util.spack_yaml as syaml
 import spack.util.string
 import spack.variant as vt
 import spack.version as vn
-
-if sys.version_info >= (3, 3):
-    from collections.abc import Mapping  # novm
-else:
-    from collections import Mapping
-
 
 __all__ = [
     'CompilerSpec',
@@ -2184,7 +2178,10 @@ class Spec(object):
             data = yaml.load(stream)
             return Spec.from_dict(data)
         except yaml.error.MarkedYAMLError as e:
-            raise syaml.SpackYAMLError("error parsing YAML spec:", str(e))
+            raise six.raise_from(
+                syaml.SpackYAMLError("error parsing YAML spec:", str(e)),
+                e,
+            )
 
     @staticmethod
     def from_json(stream):
@@ -2197,8 +2194,10 @@ class Spec(object):
             data = sjson.load(stream)
             return Spec.from_dict(data)
         except Exception as e:
-            tty.debug(e)
-            raise sjson.SpackJSONError("error parsing JSON spec:", str(e))
+            raise six.raise_from(
+                sjson.SpackJSONError("error parsing JSON spec:", str(e)),
+                e,
+            )
 
     @staticmethod
     def from_detection(spec_str, extra_attributes=None):
@@ -2735,7 +2734,10 @@ class Spec(object):
             # with inconsistent constraints.  Users cannot produce
             # inconsistent specs like this on the command line: the
             # parser doesn't allow it. Spack must be broken!
-            raise InconsistentSpecError("Invalid Spec DAG: %s" % e.message)
+            raise six.raise_from(
+                InconsistentSpecError("Invalid Spec DAG: %s" % e.message),
+                e,
+            )
 
     def index(self, deptype='all'):
         """Return DependencyMap that points to all the dependencies in this
@@ -4768,7 +4770,7 @@ class SpecParser(spack.parse.Parser):
                         self.unexpected_token()
 
         except spack.parse.ParseError as e:
-            raise SpecParseError(e)
+            raise six.raise_from(SpecParseError(e), e)
 
         # Generate lookups for git-commit-based versions
         for spec in specs:

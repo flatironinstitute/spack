@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -35,6 +35,8 @@ class Petaca(CMakePackage):
             description='Type build type to build',
             values=('Debug', 'Release'))
 
+    variant('shared', default=False, description='build shared libraries')
+
     # copied from openmpi/package.py to ensure fortran support
     @run_before('cmake')
     def die_without_fortran(self):
@@ -45,5 +47,6 @@ class Petaca(CMakePackage):
 
     def cmake_args(self):
         return [
-            self.define('ENABLE_TESTS', self.run_tests)
+            self.define('ENABLE_TESTS', self.run_tests),
+            self.define_from_variant("BUILD_SHARED_LIBS", "shared")
         ]

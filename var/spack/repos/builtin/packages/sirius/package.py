@@ -1,4 +1,4 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -141,6 +141,8 @@ class Sirius(CMakePackage, CudaPackage):
 
     depends_on('elpa+openmp', when='+elpa+openmp')
     depends_on('elpa~openmp', when='+elpa~openmp')
+
+    depends_on('eigen@3.4.0:', when='@7.4: +tests')
 
     # TODO:
     # add support for CRAY_LIBSCI, testing
