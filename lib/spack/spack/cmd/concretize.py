@@ -13,7 +13,6 @@ level = "long"
 
 
 def setup_parser(subparser):
-    spack.cmd.common.arguments.add_common_arguments(subparser, ['reuse'])
     subparser.add_argument(
         '-f', '--force', action='store_true',
         help="Re-concretize even if already concretized.")
@@ -27,6 +26,8 @@ chosen, test dependencies are enabled for all packages in the environment.""")
         '--no-regenerate', action='store_true', default=False,
         help="""Don't regenerate views.""")
 
+    spack.cmd.common.arguments.add_concretizer_args(subparser)
+
 
 def concretize(parser, args):
     env = spack.cmd.require_active_env(cmd_name='concretize')
@@ -39,8 +40,6 @@ def concretize(parser, args):
         tests = False
 
     with env.write_transaction():
-        concretized_specs = env.concretize(
-            force=args.force, tests=tests, reuse=args.reuse
-        )
+        concretized_specs = env.concretize(force=args.force, tests=tests)
         ev.display_specs(concretized_specs)
         env.write(regenerate=not args.no_regenerate)
