@@ -82,6 +82,7 @@ import itertools
 import operator
 import os
 import re
+import sys
 import warnings
 
 import ruamel.yaml as yaml
@@ -111,6 +112,7 @@ import spack.util.crypto
 import spack.util.executable
 import spack.util.hash
 import spack.util.module_cmd as md
+import spack.util.path as pth
 import spack.util.prefix
 import spack.util.spack_json as sjson
 import spack.util.spack_yaml as syaml
@@ -146,6 +148,7 @@ __all__ = [
     'SpecDeprecatedError',
 ]
 
+is_windows = sys.platform == 'win32'
 #: Valid pattern for an identifier in Spack
 identifier_re = r'\w[\w-]*'
 
@@ -1723,7 +1726,7 @@ class Spec(object):
 
     @prefix.setter
     def prefix(self, value):
-        self._prefix = spack.util.prefix.Prefix(value)
+        self._prefix = spack.util.prefix.Prefix(pth.convert_to_platform_path(value))
 
     def _spec_hash(self, hash):
         """Utility method for computing different types of Spec hashes.
@@ -2909,7 +2912,7 @@ class Spec(object):
                 if a list of names activate them for the packages in the list,
                 if True activate 'test' dependencies for all packages.
         """
-        clone = self.copy(caches=True)
+        clone = self.copy()
         clone.concretize(tests=tests)
         return clone
 
@@ -3208,8 +3211,8 @@ class Spec(object):
                 "Attempting to normalize anonymous spec")
 
         # Set _normal and _concrete to False when forced
-        if force:
-            self._mark_concrete(False)
+        if force and not self._concrete:
+            self._normal = False
 
         if self._normal:
             return False
@@ -3678,7 +3681,7 @@ class Spec(object):
 
         return patches
 
-    def _dup(self, other, deps=True, cleardeps=True, caches=None):
+    def _dup(self, other, deps=True, cleardeps=True):
         """Copy the spec other into self.  This is an overwriting
         copy. It does not copy any dependents (parents), but by default
         copies dependencies.
@@ -3693,10 +3696,6 @@ class Spec(object):
             cleardeps (bool): if True clears the dependencies of ``self``,
                 before possibly copying the dependencies of ``other`` onto
                 ``self``
-            caches (bool or None): preserve cached fields such as
-                ``_normal``, ``_hash``, and ``_dunder_hash``. By
-                default this is ``False`` if DAG structure would be
-                changed by the copy, ``True`` if it's an exact copy.
 
         Returns:
             True if ``self`` changed because of the copy operation,
@@ -3747,12 +3746,6 @@ class Spec(object):
         self.extra_attributes = other.extra_attributes
         self.namespace = other.namespace
 
-        # Cached fields are results of expensive operations.
-        # If we preserved the original structure, we can copy them
-        # safely. If not, they need to be recomputed.
-        if caches is None:
-            caches = (deps is True or deps == dp.all_deptypes)
-
         # If we copy dependencies, preserve DAG structure in the new spec
         if deps:
             # If caller restricted deptypes to be copied, adjust that here.
@@ -3760,29 +3753,31 @@ class Spec(object):
             deptypes = dp.all_deptypes
             if isinstance(deps, (tuple, list)):
                 deptypes = deps
-            self._dup_deps(other, deptypes, caches)
+            self._dup_deps(other, deptypes)
 
         self._concrete = other._concrete
         self._hashes_final = other._hashes_final
 
-        if caches:
+        if self._concrete:
             self._hash = other._hash
             self._build_hash = other._build_hash
             self._dunder_hash = other._dunder_hash
-            self._normal = other._normal
+            self._normal = True
             self._full_hash = other._full_hash
             self._package_hash = other._package_hash
         else:
             self._hash = None
             self._build_hash = None
             self._dunder_hash = None
+            # Note, we could use other._normal if we are copying all deps, but
+            # always set it False here to avoid the complexity of checking
             self._normal = False
             self._full_hash = None
             self._package_hash = None
 
         return changed
 
-    def _dup_deps(self, other, deptypes, caches):
+    def _dup_deps(self, other, deptypes):
         def spid(spec):
             return id(spec)
 
@@ -3793,11 +3788,11 @@ class Spec(object):
 
             if spid(edge.parent) not in new_specs:
                 new_specs[spid(edge.parent)] = edge.parent.copy(
-                    deps=False, caches=caches
+                    deps=False
                 )
 
             if spid(edge.spec) not in new_specs:
-                new_specs[spid(edge.spec)] = edge.spec.copy(deps=False, caches=caches)
+                new_specs[spid(edge.spec)] = edge.spec.copy(deps=False)
 
             new_specs[spid(edge.parent)].add_dependency_edge(
                 new_specs[spid(edge.spec)], edge.deptypes
@@ -4633,22 +4628,19 @@ class Spec(object):
         # _dependents of these specs should not be trusted.
         # Variants may also be ignored here for now...
 
-        # Keep all cached hashes because we will invalidate the ones that need
-        # invalidating later, and we don't want to invalidate unnecessarily
-
         if transitive:
-            self_nodes = dict((s.name, s.copy(deps=False, caches=True))
+            self_nodes = dict((s.name, s.copy(deps=False))
                               for s in self.traverse(root=True)
                               if s.name not in other)
-            other_nodes = dict((s.name, s.copy(deps=False, caches=True))
+            other_nodes = dict((s.name, s.copy(deps=False))
                                for s in other.traverse(root=True))
         else:
             # If we're not doing a transitive splice, then we only want the
             # root of other.
-            self_nodes = dict((s.name, s.copy(deps=False, caches=True))
+            self_nodes = dict((s.name, s.copy(deps=False))
                               for s in self.traverse(root=True)
                               if s.name != other.name)
-            other_nodes = {other.name: other.copy(deps=False, caches=True)}
+            other_nodes = {other.name: other.copy(deps=False)}
 
         nodes = other_nodes.copy()
         nodes.update(self_nodes)
@@ -4875,6 +4867,10 @@ class SpecLexer(spack.parse.Lexer):
     """Parses tokens that make up spack specs."""
 
     def __init__(self):
+        # Spec strings require posix-style paths on Windows
+        # because the result is later passed to shlex
+        filename_reg = r'[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*' if not is_windows\
+            else r'([A-Za-z]:)*?[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*'
         super(SpecLexer, self).__init__([
             (r'\^', lambda scanner, val: self.token(DEP,   val)),
             (r'\@', lambda scanner, val: self.token(AT,    val)),
@@ -4888,7 +4884,7 @@ class SpecLexer(spack.parse.Lexer):
 
             # Filenames match before identifiers, so no initial filename
             # component is parsed as a spec (e.g., in subdir/spec.yaml/json)
-            (r'[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*',
+            (filename_reg,
              lambda scanner, v: self.token(FILE, v)),
 
             # Hash match after filename. No valid filename can be a hash
