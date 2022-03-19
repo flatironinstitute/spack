@@ -215,7 +215,7 @@ def substitute_config_variables(path):
         # If a previous invocation added env, remove it
         _replacements.pop('env', None)
     import spack.store as store
-    replacements['root'] = store.root
+    _replacements['root'] = store.root
 
     # Look up replacements
     def repl(match):
