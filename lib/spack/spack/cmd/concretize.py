@@ -25,6 +25,9 @@ chosen, test dependencies are enabled for all packages in the environment.""")
     subparser.add_argument(
         '--no-regenerate', action='store_true', default=False,
         help="""Don't regenerate views.""")
+    subparser.add_argument(
+        '-q', '--quiet', action='store_true',
+        help="Don't print concretized specs")
 
     spack.cmd.common.arguments.add_concretizer_args(subparser)
 
@@ -42,4 +45,6 @@ def concretize(parser, args):
     with env.write_transaction():
         concretized_specs = env.concretize(force=args.force, tests=tests)
         ev.display_specs(concretized_specs)
+        if not args.quiet:
+            ev.display_specs(concretized_specs)
         env.write(regenerate=not args.no_regenerate)

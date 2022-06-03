@@ -6,8 +6,7 @@
 import glob
 import os
 
-from spack import *
-import llnl.util.filesystem as fs
+from spack.package import *
 
 
 class Ncurses(AutotoolsPackage, GNUMirrorPackage):
@@ -42,6 +41,7 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     patch('patch_gcc_5.txt', when='@6.0%gcc@5.0:')
     patch('sed_pgi.patch',   when='@:6.0')
+    patch('nvhpc_fix_preprocessor_flag.patch', when='@6.0:%nvhpc')
 
     @classmethod
     def determine_version(cls, exe):
@@ -175,9 +175,9 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
         if wide:
             hdirs.append(include.ncursesw)
 
-        headers = fs.HeaderList([])
+        headers = HeaderList([])
         for hdir in hdirs:
-            headers = headers + fs.find_headers('*', root=hdir, recursive=False).headers
+            headers = headers + find_headers('*', root=hdir, recursive=False).headers
         headers.directories = hdirs
         return headers
 
@@ -192,7 +192,7 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
         libs = ['libncurses']
         if '+termlib' in self.spec:
             libs.append('libtinfo')
-        wlibs = [l+'w' for l in libs]
+        wlibs = [lib + 'w' for lib in libs]
 
         libraries = []
         if nowide:
