@@ -379,9 +379,8 @@ def test_failing_build(install_mockery, mock_fetch, capfd):
     spec = Spec('failing-build').concretized()
     pkg = spec.package
 
-    with pytest.raises(spack.build_environment.ChildError):
+    with pytest.raises(spack.build_environment.ChildError, match='Expected failure'):
         pkg.do_install()
-        assert 'InstallError: Expected Failure' in capfd.readouterr()[0]
 
 
 class MockInstallError(spack.error.SpackError):
@@ -414,7 +413,25 @@ def test_nosource_pkg_install(
     pkg.do_install()
     out = capfd.readouterr()
     assert "Installing dependency-install" in out[0]
+
+    # Make sure a warning for missing code is issued
     assert "Missing a source id for nosource" in out[1]
+
+
+@pytest.mark.disable_clean_stage_check
+def test_nosource_bundle_pkg_install(
+        install_mockery, mock_fetch, mock_packages, capfd):
+    """Test install phases with the nosource-bundle package."""
+    spec = Spec('nosource-bundle').concretized()
+    pkg = spec.package
+
+    # Make sure install works even though there is no associated code.
+    pkg.do_install()
+    out = capfd.readouterr()
+    assert "Installing dependency-install" in out[0]
+
+    # Make sure a warning for missing code is *not* issued
+    assert "Missing a source id for nosource" not in out[1]
 
 
 def test_nosource_pkg_install_post_install(
@@ -594,3 +611,16 @@ def test_install_error():
         assert exc.__class__.__name__ == 'InstallError'
         assert exc.message == msg
         assert exc.long_message == long_msg
+
+
+@pytest.mark.disable_clean_stage_check
+def test_empty_install_sanity_check_prefix(
+        monkeypatch, install_mockery, mock_fetch, mock_packages
+):
+    """Test empty install triggers sanity_check_prefix."""
+    spec = Spec('failing-empty-install').concretized()
+    with pytest.raises(
+        spack.build_environment.ChildError,
+        match='Nothing was installed'
+    ):
+        spec.package.do_install()
