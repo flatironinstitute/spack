@@ -16,6 +16,7 @@ class Atmi(CMakePackage):
     homepage = "https://github.com/RadeonOpenCompute/atmi"
     git      = "https://github.com/RadeonOpenCompute/atmi.git"
     url      = "https://github.com/RadeonOpenCompute/atmi/archive/rocm-5.1.3.tar.gz"
+    tags     = ['rocm']
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
@@ -54,9 +55,12 @@ class Atmi(CMakePackage):
     patch('0002-Remove-usr-bin-rsync-reference.patch', when='@4.0.0:')
 
     def cmake_args(self):
-        return [
+        args = [
             '-DROCM_VERSION={0}'.format(self.spec.version)
         ]
+        if self.spec.satisfies('@5.0.2:'):
+            args.append(self.define('FILE_REORG_BACKWARD_COMPATIBILITY', 'OFF'))
+        return args
 
     @run_after('install')
     def install_stub(self):
