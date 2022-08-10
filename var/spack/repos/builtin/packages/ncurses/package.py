@@ -179,8 +179,9 @@ class Ncurses(AutotoolsPackage, GNUMirrorPackage):
 
     @run_after("install")
     def symlink_curses(self):
-        libncurses = "{0}/libncurses.so".format(self.prefix.lib)
-        libcurses = "{0}/libcurses.so".format(self.prefix.lib)
+        soext = "so" if not self.spec.satisfies("platform=darwin") else "dylib"
+        libncurses = "{0}/libncurses.{1}".format(self.prefix.lib, soext)
+        libcurses = "{0}/libcurses.{1}".format(self.prefix.lib, soext)
         if not os.path.exists(libcurses) and os.path.exists(libncurses):
             os.symlink(libncurses, libcurses)
 
