@@ -271,7 +271,7 @@ def run_flake8(flake8_cmd, file_list, args):
             "--config=%s" % os.path.join(spack.paths.prefix, ".flake8"),
             *chunk,
             fail_on_error=False,
-            output=str
+            output=str,
         )
         returncode |= flake8_cmd.returncode
 
