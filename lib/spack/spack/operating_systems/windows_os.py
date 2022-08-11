@@ -48,7 +48,7 @@ class WindowsOs(OperatingSystem):
                     "-products",
                     "*",
                 ],
-                **extra_args,
+                **extra_args
             ).strip()
             if (3, 0) <= sys.version_info[:2] <= (3, 5):
                 paths = paths.decode()

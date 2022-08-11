@@ -410,7 +410,7 @@ def compiler_from_dict(items):
         environment,
         extra_rpaths,
         enable_implicit_rpaths=implicit_rpaths,
-        **compiler_flags,
+        **compiler_flags
     )
 
 

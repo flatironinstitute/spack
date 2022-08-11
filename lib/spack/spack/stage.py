@@ -902,7 +902,7 @@ def get_checksums_for_versions(url_dict, name, **kwargs):
         "",
         *llnl.util.lang.elide_list(
             ["{0:{1}}  {2}".format(str(v), max_len, url_dict[v]) for v in sorted_versions]
-        ),
+        )
     )
     print()
 

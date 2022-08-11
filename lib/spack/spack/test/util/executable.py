@@ -45,7 +45,7 @@ print(u'\\xc3')
         fs.set_executable(script_name)
         filter_shebangs_in_directory(".", [script_name])
 
-        assert "\xc3" == script(output=str).strip()
+        assert u"\xc3" == script(output=str).strip()
 
 
 def test_which_relative_path_with_slash(tmpdir, working_env):

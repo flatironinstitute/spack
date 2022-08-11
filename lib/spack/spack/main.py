@@ -380,7 +380,7 @@ def make_argument_parser(**kwargs):
             "A flexible package manager that supports multiple versions,\n"
             "configurations, platforms, and compilers."
         ),
-        **kwargs,
+        **kwargs
     )
 
     # stat names in groups of 7, for nice wrapping.

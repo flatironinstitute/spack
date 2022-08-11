@@ -69,7 +69,7 @@ def clone(parser, args):
     if files_in_the_way:
         tty.die(
             "There are already files there! " "Delete these files before boostrapping spack.",
-            *files_in_the_way,
+            *files_in_the_way
         )
 
     tty.msg("Installing:", "%s/bin/spack" % prefix, "%s/lib/spack/..." % prefix)

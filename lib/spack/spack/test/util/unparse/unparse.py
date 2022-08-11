@@ -286,8 +286,8 @@ def test_min_int27():
 
 @pytest.mark.skipif(not six.PY3, reason="Only works for Python 3")
 def test_min_int30():
-    check_ast_roundtrip(str(-(2**31)))
-    check_ast_roundtrip(str(-(2**63)))
+    check_ast_roundtrip(str(-(2 ** 31)))
+    check_ast_roundtrip(str(-(2 ** 63)))
 
 
 def test_imaginary_literals():
