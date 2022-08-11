@@ -12,13 +12,14 @@ class Cabana(CMakePackage):
     """
     homepage = "https://github.com/ECP-copa/Cabana"
     git      = "https://github.com/ECP-copa/Cabana.git"
-    url      = "https://github.com/ECP-copa/Cabana/archive/0.4.0.tar.gz"
+    url      = "https://github.com/ECP-copa/Cabana/archive/0.5.0.tar.gz"
 
     maintainers = ["junghans", "streeve", "sslattery"]
 
     tags = ['e4s', 'ecp']
 
     version('master', branch='master')
+    version('0.5.0', sha256='b7579d44e106d764d82b0539285385d28f7bbb911a572efd05c711b28b85d8b1')
     version('0.4.0', sha256='c347d23dc4a5204f9cc5906ccf3454f0b0b1612351bbe0d1c58b14cddde81e85')
     version('0.3.0', sha256='fb67ab9aaf254b103ae0eb5cc913ddae3bf3cd0cf6010e9686e577a2981ca84f')
     version('0.2.0', sha256='3e0c0e224e90f4997f6c7e2b92f00ffa18f8bcff72f789e0908cea0828afc2cb')
@@ -36,13 +37,18 @@ class Cabana(CMakePackage):
     variant('heffte', default=False, description='Build with heFFTe support')
     variant('hypre', default=False, description='Build with HYPRE support')
     variant('cajita', default=False, description='Build Cajita subpackage')
+    variant('testing', default=False, description='Build unit tests')
+    variant('examples', default=False, description='Build tutorial examples')
+    variant('performance_testing', default=False, description='Build performance tests')
 
-    depends_on("cmake@3.9:", type='build')
-    depends_on("googletest", type='build')
+    depends_on("cmake@3.9:", type='build', when="@:0.4.0")
+    depends_on("cmake@3.16:", type='build', when="@0.5.0:")
+    depends_on("googletest", type='build', when="testing")
     _versions = {
         ":0.2.0": "-legacy",
         "0.3.0": "@3.1:",
-        "0.4.0": "@3.2:"
+        "0.4.0": "@3.2:",
+        "0.5.0": "@3.2:"
     }
     for _version in _versions:
         _kk_version = _versions[_version]
@@ -57,13 +63,11 @@ class Cabana(CMakePackage):
             depends_on(_kk_spec, when='@{0}+{1}'.format(_version, _backend))
     depends_on("arborx", when="@0.3.0:+arborx")
     depends_on("hypre-cmake@2.22.0:", when="@0.4.0:+hypre")
-    depends_on("hypre-cmake@2.22.1:", when="@master+hypre")
-    # Heffte pinned at 2.0.0 for now because its cmakefiles can't roll forward
-    # compatibilty from 2.0.0 to later minor versions and cabana cmakefiles are
-    # currently requesting version 2.0.0. Will be fixed for later cabana versions
-    # as cabana requested version number and heffte version compatibility changes
+    depends_on("hypre-cmake@2.22.1:", when="@0.5.0:+hypre")
+    # Heffte pinned at 2.x.0 because its cmakefiles can't roll forward
+    # compatibilty to later minor versions.
     depends_on("heffte@2.0.0", when="@0.4.0+heffte")
-    depends_on("heffte@2.1.0", when="@master+heffte")
+    depends_on("heffte@2.1.0", when="@0.5.0:+heffte")
     depends_on('mpi', when='+mpi')
 
     conflicts("+cajita ~mpi")
@@ -72,31 +76,24 @@ class Cabana(CMakePackage):
     conflicts("+sycl", when="@:0.3.0")
 
     def cmake_args(self):
-        options = [
-            '-DCabana_ENABLE_TESTING=ON',
-            '-DBUILD_SHARED_LIBS=%s' % (
-                'On' if '+shared'  in self.spec else 'Off')
-        ]
+        options = [self.define_from_variant('BUILD_SHARED_LIBS', 'shared')]
 
-        # Enable Cabana submodules based on flags above
-        if '+hypre' in self.spec:
-            options.append('-DCabana_REQUIRE_HYPRE=ON')
-        if '+heffte' in self.spec:
-            options.append('-DCabana_REQUIRE_HEFFTE=ON')
-
-        options.append(self.define_from_variant('Cabana_ENABLE_CAJITA', 'cajita'))
+        enable = ['CAJITA', 'TESTING', 'EXAMPLES', 'PERFORMANCE_TESTING']
+        require = ['ARBORX', 'HEFFTE', 'HYPRE']
 
         # These variables were removed in 0.3.0 (where backends are
         # automatically used from Kokkos)
         if self.spec.satisfies('@:0.2.0'):
-            backends = {'serial': 'Serial',
-                        'openmp': 'OpenMP',
-                        'cuda': 'Cuda'}
-            for backend in backends:
-                cbn_option = 'Cabana_ENABLE_' + backends[backend]
-                options.append(self.define_from_variant(cbn_option, backend))
-
+            enable += ['Serial', 'OpenMP', 'Cuda']
+        # MPI was changed from ENABLE to REQUIRE in 0.4.0
         if self.spec.satisfies('@:0.3.0'):
-            options.append(self.define_from_variant('Cabana_ENABLE_MPI', 'mpi'))
+            enable += ['MPI']
+        else:
+            require += ['MPI']
+
+        for category, cname in zip([enable, require], ["ENABLE", "REQUIRE"]):
+            for var in category:
+                cbn_option = 'Cabana_{0}_{1}'.format(cname, var)
+                options.append(self.define_from_variant(cbn_option, var.lower()))
 
         return options
