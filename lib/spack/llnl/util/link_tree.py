@@ -14,7 +14,7 @@ import shutil
 from collections import OrderedDict
 
 import llnl.util.tty as tty
-from llnl.util.filesystem import mkdirp, touch, traverse_tree
+from llnl.util.filesystem import BaseDirectoryVisitor, mkdirp, touch, traverse_tree
 from llnl.util.symlink import islink, symlink
 
 __all__ = ["LinkTree"]
@@ -46,7 +46,7 @@ class MergeConflict:
         self.src_b = src_b
 
 
-class SourceMergeVisitor(object):
+class SourceMergeVisitor(BaseDirectoryVisitor):
     """
     Visitor that produces actions:
     - An ordered list of directories to create in dst
@@ -107,9 +107,6 @@ class SourceMergeVisitor(object):
             self.directories[proj_rel_path] = (root, rel_path)
             return True
 
-    def after_visit_dir(self, root, rel_path, depth):
-        pass
-
     def before_visit_symlinked_dir(self, root, rel_path, depth):
         """
         Replace symlinked dirs with actual directories when possible in low depths,
@@ -142,9 +139,6 @@ class SourceMergeVisitor(object):
         self.visit_file(root, rel_path, depth)
         return False
 
-    def after_visit_symlinked_dir(self, root, rel_path, depth):
-        pass
-
     def visit_file(self, root, rel_path, depth):
         proj_rel_path = os.path.join(self.projection, rel_path)
 
@@ -174,6 +168,10 @@ class SourceMergeVisitor(object):
             # Otherwise register this file to be linked.
             self.files[proj_rel_path] = (root, rel_path)
 
+    def visit_symlinked_file(self, root, rel_path, depth):
+        # Treat symlinked files as ordinary files (without "dereferencing")
+        self.visit_file(root, rel_path, depth)
+
     def set_projection(self, projection):
         self.projection = os.path.normpath(projection)
 
@@ -201,7 +199,7 @@ class SourceMergeVisitor(object):
                 )
 
 
-class DestinationMergeVisitor(object):
+class DestinationMergeVisitor(BaseDirectoryVisitor):
     """DestinatinoMergeVisitor takes a SourceMergeVisitor
     and:
 
@@ -241,9 +239,6 @@ class DestinationMergeVisitor(object):
         # don't descend into it.
         return False
 
-    def after_visit_dir(self, root, rel_path, depth):
-        pass
-
     def before_visit_symlinked_dir(self, root, rel_path, depth):
         """
         Symlinked directories in the destination prefix should
@@ -270,9 +265,6 @@ class DestinationMergeVisitor(object):
         # Never descend into symlinked target dirs.
         return False
 
-    def after_visit_symlinked_dir(self, root, rel_path, depth):
-        pass
-
     def visit_file(self, root, rel_path, depth):
         # Can't merge a file if target already exists
         if rel_path in self.src.directories:
@@ -290,6 +282,10 @@ class DestinationMergeVisitor(object):
                     rel_path, os.path.join(src_a_root, src_a_relpath), os.path.join(root, rel_path)
                 )
             )
+
+    def visit_symlinked_file(self, root, rel_path, depth):
+        # Treat symlinked files as ordinary files (without "dereferencing")
+        self.visit_file(root, rel_path, depth)
 
 
 class LinkTree(object):
