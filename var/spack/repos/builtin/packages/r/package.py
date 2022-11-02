@@ -198,7 +198,7 @@ class R(AutotoolsPackage):
         # Set R_LIBS to include the library dir for the
         # extension and any other R extensions it depends on.
         r_libs_path = []
-        for d in dependent_spec.traverse(deptype=("build", "run"), deptype_query="run"):
+        for d in dependent_spec.traverse(deptype=("build", "run")):
             if d.package.extends(self.spec):
                 r_libs_path.append(join_path(d.prefix, self.r_lib_dir))
 
@@ -214,16 +214,19 @@ class R(AutotoolsPackage):
         # Use the number of make_jobs set in spack. The make program will
         # determine how many jobs can actually be started.
         env.set("MAKEFLAGS", "-j{0}".format(make_jobs))
+        env.set("R_HOME", join_path(self.prefix, "rlib", "R"))
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         # For run time environment set only the path for dependent_spec and
         # prepend it to R_LIBS
+        env.set("R_HOME", join_path(self.prefix, "rlib", "R"))
         if dependent_spec.package.extends(self.spec):
             env.prepend_path("R_LIBS", join_path(dependent_spec.prefix, self.r_lib_dir))
 
     def setup_run_environment(self, env):
         env.prepend_path("LD_LIBRARY_PATH", join_path(self.prefix, "rlib", "R", "lib"))
         env.prepend_path("PKG_CONFIG_PATH", join_path(self.prefix, "rlib", "pkgconfig"))
+        env.set("R_HOME", join_path(self.prefix, "rlib", "R"))
 
         if "+rmath" in self.spec:
             env.prepend_path("LD_LIBRARY_PATH", join_path(self.prefix, "rlib"))

@@ -1376,7 +1376,7 @@ class Environment(object):
                 arguments.append((uspec_constraints, tests))
 
         # Ensure we don't try to bootstrap clingo in parallel
-        if spack.config.get("config:concretizer") == "clingo":
+        if spack.config.get("config:concretizer", "clingo") == "clingo":
             with spack.bootstrap.ensure_bootstrap_configuration():
                 spack.bootstrap.ensure_clingo_importable_or_raise()
 
@@ -1819,6 +1819,14 @@ class Environment(object):
                 if dep_hash.startswith(dag_hash):
                     matches[dep_hash] = spec
         return list(matches.values())
+
+    def get_one_by_hash(self, dag_hash):
+        """Returns the single spec from the environment which matches the
+        provided hash.  Raises an AssertionError if no specs match or if
+        more than one spec matches."""
+        hash_matches = self.get_by_hash(dag_hash)
+        assert len(hash_matches) == 1
+        return hash_matches[0]
 
     def matching_spec(self, spec):
         """
