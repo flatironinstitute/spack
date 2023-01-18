@@ -8,19 +8,20 @@ import re
 from spack.package import *
 
 
-class RoctracerDev(CMakePackage):
+class RoctracerDev(CMakePackage, ROCmPackage):
     """ROC-tracer library: Runtimes Generic Callback/Activity APIs.
     The goal of the implementation is to provide a generic independent from
     specific runtime profiler to trace API and asyncronous activity."""
 
     homepage = "https://github.com/ROCm-Developer-Tools/roctracer"
     git = "https://github.com/ROCm-Developer-Tools/roctracer.git"
-    url = "https://github.com/ROCm-Developer-Tools/roctracer/archive/rocm-5.3.0.tar.gz"
+    url = "https://github.com/ROCm-Developer-Tools/roctracer/archive/rocm-5.3.3.tar.gz"
     tags = ["rocm"]
 
     maintainers = ["srekolam", "renjithravindrankannath"]
     libraries = ["libroctracer64"]
 
+    version("5.3.3", sha256="f2cb1e6bb69ea1a628c04f984741f781ae1d8498dc58e15795bb03015f924d13")
     version("5.3.0", sha256="36f1da60863a113bb9fe2957949c661f00a702e249bb0523cda1fb755c053808")
     version("5.2.3", sha256="93f4bb7529db732060bc12055aa10dc346a459a1086cddd5d86c7b509301be4f")
     version("5.2.1", sha256="e200b5342bdf840960ced6919d4bf42c8f30f8013513f25a2190ee8767667e59")
@@ -70,6 +71,7 @@ class RoctracerDev(CMakePackage):
         "5.2.1",
         "5.2.3",
         "5.3.0",
+        "5.3.3",
     ]:
         depends_on("hsakmt-roct@" + ver, when="@" + ver)
         depends_on("hsa-rocr-dev@" + ver, when="@" + ver)
@@ -77,11 +79,11 @@ class RoctracerDev(CMakePackage):
         depends_on("hip@" + ver, when="@" + ver)
         depends_on("rocprofiler-dev@" + ver, when="@" + ver)
 
-    patch("0001-include-rocprofiler-dev-path.patch", when="@5.3.0")
+    patch("0001-include-rocprofiler-dev-path.patch", when="@5.3:")
 
     @classmethod
     def determine_version(cls, lib):
-        match = re.search(r"lib\S*\.so\.\d+\.\d+\.(\d)(\d\d)(\d\d)", lib)
+        match = re.search(r"rocm-(\d+)\.(\d+)\.(\d)/lib/lib\S*\.so\.\d+\.\d+\.\d+", lib)
         if match:
             ver = "{0}.{1}.{2}".format(
                 int(match.group(1)), int(match.group(2)), int(match.group(3))
@@ -89,10 +91,6 @@ class RoctracerDev(CMakePackage):
         else:
             ver = None
         return ver
-
-    def setup_build_environment(self, build_env):
-        spec = self.spec
-        build_env.set("HIP_PATH", spec["hip"].prefix),
 
     def patch(self):
         filter_file(
