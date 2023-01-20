@@ -1,4 +1,4 @@
-# Copyright 2013-2022 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -3115,7 +3115,7 @@ def test_environment_depfile_makefile(depfile_flags, expected_installs, tmpdir, 
             "-o",
             makefile,
             "--make-disable-jobserver",
-            "--make-target-prefix=prefix",
+            "--make-prefix=prefix",
             *depfile_flags,
         )
 
@@ -3164,7 +3164,7 @@ def test_spack_package_ids_variable(tmpdir, mock_packages):
             "-G",
             "make",
             "--make-disable-jobserver",
-            "--make-target-prefix=example",
+            "--make-prefix=example",
             "-o",
             include_path,
         )
