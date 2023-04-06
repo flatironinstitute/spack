@@ -76,7 +76,7 @@ class SourceMergeVisitor(BaseDirectoryVisitor):
         # so that we have a fast lookup and can run mkdir in order.
         self.directories = OrderedDict()
 
-        # Files to link. Maps dst_rel to (src_rel, src_root)
+        # Files to link. Maps dst_rel to (src_root, src_rel)
         self.files = OrderedDict()
 
     def before_visit_dir(self, root, rel_path, depth):
@@ -474,6 +474,11 @@ class LinkTree(object):
 
 class MergeConflictError(Exception):
     pass
+
+
+class ConflictingSpecsError(MergeConflictError):
+    def __init__(self, spec_1, spec_2):
+        super(MergeConflictError, self).__init__(spec_1, spec_2)
 
 
 class SingleMergeConflictError(MergeConflictError):

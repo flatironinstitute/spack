@@ -16,7 +16,7 @@ class Sensei(CMakePackage):
     homepage = "https://sensei-insitu.org"
     url = "https://github.com/SENSEI-insitu/SENSEI/releases/download/v3.2.1/SENSEI-3.2.1.tar.gz"
     git = "https://github.com/SENSEI-insitu/SENSEI.git"
-    maintainers = ["sshudler", "kwryankrattiger"]
+    maintainers("sshudler", "kwryankrattiger")
 
     version("develop", branch="develop")
     version("4.0.0", sha256="fc1538aa1051789dbdefbe18b7f251bc46e7a6ae1db3a940c123552e0318db8b")
@@ -90,9 +90,11 @@ class Sensei(CMakePackage):
     depends_on("pugixml")
     depends_on("mpi")
 
+    depends_on("paraview use_vtkm=off", when="+catalyst+ascent ^ascent+vtkh")
+    depends_on("paraview use_vtkm=off", when="+catalyst+ascent ^ascent+fides")
+
     # Can have either LibSim or Catalyst or Ascent, but not a combination
     conflicts("+libsim", when="+catalyst")
-    conflicts("+ascent", when="+catalyst")
     conflicts("+ascent", when="+libsim")
 
     # Patches

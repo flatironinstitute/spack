@@ -16,9 +16,10 @@ class GftlShared(CMakePackage):
     url = (
         "https://github.com/Goddard-Fortran-Ecosystem/gFTL-shared/archive/refs/tags/v1.5.0.tar.gz"
     )
+    list_url = "https://github.com/Goddard-Fortran-Ecosystem/gFTL-shared/tags"
     git = "https://github.com/Goddard-Fortran-Ecosystem/gFTL-shared.git"
 
-    maintainers = ["mathomp4", "tclune"]
+    maintainers("mathomp4", "tclune")
 
     version("main", branch="main")
 

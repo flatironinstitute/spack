@@ -12,7 +12,7 @@ class PySphinx(PythonPackage):
     homepage = "https://www.sphinx-doc.org/en/master/"
     pypi = "Sphinx/Sphinx-3.2.0.tar.gz"
 
-    maintainers = ["adamjstewart"]
+    maintainers("adamjstewart")
 
     version("6.0.0", sha256="58c140ecd9aa0abbc8ff6da48a266648eac9e5bfc8e49576efd2979bf46f5961")
 
@@ -58,8 +58,6 @@ class PySphinx(PythonPackage):
     version("1.5.5", sha256="4064ea6c56feeb268838cb8fbbee507d0c3d5d92fa63a7df935a916b52c9e2f5")
     version("1.4.5", sha256="c5df65d97a58365cbf4ea10212186a9a45d89c61ed2c071de6090cdf9ddb4028")
     version("1.3.1", sha256="1a6e5130c2b42d2de301693c299f78cc4bd3501e78b610c08e45efc70e2b5114")
-
-    extends("python", ignore="bin/(pybabel|pygmentize)")
 
     depends_on("py-flit-core@3.7:", when="@5.2:", type="build")
     depends_on("py-setuptools", when="@4.4:5.1", type="build")

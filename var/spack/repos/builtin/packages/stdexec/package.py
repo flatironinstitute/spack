@@ -11,11 +11,11 @@ class Stdexec(CMakePackage):
 
     homepage = "https://github.com/NVIDIA/stdexec"
     git = "https://github.com/NVIDIA/stdexec.git"
-    maintainers = ["msimberg", "aurianer"]
+    maintainers("msimberg", "aurianer")
 
     version("main", branch="main")
 
-    depends_on("cmake@3.22.1:", type="build")
+    depends_on("cmake@3.23.1:", type="build")
 
     conflicts("%gcc@:10")
     conflicts("%clang@:13")

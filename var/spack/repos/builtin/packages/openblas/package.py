@@ -14,7 +14,7 @@ class Openblas(MakefilePackage):
     """OpenBLAS: An optimized BLAS library"""
 
     homepage = "https://www.openblas.net"
-    url = "https://github.com/xianyi/OpenBLAS/archive/v0.2.19.tar.gz"
+    url = "https://github.com/xianyi/OpenBLAS/releases/download/v0.2.19/OpenBLAS-0.2.19.tar.gz"
     git = "https://github.com/xianyi/OpenBLAS.git"
 
     libraries = ["libopenblas"]
@@ -448,13 +448,7 @@ class Openblas(MakefilePackage):
 
     @property
     def build_targets(self):
-        targets = ["libs", "netlib"]
-
-        # Build shared if variant is set.
-        if "+shared" in self.spec:
-            targets += ["shared"]
-
-        return self.make_defs + targets
+        return self.make_defs + ["all"]
 
     @run_after("build")
     @on_package_attributes(run_tests=True)
@@ -463,10 +457,7 @@ class Openblas(MakefilePackage):
 
     @property
     def install_targets(self):
-        make_args = [
-            "install",
-            "PREFIX={0}".format(self.prefix),
-        ]
+        make_args = ["install", "PREFIX={0}".format(self.prefix)]
         return make_args + self.make_defs
 
     @run_after("install")

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+from os.path import dirname, isdir
 
 from spack.package import *
 
@@ -18,12 +19,18 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
 
     """
 
-    maintainers = ["rscohn2"]
+    maintainers("rscohn2")
 
     homepage = (
         "https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl.html"
     )
 
+    version(
+        "2023.1.0",
+        url="https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cd17b7fe-500e-4305-a89b-bd5b42bfd9f8/l_onemkl_p_2023.1.0.46342_offline.sh",
+        sha256="cc28c94cab23c185520b93c5a04f3979d8da6b4c90cee8c0681dd89819d76167",
+        expand=False,
+    )
     version(
         "2023.0.0",
         url="https://registrationcenter-download.intel.com/akdlm/irc_nas/19138/l_onemkl_p_2023.0.0.25398_offline.sh",
@@ -153,7 +160,10 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
         if "+cluster" in self.spec:
             libs.append(self._xlp64_lib("libmkl_blacs_intelmpi"))
 
-        return find_libraries(libs, self.component_prefix.lib.intel64, shared=shared)
+        lib_path = self.component_prefix.lib.intel64
+        lib_path = lib_path if isdir(lib_path) else dirname(lib_path)
+
+        return find_libraries(libs, lib_path, shared=shared)
 
     def _xlp64_lib(self, lib):
         return lib + ("_ilp64" if "+ilp64" in self.spec else "_lp64")

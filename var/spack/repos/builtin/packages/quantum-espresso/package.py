@@ -18,7 +18,7 @@ class QuantumEspresso(CMakePackage, Package):
     url = "https://gitlab.com/QEF/q-e/-/archive/qe-6.6/q-e-qe-6.6.tar.gz"
     git = "https://gitlab.com/QEF/q-e.git"
 
-    maintainers = ["ye-luo", "danielecesarini", "bellenlau"]
+    maintainers("ye-luo", "danielecesarini", "bellenlau")
 
     build_system(conditional("cmake", when="@6.8:"), "generic", default="cmake")
 
@@ -80,11 +80,7 @@ class QuantumEspresso(CMakePackage, Package):
     # Add Cuda Fortran support
     # depends on NVHPC compiler, not directly on CUDA toolkit
     with when("%nvhpc"):
-        variant(
-            "cuda",
-            default=False,
-            description="Build with CUDA Fortran",
-        )
+        variant("cuda", default=False, description="Build with CUDA Fortran")
         with when("+cuda"):
             # GPUs are enabled since v6.6
             conflicts("@:6.5")
@@ -258,6 +254,13 @@ class QuantumEspresso(CMakePackage, Package):
     # NOTE: *SOME* third-party patches will require deactivation of
     # upstream patches using `~patch` variant
 
+    # Only CMake will work for @6.8: %aocc
+    conflicts(
+        "build_system=generic", when="@6.8: %aocc", msg="Please use CMake to build with AOCC"
+    )
+
+    conflicts("~openmp", when="^amdlibflame", msg="amdlibflame requires OpenMP")
+
     # QMCPACK converter patches for QE 6.8, 6.7, 6.4.1, 6.4, and 6.3
     conflicts(
         "@:6.2,6.5:6.6",
@@ -271,6 +274,18 @@ class QuantumEspresso(CMakePackage, Package):
     )
 
     conflicts("@6.5:", when="+environ", msg="6.4.x is the latest QE series supported by Environ")
+
+    # QE 7.1 fix post-processing install part 1/2
+    # see: https://gitlab.com/QEF/q-e/-/merge_requests/2005
+    patch_url = "https://gitlab.com/QEF/q-e/-/commit/4ca3afd4c6f27afcf3f42415a85a353a7be1bd37.diff"
+    patch_checksum = "e54d33e36a2667bd1d7e358db9fa9d4d83085264cdd47e39ce88754452ae7700"
+    patch(patch_url, sha256=patch_checksum, when="@:7.1 build_system=cmake")
+
+    # QE 7.1 fix post-processing install part 2/2
+    # see: https://gitlab.com/QEF/q-e/-/merge_requests/2007
+    patch_url = "https://gitlab.com/QEF/q-e/-/commit/481a001293de2f9eec8481e02d64f679ffd83ede.diff"
+    patch_checksum = "5075f2df61ef5ff70f2ec3b52a113f5636fb07f5d3d4c0115931f9b95ed61c3e"
+    patch(patch_url, sha256=patch_checksum, when="@:7.1 build_system=cmake")
 
     # No patch needed for QMCPACK converter beyond 7.0
     # 7.0
@@ -366,8 +381,8 @@ class QuantumEspresso(CMakePackage, Package):
         when="+patch@6.4.1:6.5.0",
     )
 
-    # Configure updated to work with AOCC compilers
-    patch("configure_aocc.patch", when="@6.7:6.8 %aocc")
+    # Patch automake configure for AOCC compilers
+    patch("configure_aocc.patch", when="@6.7 %aocc")
 
     # Configure updated to work with NVIDIA compilers
     patch("nvhpc.patch", when="@6.5 %nvhpc")
@@ -535,7 +550,6 @@ class GenericBuilder(spack.build_systems.generic.GenericBuilder):
             options.append("--with-libxc-prefix={0}".format(spec["libxc"].prefix))
 
         if "+elpa" in spec:
-
             # Spec for elpa
             elpa = spec["elpa"]
 

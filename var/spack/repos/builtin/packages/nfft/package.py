@@ -17,6 +17,11 @@ class Nfft(AutotoolsPackage):
     version('3.5.2', sha256='cf3b2f3b2eabd79e49a5fbabf7f8d73fc3c57c4f68ae71e29f6dead853ab2901')
     version("3.4.1", sha256="1cf6060eec0afabbbba323929d8222397a77fa8661ca74927932499db26b4aaf")
     version("3.3.2", sha256="9dcebd905a82c4f0a339d0d5e666b68c507169d9173b66d5ac588aae5d50b57c")
+    version(
+        "3.2.4",
+        sha256="31932438bd28609bcc32bef23830994fe6ac26d411d2077cde782faa5d21207e",
+        url="https://www-user.tu-chemnitz.de/~potts/nfft/download/nfft-3.2.4.tar.gz",
+    )
 
     depends_on("fftw")
 
