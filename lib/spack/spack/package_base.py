@@ -1248,6 +1248,13 @@ class PackageBase(WindowsRPath, PackageViewMixin, metaclass=PackageMeta):
 
         # TODO: allow more than one active extendee.
         if deps:
+            if len(deps) != 1:
+                print('******************')
+                print(deps)
+                print('******************')
+                for dep in self.spec.traverse(deptype=("link", "run")):
+                    print(dep)
+                print('******************')
             assert len(deps) == 1
             return deps[0]
 
