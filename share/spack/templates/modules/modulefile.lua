@@ -88,6 +88,10 @@ pushenv("{{ cmd.name }}", "{{ cmd.value }}")
 unsetenv("{{ cmd.name }}")
 {% endif %}
 {% endfor %}
+{# Make sure system man pages are enabled by appending trailing delimiter to MANPATH #}
+{% if has_manpath_modifications %}
+append_path("MANPATH", "", ":")
+{% endif %}
 {% endblock %}
 
 {% block footer %}
