@@ -30,7 +30,7 @@ help([[{{ long_description| textwrap(72)| join() }}]])
 {% if has_modulepath_modifications %}
 -- Services provided by the package
 {% for name in provides %}
-{% if spec.name != "llvm" %}
+{% if name != "compiler" %}
 family("{{ name }}")
 {% endif %}
 {% endfor %}
