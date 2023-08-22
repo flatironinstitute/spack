@@ -23,13 +23,14 @@ import spack.spec
 import spack.store
 from spack.directives import build_system, depends_on, extends, maintainers
 from spack.error import NoHeadersError, NoLibrariesError, SpecError
+from spack.install_test import test_part
 from spack.version import Version
 
 from ._checks import BaseBuilder, execute_install_time_tests
 
 
 class PythonExtension(spack.package_base.PackageBase):
-    maintainers("adamjstewart", "pradyunsg")
+    maintainers("adamjstewart")
 
     @property
     def import_modules(self):
@@ -167,18 +168,20 @@ class PythonExtension(spack.package_base.PackageBase):
 
         view.remove_files(to_remove)
 
-    def test(self):
+    def test_imports(self):
         """Attempts to import modules of the installed package."""
 
         # Make sure we are importing the installed modules,
         # not the ones in the source directory
+        python = inspect.getmodule(self).python
         for module in self.import_modules:
-            self.run_test(
-                inspect.getmodule(self).python.path,
-                ["-c", "import {0}".format(module)],
-                purpose="checking import of {0}".format(module),
+            with test_part(
+                self,
+                f"test_imports_{module}",
+                purpose=f"checking import of {module}",
                 work_dir="spack-test",
-            )
+            ):
+                python("-c", f"import {module}")
 
     def update_external_dependencies(self, extendee_spec=None):
         """
@@ -198,7 +201,7 @@ class PythonExtension(spack.package_base.PackageBase):
             else:
                 python = self.get_external_python_for_prefix()
                 if not python.concrete:
-                    repo = spack.repo.path.repo_for_pkg(python)
+                    repo = spack.repo.PATH.repo_for_pkg(python)
                     python.namespace = repo.namespace
 
                     # Ensure architecture information is present
@@ -223,7 +226,7 @@ class PythonExtension(spack.package_base.PackageBase):
 
                     python.external_path = self.spec.external_path
                     python._mark_concrete()
-            self.spec.add_dependency_edge(python, deptypes=("build", "link", "run"))
+            self.spec.add_dependency_edge(python, deptypes=("build", "link", "run"), virtuals=())
 
 
 class PythonPackage(PythonExtension):
@@ -283,7 +286,7 @@ class PythonPackage(PythonExtension):
           spack.spec.Spec: The external Spec for python most likely to be compatible with self.spec
         """
         python_externals_installed = [
-            s for s in spack.store.db.query("python") if s.prefix == self.spec.external_path
+            s for s in spack.store.STORE.db.query("python") if s.prefix == self.spec.external_path
         ]
         if python_externals_installed:
             return python_externals_installed[0]
@@ -298,7 +301,7 @@ class PythonPackage(PythonExtension):
             return python_externals_configured[0]
 
         python_externals_detection = spack.detection.by_executable(
-            [spack.repo.path.get_pkg_class("python")], path_hints=[self.spec.external_path]
+            [spack.repo.PATH.get_pkg_class("python")], path_hints=[self.spec.external_path]
         )
 
         python_externals_detected = [
@@ -398,7 +401,8 @@ class PythonPipBuilder(BaseBuilder):
 
     def config_settings(self, spec, prefix):
         """Configuration settings to be passed to the PEP 517 build backend.
-        Requires pip 22.1+, which requires Python 3.7+.
+
+        Requires pip 22.1 or newer.
 
         Args:
             spec (spack.spec.Spec): build spec
@@ -412,6 +416,8 @@ class PythonPipBuilder(BaseBuilder):
     def install_options(self, spec, prefix):
         """Extra arguments to be supplied to the setup.py install command.
 
+        Requires pip 23.0 or older.
+
         Args:
             spec (spack.spec.Spec): build spec
             prefix (spack.util.prefix.Prefix): installation prefix
@@ -424,6 +430,8 @@ class PythonPipBuilder(BaseBuilder):
     def global_options(self, spec, prefix):
         """Extra global options to be supplied to the setup.py call before the install
         or bdist_wheel command.
+
+        Deprecated in pip 23.1.
 
         Args:
             spec (spack.spec.Spec): build spec

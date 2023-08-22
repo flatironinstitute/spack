@@ -40,13 +40,19 @@ class Amdblis(BlisBase):
     version("2.2", sha256="e1feb60ac919cf6d233c43c424f6a8a11eab2c62c2c6e3f2652c15ee9063c0c9")
 
     variant("ilp64", default=False, when="@3.0.1:", description="ILP64 support")
+    variant("suphandling", default=True, description="Small Unpacked Kernel handling")
 
     def configure_args(self):
         spec = self.spec
-        args = super(Amdblis, self).configure_args()
+        args = super().configure_args()
 
         if spec.satisfies("+ilp64"):
             args.append("--blas-int-size=64")
+
+        if spec.satisfies("+suphandling"):
+            args.append("--enable-sup-handling")
+        else:
+            args.append("--disable-sup-handling")
 
         # To enable Fortran to C calling convention for
         # complex types when compiling with aocc flang
@@ -62,7 +68,7 @@ class Amdblis(BlisBase):
         return args
 
     def config_args(self):
-        config_args = super(Amdblis, self).config_args()
+        config_args = super().config_args()
 
         # "amdzen" - A fat binary or multiarchitecture binary
         # support for 3.1 release onwards
