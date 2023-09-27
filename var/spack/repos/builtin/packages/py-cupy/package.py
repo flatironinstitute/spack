@@ -18,6 +18,7 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     homepage = "https://cupy.dev/"
     pypi = "cupy/cupy-8.0.0.tar.gz"
 
+    version("12.2.0", sha256="f95ffd0afeacb617b048fe028ede07b97dc9e95aca1610a022b1f3d20a9a027e")
     version("12.1.0", sha256="f6d31989cdb2d96581da12822e28b102f29e254427195c2017eac327869b7320")
     version("12.0.0", sha256="61ddbbef73d50d606bd5087570645f3c91ec9176c2566784c1d486d6a3404545")
     version("11.6.0", sha256="53dbb840072bb32d4bfbaa6bfa072365a30c98b1fcd1f43e48969071ad98f1a7")
@@ -42,7 +43,8 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
 
     # Based on https://github.com/cupy/cupy/releases
     depends_on("cuda@:11.9", when="@:11 +cuda")
-    depends_on("cuda@:12.1", when="@12: +cuda")
+    depends_on("cuda@:12.1", when="@12:12.1 +cuda")
+    depends_on("cuda@:12.2", when="@12.2 +cuda")
 
     for a in CudaPackage.cuda_arch_values:
         depends_on("nccl +cuda cuda_arch={0}".format(a), when="+cuda cuda_arch={0}".format(a))
