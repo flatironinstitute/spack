@@ -296,7 +296,7 @@ class Gdal(CMakePackage, AutotoolsPackage, PythonExtension):
     depends_on("iconv", when="+iconv")
     # depends_on('idb', when='+idb')
     # depends_on('ingres', when='+ingres')
-    depends_on("jasper@1.900.1", patches=[patch("uuid.patch")], when="+jasper")
+    depends_on("jasper@1.900.1", when="+jasper")
     depends_on("jpeg", when="+jpeg")
     depends_on("libjxl", when="+jxl")
     # depends_on('kakadu', when='+kdu')
