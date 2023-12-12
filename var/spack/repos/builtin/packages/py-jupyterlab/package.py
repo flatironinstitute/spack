@@ -55,7 +55,7 @@ class PyJupyterlab(PythonPackage):
 
     with when("@:3"):
         depends_on("py-setuptools", when="@:3", type=("build", "run"))
-        depends_on("py-jupyter-packaging@0.9:1", when="@3.4.8", type="build")
+        depends_on("py-jupyter-packaging@0.9:1", when="@3.4.8:", type="build")
         depends_on("py-jupyter-packaging@0.9:0", when="@3.0.15:3.4.2", type="build")
         depends_on("py-jupyter-packaging@0.7.3:0.7", when="@3.0.0:3.0.14", type=("build", "run"))
         depends_on("py-pre-commit", when="@3.4:3.4.3", type="build")
@@ -75,9 +75,6 @@ class PyJupyterlab(PythonPackage):
         # dependency on py-jinja2@2.1 seems to be a migration issue from the switch
         # to setup.cfg in 3.0.15, leave it a 2.10
         depends_on("py-jinja2@2.10:", type=("build", "run"))
-
-        depends_on("py-jupyter-ydoc@0.2.4:0.2")
-        depends_on("py-jupyter-server-ydoc@0.8")
 
     with when("@:2"):
         depends_on("python@:3.9", when="@:2.1", type=("build", "run"))
