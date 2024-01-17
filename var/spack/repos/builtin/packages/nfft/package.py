@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,6 +13,8 @@ class Nfft(AutotoolsPackage):
 
     homepage = "https://www-user.tu-chemnitz.de/~potts/nfft"
     url = "https://github.com/NFFT/nfft/releases/download/3.4.1/nfft-3.4.1.tar.gz"
+
+    license("GPL-2.0-or-later")
 
     version('3.5.2', sha256='cf3b2f3b2eabd79e49a5fbabf7f8d73fc3c57c4f68ae71e29f6dead853ab2901')
     version("3.4.1", sha256="1cf6060eec0afabbbba323929d8222397a77fa8661ca74927932499db26b4aaf")

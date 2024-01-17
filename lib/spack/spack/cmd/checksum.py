@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,7 +17,12 @@ import spack.stage
 import spack.util.crypto
 import spack.util.web as web_util
 from spack.cmd.common import arguments
-from spack.package_base import PackageBase, deprecated_version, preferred_version
+from spack.package_base import (
+    ManualDownloadRequiredError,
+    PackageBase,
+    deprecated_version,
+    preferred_version,
+)
 from spack.util.editor import editor
 from spack.util.format import get_version_lines
 from spack.version import Version
@@ -85,6 +90,10 @@ def checksum(parser, args):
 
     # Get the package we're going to generate checksums for
     pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
+
+    # Skip manually downloaded packages
+    if pkg.manual_download:
+        raise ManualDownloadRequiredError(pkg.download_instr)
 
     versions = [Version(v) for v in args.versions]
 
