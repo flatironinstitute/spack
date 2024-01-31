@@ -17,6 +17,7 @@ class PyJupyterlab(PythonPackage):
     license("BSD-3-Clause")
 
     version("4.0.1", sha256="4dc3901f7bbfd4704c994b7a893a49955256abf57dba9831f4825e3f3165b8bb")
+    version("3.6.6", sha256="0a47d7adb28bd5659d727783f4113537e54f8c66e0d6322d1d8f9edb081dc926")
     version("3.4.8", sha256="1fafb8b657005d91603f3c3adfd6d9e8eaf33fdc601537fef09283332efe67cb")
     version("3.4.2", sha256="38abd3a4f83a8f97e3f15bebbcc0825903c15519809eedfaa41340d260be2160")
     version("3.2.9", sha256="65ddc34e5da1a764606e38c4f70cf9d4ac1c05182813cf0ab2dfea312c701124")
@@ -51,7 +52,7 @@ class PyJupyterlab(PythonPackage):
 
     with when("@:3"):
         depends_on("py-setuptools", when="@:3", type=("build", "run"))
-        depends_on("py-jupyter-packaging@0.9:1", when="@3.4.8", type="build")
+        depends_on("py-jupyter-packaging@0.9:1", when="@3.4.8:", type="build")
         depends_on("py-jupyter-packaging@0.9:0", when="@3.0.15:3.4.2", type="build")
         depends_on("py-pre-commit", when="@3.4:3.4.3", type="build")
 
