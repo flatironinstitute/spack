@@ -15,15 +15,18 @@ class PyJupyterServerProxy(PythonPackage):
     """
 
     homepage = "https://github.com/jupyterhub/jupyter-server-proxy"
-    pypi = "jupyter-server-proxy/jupyter-server-proxy-3.2.2.tar.gz"
+    pypi = "jupyter_server_proxy/jupyter_server_proxy-4.1.0.tar.gz"
 
     license("BSD-3-Clause")
 
-    version("3.2.2", sha256="54690ea9467035d187c930c599e76065017baf16e118e6eebae0d3a008c4d946")
+    version("4.0.0", sha256="f5dc12dd204baca71b013df3522c14403692a2d37cb7adcd77851dbab71533b5")
 
-    depends_on("py-jupyter-packaging@0.7.9:0.7", type="build")
-    depends_on("py-jupyterlab@3.0:3", type="build")
+    depends_on("py-hatchling@1.4.0:", type="build")
+    depends_on("py-hatch-jupyter-builder@0.5:", type="build")
+    depends_on("py-hatch-nodejs-version", type="build")
+    depends_on("py-jupyterlab@3.4.7:3", type="build")
     depends_on("py-setuptools@40.8.0:", type="build")
+    depends_on("npm", type="build")
 
     depends_on("py-aiohttp", type=("build", "run"))
     depends_on("py-jupyter-server@1.0:", type=("build", "run"))
