@@ -33,7 +33,7 @@ class Fgsl(AutotoolsPackage):
     depends_on("libtool", type="build")
     depends_on("m4", type="build")
     depends_on("pkgconfig", type="build")
-    depends_on("gsl@2.6", when="@1.5.0")
+    depends_on("gsl@2.6:2.7", when="@1.5.0")
     depends_on("gsl@2.5", when="@1.4.0")
     depends_on("gsl@2.4", when="@1.3.0")
     depends_on("gsl@2.3", when="@1.2.0")
