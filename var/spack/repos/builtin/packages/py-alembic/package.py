@@ -13,6 +13,7 @@ class PyAlembic(PythonPackage):
 
     license("MIT")
 
+    version("1.13.1", sha256="4932c8558bf68f2ee92b9bbcb8218671c627064d5b08939437af6d77dc05e595")
     version("1.5.5", sha256="df0028c19275a2cff137e39617a39cdcdbd1173733b87b6bfa257b7c0860213b")
     version("1.0.7", sha256="16505782b229007ae905ef9e0ae6e880fddafa406f086ac7d442c1aaf712f8c2")
 
