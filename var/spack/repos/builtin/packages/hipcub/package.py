@@ -50,12 +50,11 @@ class Hipcub(CMakePackage, CudaPackage, ROCmPackage):
         sticky=True,
     )
     variant("rocm", default=True, description="Enable ROCm support")
+    variant("asan", default=False, description="Build with address-sanitizer enabled or disabled")
     conflicts("+cuda +rocm", msg="CUDA and ROCm support are mutually exclusive")
     conflicts("~cuda ~rocm", msg="CUDA or ROCm support is required")
 
     depends_on("cmake@3.10.2:", type="build")
-
-    depends_on("hip +cuda", when="+cuda")
 
     depends_on("googletest@1.10.0:", type="test")
 
@@ -80,6 +79,7 @@ class Hipcub(CMakePackage, CudaPackage, ROCmPackage):
     ]:
         depends_on(f"rocprim@{ver}", when=f"+rocm @{ver}")
         depends_on(f"rocm-cmake@{ver}:", type="build", when=f"@{ver}")
+        depends_on(f"hip +cuda@{ver}", when=f"+cuda @{ver}")
 
     # fix hardcoded search in /opt/rocm and broken config mode search
     patch("find-hip-cuda-rocm-5.1.patch", when="@5.1:5.2 +cuda")
@@ -88,6 +88,8 @@ class Hipcub(CMakePackage, CudaPackage, ROCmPackage):
     def setup_build_environment(self, env):
         if self.spec.satisfies("+rocm"):
             env.set("CXX", self.spec["hip"].hipcc)
+        if self.spec.satisfies("+asan"):
+            self.asan_on(env, self.spec["llvm-amdgpu"].prefix)
 
     def cmake_args(self):
         args = [self.define("BUILD_TEST", self.run_tests)]
