@@ -429,7 +429,7 @@ def install_with_active_env(env: ev.Environment, args, install_kwargs, reporter_
     finally:
         # TODO: this is doing way too much to trigger
         # views and modules to be generated.
-        if not args.no_regenerate:
+        if env.views and not args.no_regenerate:
             with env.write_transaction():
                 env.write(regenerate=True)
 
