@@ -17,6 +17,7 @@ class PyTorchScatter(PythonPackage):
 
     license("MIT")
 
+    version("2.1.2", sha256="6f375dbc9cfe03f330aa29ea553e9c7432e9b040d039b041f08bf05df1a8bf37")
     version("2.0.5", sha256="e29b364beaa9c84a99e0e236be89ed19d4452d89010ff736184ddcce488b47f6")
 
     variant("cuda", default=False, description="Enable CUDA support")
