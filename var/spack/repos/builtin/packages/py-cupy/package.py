@@ -18,6 +18,7 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     homepage = "https://cupy.dev/"
     pypi = "cupy/cupy-8.0.0.tar.gz"
 
+    version("13.1.0", sha256="5caf62288481a27713384523623045380ff42e618be4245f478238ed1786f32d")
     version("13.0.0", sha256="2f04e7857f692a713360dc9c3b06709806ab8404fca39b5af9721c04a2979aae")
     version("12.3.0", sha256="47db32114e6fdd48d0510cbf0b08b0935522d7dfa3e39416b0c0da3914323524")
     version("12.2.0", sha256="f95ffd0afeacb617b048fe028ede07b97dc9e95aca1610a022b1f3d20a9a027e")
@@ -29,6 +30,8 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     version("11.3.0", sha256="d057cc2f73ecca06fae8b9c270d9e14116203abfd211a704810cc50a453b4c9e")
     version("11.2.0", sha256="c33361f117a347a63f6996ea97446d17f1c038f1a1f533e502464235076923e2")
 
+    depends_on("cxx", type="build")  # generated
+
     variant("all", default=False, description="Enable optional py-scipy, optuna, and cython")
 
     depends_on("python@3.7:", when="@:11", type=("build", "run"))
@@ -38,21 +41,26 @@ class PyCupy(PythonPackage, CudaPackage, ROCmPackage):
     depends_on("py-fastrlock@0.5:", type=("build", "run"))
     depends_on("py-numpy@1.20:1.25", when="@:11", type=("build", "run"))
     depends_on("py-numpy@1.20:1.26", when="@12:", type=("build", "run"))
+    depends_on("py-numpy@1.22:1.28", when="@13:", type=("build", "run"))
 
-    depends_on("py-scipy@1.6:1.12", when="+all", type=("build", "run"))
+    depends_on("py-scipy@1.6:1.12", when="@:12+all", type=("build", "run"))
+    depends_on("py-scipy@1.7:1.13", when="@13:+all", type=("build", "run"))
     depends_on("py-cython@0.29.22:2", when="+all", type=("build", "run"))
     depends_on("py-optuna@2:", when="+all", type=("build", "run"))
 
     # Based on https://github.com/cupy/cupy/releases
     depends_on("cuda@:11.9", when="@:11 +cuda")
-    depends_on("cuda@:12.1", when="@12:12.1 +cuda")
+    depends_on("cuda@:12.1", when="@12:12.1.0 +cuda")
     depends_on("cuda@:12.2", when="@12.2 +cuda")
+    depends_on("cuda@:12.4", when="@13: +cuda")
 
     for a in CudaPackage.cuda_arch_values:
         depends_on("nccl +cuda cuda_arch={0}".format(a), when="+cuda cuda_arch={0}".format(a))
 
-    depends_on("cudnn", when="+cuda")
-    depends_on("cutensor", when="+cuda")
+    depends_on("cudnn@8.8", when="@12.0.0: +cuda")
+    depends_on("cudnn@8.5", when="@11.2.0:11.6.0 +cuda")
+    depends_on("cutensor", when="@:12.1.0 +cuda")
+    depends_on("cutensor@2.0.1.2", when="@13.1: +cuda")
 
     for _arch in ROCmPackage.amdgpu_targets:
         arch_str = "amdgpu_target={0}".format(_arch)
