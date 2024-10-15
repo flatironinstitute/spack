@@ -15,6 +15,7 @@ class PyAiofiles(PythonPackage):
 
     license("Apache-2.0")
 
+    version("22.1.0", sha256="9107f1ca0b2a5553987a94a3c9959fe5b491fdf731389aa5b7b1bd0733e32de6")
     version("0.7.0", sha256="a1c4fc9b2ff81568c83e21392a82f344ea9d23da906e4f6a52662764545e19d4")
     version("0.5.0", sha256="98e6bcfd1b50f97db4980e182ddd509b7cc35909e903a8fe50d8849e02d815af")
 

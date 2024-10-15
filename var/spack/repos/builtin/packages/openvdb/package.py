@@ -70,6 +70,7 @@ class Openvdb(CMakePackage):
             self.define_from_variant("OPENVDB_BUILD_AX_BINARIES", "ax"),
             self.define_from_variant("OPENVDB_BUILD_PYTHON_MODULE", "python"),
             self.define_from_variant("USE_NUMPY", "python"),
+            self.define("USE_CCACHE", False),
         ]
         return args
 

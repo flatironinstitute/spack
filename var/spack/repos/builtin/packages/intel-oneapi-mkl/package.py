@@ -225,6 +225,17 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
             env.append_path("PKG_CONFIG_PATH", self.component_prefix.lib.pkgconfig)
             env.append_path("PKG_CONFIG_PATH", self.component_prefix.tools.pkgconfig)
 
+        self.setup_run_environment(env)
+
+        env.append_path('CMAKE_INCLUDE_PATH', self.component_prefix.include)
+        lib_path = self.component_prefix.lib.intel64
+        env.append_path('CMAKE_LIBRARY_PATH', lib_path)
+        env.append_path('SPACK_COMPILER_EXTRA_RPATHS', lib_path)
+
+    def setup_run_environment(self, env):
+        super().setup_run_environment(env)
+        env.append_path('CMAKE_PREFIX_PATH', self.component_prefix)
+
     def _find_mkl_libs(self, shared):
         libs = []
 

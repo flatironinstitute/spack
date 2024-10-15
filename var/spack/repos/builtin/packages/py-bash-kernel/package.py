@@ -19,3 +19,4 @@ class PyBashKernel(PythonPackage):
 
     depends_on("py-flit", type="build")
     depends_on("py-pexpect@4.0:", type=("build", "run"))
+    depends_on('py-ipykernel', type=('build', 'run'))

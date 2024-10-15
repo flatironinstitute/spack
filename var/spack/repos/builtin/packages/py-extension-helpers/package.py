@@ -18,6 +18,7 @@ class PyExtensionHelpers(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("1.0.0", sha256="ca1bfac67c79cf4a7a0c09286ce2a24eec31bf17715818d0726318dd0e5050e6")
     version("0.1", sha256="ac8a6fe91c6d98986a51a9f08ca0c7945f8fd70d95b662ced4040ae5eb973882")
 
     depends_on("c", type="build")  # generated

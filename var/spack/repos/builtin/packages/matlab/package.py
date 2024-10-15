@@ -26,6 +26,9 @@ class Matlab(Package):
     homepage = "https://www.mathworks.com/products/matlab.html"
     manual_download = True
 
+    version('R2023b', sha256='9da5eaf76d3677101c580174e2e795045e9d0ae31bb7f2cdc1af8bd19da58518')
+    version('R2023a', sha256='42d501b2c53a29994f7d09c167bb9857f03335e000ee0e3d3e32ad4aede6fee5')
+    version('R2022b', sha256='a704ce9123752b93e210b2114b5e0f698a92e98d6569b97f0b499455d5258746')
     version("R2019b", sha256="d60787263afb810283b7820c4c8d9cb1f854c7cb80f47e136643fd95bf5fbd59")
     version("R2018b", sha256="8cfcddd3878d3a69371c4e838773bcabf12aaf0362cc2e1ae7e8820845635cac")
     version("R2016b", sha256="a3121057b1905b132e5741de9f7f8350378592d84c5525faf3ec571620a336f2")
@@ -52,7 +55,7 @@ class Matlab(Package):
     extendable = True
 
     def url_for_version(self, version):
-        return "file://{0}/matlab_{1}_glnxa64.zip".format(os.getcwd(), version)
+        return "file:///mnt/sw/pkg/matlab_{0}_glnxa64.zip".format(version)
 
     def install(self, spec, prefix):
         config = {
@@ -77,7 +80,10 @@ class Matlab(Package):
     def post_install(self):
         # Fix broken link
         with working_dir(self.spec.prefix.bin.glnxa64):
-            os.unlink("libSDL2.so")
+            try:
+                os.unlink("libSDL2.so")
+            except OSError:
+                pass
             os.symlink("libSDL2-2.0.so.0.2.1", "libSDL2.so")
 
         # Fix to random exceptions when changing display settings

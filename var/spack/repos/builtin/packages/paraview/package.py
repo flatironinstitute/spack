@@ -66,6 +66,7 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("c", type="build")  # generated
     depends_on("cxx", type="build")  # generated
     depends_on("fortran", type="build")  # generated
+    depends_on('curl', type=('build', 'link'))
 
     variant(
         "development_files",
@@ -768,3 +769,12 @@ class Paraview(CMakePackage, CudaPackage, ROCmPackage):
         self.test_smoke_test()
         self.test_pvpython()
         self.test_mpi_ensemble()
+
+    @run_after('install')
+    def install_wrapper(self):
+        paraview_src = os.path.join(self.prefix.bin, 'paraview')
+        paraview_dst = os.path.join(self.prefix.bin, 'paraview-real')
+        move(paraview_src, paraview_dst)
+
+        wrapper_src = os.path.join(self.package_dir, 'paraview_wrapper.sh')
+        copy(wrapper_src, paraview_src)

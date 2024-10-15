@@ -14,6 +14,7 @@ class PyAutomat(PythonPackage):
 
     license("MIT")
 
+    version("22.10.0", sha256="e56beb84edad19dcc11d30e8d9b895f75deeb5ef5e96b84a467066b3b84bb04e")
     version("20.2.0", sha256="7979803c74610e11ef0c0d68a2942b152df52da55336e0c9d58daf1831cbdf33")
 
     depends_on("py-setuptools", type="build")
