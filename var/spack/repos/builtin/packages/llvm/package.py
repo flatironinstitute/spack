@@ -992,6 +992,8 @@ class Llvm(CMakePackage, CudaPackage, LlvmDetection, CompilerPackage):
                 define("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY", False),
                 define("CMAKE_FIND_USE_PACKAGE_REGISTRY", False),
                 define("CMAKE_FIND_USE_SYSTEM_PATH", False),
+                define("CLANG_PYTHON_BINDINGS_VERSIONS", "3"),
+                define("LLVM_ENABLE_PER_TARGET_RUNTIME_DIR", False),
             ]
         )
 
