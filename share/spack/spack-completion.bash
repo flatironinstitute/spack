@@ -415,7 +415,7 @@ _spack_add() {
 }
 
 _spack_arch() {
-    SPACK_COMPREPLY="-h --help -g --generic-target --known-targets -p --platform -o --operating-system -t --target -f --frontend -b --backend"
+    SPACK_COMPREPLY="-h --help -g --generic-target --known-targets --family --generic -p --platform -o --operating-system -t --target -f --frontend -b --backend"
 }
 
 _spack_audit() {
@@ -1195,7 +1195,12 @@ _spack_find() {
 }
 
 _spack_gc() {
-    SPACK_COMPREPLY="-h --help -E --except-any-environment -e --except-environment -b --keep-build-dependencies -y --yes-to-all"
+    if $list_options
+    then
+        SPACK_COMPREPLY="-h --help -E --except-any-environment -e --except-environment -b --keep-build-dependencies -y --yes-to-all"
+    else
+        _installed_packages
+    fi
 }
 
 _spack_gpg() {
