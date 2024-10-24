@@ -576,6 +576,8 @@ class Hdf5(CMakePackage):
 
             if spec.satisfies("+fortran"):
                 args.extend(["-DMPI_Fortran_COMPILER:PATH=%s" % spec["mpi"].mpifc])
+                if spec.satisfies('^intel-oneapi-mpi %gcc'):
+                    args.append("-DMPI_Fortran_COMPILER_INCLUDE_DIRS:STRING=%s/gfortran/11.1.0" % spec["mpi"].package.component_prefix.include.mpi)
 
         # work-around for https://github.com/HDFGroup/hdf5/issues/1320
         if spec.satisfies("@1.10.8,1.13.0"):
