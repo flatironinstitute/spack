@@ -6,6 +6,7 @@
 
 from glob import glob
 from os.path import basename
+import re
 
 from spack.package import *
 from spack.pkg.builtin.singularityce import SingularityBase
@@ -101,7 +102,7 @@ class Apptainer(SingularityBase):
 
     @run_after('install')
     def fi_conf(self):
-        conf_path = os.path.join(self.prefix.etc, "apptainer", "apptainer.conf")
+        conf_path = join_path(self.prefix.etc.apptainer, "apptainer.conf")
         conf_keys = {
                 'allow pid ns': 'no',
                 'mount slave': 'no',
