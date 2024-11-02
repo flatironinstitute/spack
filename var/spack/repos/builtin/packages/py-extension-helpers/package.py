@@ -13,7 +13,7 @@ class PyExtensionHelpers(PythonPackage):
     extensions. It is developed by the Astropy project but is intended
     to be general and usable by any Python package."""
 
-    homepage = "https://github.com/astropy/astropy-helpers"
+    homepage = "https://github.com/astropy/extension-helpers"
     pypi = "extension-helpers/extension-helpers-0.1.tar.gz"
 
     license("BSD-3-Clause")
@@ -25,3 +25,5 @@ class PyExtensionHelpers(PythonPackage):
 
     depends_on("python@3.6:", type=("build", "run"))
     depends_on("py-setuptools@30.3:", type="build")
+
+    patch("setup_helpers.py.patch")
