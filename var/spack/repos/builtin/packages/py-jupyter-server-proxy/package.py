@@ -19,11 +19,14 @@ class PyJupyterServerProxy(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("4.4.0", sha256="e5732eb9c810c0caa997f90a2f15f7d09af638e7eea9c67eb5c43e9c1f0e1157")
     version("4.1.0", sha256="2cfac3b4232fe7144e8e60296b4f861708b4f13b29260a2cf28976bf8e617f70")
     version("4.0.0", sha256="f5dc12dd204baca71b013df3522c14403692a2d37cb7adcd77851dbab71533b5")
 
     depends_on("py-hatchling@1.4.0:", type="build")
+    depends_on("py-hatchling@1.18.0:", type="build", when="@4.2:")
     depends_on("py-hatch-jupyter-builder@0.5:", type="build")
+    depends_on("py-hatch-jupyter-builder@0.8.3:", type="build", when="@4.2:")
     depends_on("py-hatch-nodejs-version", type="build")
     depends_on("py-jupyterlab@3.4.7:3", type="build", when="@:4.0")
     depends_on("py-jupyterlab@4.0.5:4", type="build", when="@4.1:")
@@ -34,3 +37,5 @@ class PyJupyterServerProxy(PythonPackage):
     depends_on("py-jupyter-server@1.0:", type=("build", "run"), when="@:4.0")
     depends_on("py-jupyter-server@2:", type=("build", "run"), when="@4.1:")
     depends_on("py-simpervisor@1:", type=("build", "run"))
+    depends_on("py-tornado@6.1:", type=("build", "run"), when="@4.2:")
+    depends_on("py-traitlets@5.1:", type=("build", "run"), when="@4.2:")

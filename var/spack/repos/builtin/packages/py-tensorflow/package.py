@@ -794,6 +794,13 @@ class PyTensorflow(Package, CudaPackage, ROCmPackage, PythonExtension):
         filter_file("build:opt --copt=-march=native", "", ".tf_configure.bazelrc")
         filter_file("build:opt --host_copt=-march=native", "", ".tf_configure.bazelrc")
 
+        if spec.satisfies("@2.7:"):
+            filter_file(
+                r"(^\s*)'platform_system",
+                r"\1#'platform_system",
+                "tensorflow/tools/pip_package/setup.py",
+            )
+
     def build(self, spec, prefix):
         # Bazel needs the directory to exist on install
         mkdirp(python_platlib)

@@ -33,4 +33,10 @@ class PyPyqt5(SIPPackage):
 
     def configure_args(self):
         # https://www.riverbankcomputing.com/static/Docs/PyQt5/installation.html
-        return ["--confirm-license", "--no-make", "--qmake", self.spec["qt"].prefix.bin.qmake]
+        # Would prefer to use --designer-plugindir, but it doesn't seem to work.
+        # This may be because of SIPPackage using `make` instead of `sip-install`.
+        return ["--confirm-license", "--no-make", "--qmake", self.spec["qt"].prefix.bin.qmake,
+                '--no-designer-plugin',
+                '--no-qml-plugin',
+                '--no-tools',
+                ]
