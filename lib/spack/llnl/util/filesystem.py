@@ -1685,11 +1685,11 @@ def find(
     recursive: bool = True,
     max_depth: Optional[int] = None,
 ) -> List[str]:
-    """Finds all non-directory files matching the patterns from ``files`` starting from ``root``.
-    This function returns a deterministic result for the same input and directory structure when
-    run multiple times. Symlinked directories are followed, and unique directories are searched
-    only once. Each matching file is returned only once at lowest depth in case multiple paths
-    exist due to symlinked directories.
+    """Finds all files matching the patterns from ``files`` starting from ``root``. This function
+    returns a deterministic result for the same input and directory structure when run multiple
+    times. Symlinked directories are followed, and unique directories are searched only once. Each
+    matching file is returned only once at lowest depth in case multiple paths exist due to
+    symlinked directories.
 
     Accepts any glob characters accepted by fnmatch:
 
@@ -1822,54 +1822,58 @@ def _find_max_depth(
         # Use glob.glob for complex patterns.
         for pattern_name, pattern in complex_patterns.items():
             matched_paths[pattern_name].extend(
-                path
-                for path in glob.glob(os.path.join(curr_dir, pattern))
-                if not os.path.isdir(path)
+                path for path in glob.glob(os.path.join(curr_dir, pattern))
             )
 
+        # List of subdirectories by path and (inode, device) tuple
+        subdirs: List[Tuple[str, Tuple[int, int]]] = []
+
         with dir_iter:
-            ordered_entries = sorted(dir_iter, key=lambda x: x.name)
-            for dir_entry in ordered_entries:
+            for dir_entry in dir_iter:
+
+                # Match filename only patterns
+                if filename_only_patterns:
+                    m = regex.match(os.path.normcase(dir_entry.name))
+                    if m:
+                        for pattern_name in filename_only_patterns:
+                            if m.group(pattern_name):
+                                matched_paths[pattern_name].append(dir_entry.path)
+                                break
+
+                # Collect subdirectories
+                if depth >= max_depth:
+                    continue
+
                 try:
-                    it_is_a_dir = dir_entry.is_dir(follow_symlinks=True)
+                    if not dir_entry.is_dir(follow_symlinks=True):
+                        continue
+                    if sys.platform == "win32":
+                        # Note: st_ino/st_dev on DirEntry.stat are not set on Windows, so we have
+                        # to call os.stat
+                        stat_info = os.stat(dir_entry.path, follow_symlinks=True)
+                    else:
+                        stat_info = dir_entry.stat(follow_symlinks=True)
                 except OSError as e:
                     # Possible permission issue, or a symlink that cannot be resolved (ELOOP).
                     _log_file_access_issue(e, dir_entry.path)
                     continue
 
-                if it_is_a_dir:
-                    if depth >= max_depth:
-                        continue
-                    try:
-                        # The stat should be performed in a try/except block. We repeat that here
-                        # vs. moving to the above block because we only want to call `stat` if we
-                        # haven't exceeded our max_depth
-                        if sys.platform == "win32":
-                            # Note: st_ino/st_dev on DirEntry.stat are not set on Windows, so we
-                            # have to call os.stat
-                            stat_info = os.stat(dir_entry.path, follow_symlinks=True)
-                        else:
-                            stat_info = dir_entry.stat(follow_symlinks=True)
-                    except OSError as e:
-                        _log_file_access_issue(e, dir_entry.path)
-                        continue
+                subdirs.append((dir_entry.path, _file_id(stat_info)))
 
-                    dir_id = _file_id(stat_info)
-                    if dir_id not in visited_dirs:
-                        dir_queue.appendleft((depth + 1, dir_entry.path))
-                        visited_dirs.add(dir_id)
-                elif filename_only_patterns:
-                    m = regex.match(os.path.normcase(dir_entry.name))
-                    if not m:
-                        continue
-                    for pattern_name in filename_only_patterns:
-                        if m.group(pattern_name):
-                            matched_paths[pattern_name].append(dir_entry.path)
-                            break
+        # Enqueue subdirectories in a deterministic order
+        if subdirs:
+            subdirs.sort(key=lambda s: os.path.basename(s[0]))
+            for subdir, subdir_id in subdirs:
+                if subdir_id not in visited_dirs:
+                    dir_queue.appendleft((depth + 1, subdir))
+                    visited_dirs.add(subdir_id)
 
+    # Sort the matched paths for deterministic output
+    for paths in matched_paths.values():
+        paths.sort()
     all_matching_paths = [path for paths in matched_paths.values() for path in paths]
 
-    # we only dedupe files if we have any complex patterns, since only they can match the same file
+    # We only dedupe files if we have any complex patterns, since only they can match the same file
     # multiple times
     return _dedupe_files(all_matching_paths) if complex_patterns else all_matching_paths
 
