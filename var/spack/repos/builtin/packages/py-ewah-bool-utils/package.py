@@ -20,6 +20,6 @@ class PyEwahBoolUtils(PythonPackage):
 
     depends_on("py-setuptools@61.2:", type="build")
     depends_on("py-cython@3.0:", type="build")
-    depends_on("py-numpy@2.0.0:", type="build")
+    #depends_on("py-numpy@2.0.0:", type="build")
 
     depends_on("py-numpy@1.19.3:2", type=("build", "run"))
