@@ -29,7 +29,7 @@ jobs:
     - run: coverage xml
 
     - name: "Upload coverage report to CodeCov"
-      uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303
+      uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3
       with:
         verbose: true
         fail_ci_if_error: false
