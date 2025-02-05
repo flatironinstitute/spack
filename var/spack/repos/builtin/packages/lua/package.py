@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -10,7 +9,6 @@ from llnl.util.symlink import readlink
 
 import spack.build_environment
 from spack.package import *
-from spack.util.executable import Executable
 
 # This is the template for a pkgconfig file for rpm
 # https://github.com/guix-mirror/guix/raw/dcaf70897a0bad38a4638a2905aaa3c46b1f1402/gnu/packages/patches/lua-pkgconfig.patch

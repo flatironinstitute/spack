@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -210,7 +209,7 @@ nitpick_ignore = [
     # Spack classes that are private and we don't want to expose
     ("py:class", "spack.provider_index._IndexBase"),
     ("py:class", "spack.repo._PrependFileLoader"),
-    ("py:class", "spack.build_systems._checks.BaseBuilder"),
+    ("py:class", "spack.build_systems._checks.BuilderWithDefaults"),
     # Spack classes that intersphinx is unable to resolve
     ("py:class", "spack.version.StandardVersion"),
     ("py:class", "spack.spec.DependencySpec"),
