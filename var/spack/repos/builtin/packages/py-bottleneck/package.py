@@ -13,6 +13,7 @@ class PyBottleneck(PythonPackage):
 
     license("BSD-2-Clause")
 
+    version("1.4.2", sha256="fa8e8e1799dea5483ce6669462660f9d9a95649f6f98a80d315b84ec89f449f4")
     version("1.3.7", sha256="e1467e373ad469da340ed0ff283214d6531cc08bfdca2083361a3aa6470681f8")
     version("1.3.5", sha256="2c0d27afe45351f6f421893362621804fa7dea14fe29a78eaa52d4323f646de7")
     version("1.3.2", sha256="20179f0b66359792ea283b69aa16366419132f3b6cf3adadc0c48e2e8118e573")
