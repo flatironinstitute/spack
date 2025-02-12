@@ -14,6 +14,7 @@ class PyAstroid(PythonPackage):
 
     license("LGPL-2.1-or-later")
 
+    version("3.3.8", sha256="a88c7994f914a4ea8572fac479459f4955eeccc877be3f2d959a33273b0cf40b")
     version("2.14.2", sha256="a3cf9f02c53dd259144a7e8f3ccd75d67c9a8c716ef183e0c1f291bc5d7bb3cf")
     version("2.12.10", sha256="81f870105d892e73bf535da77a8261aa5bde838fa4ed12bb2f435291a098c581")
     version("2.12.7", sha256="cd468be9d9d03d086d4d7e6643a59bfc025762d2c895e1e22cf21feced7bb148")
@@ -66,5 +67,5 @@ class PyAstroid(PythonPackage):
     depends_on("py-typing-extensions@4.0:", when="@2.14: ^python@:3.10", type=("build", "run"))
     depends_on("py-setuptools@17.1:", type=("build", "run"))
     depends_on("py-setuptools@20:", when="@2.7.3:", type=("build", "run"))
-    depends_on("py-setuptools@62.6:62", when="@2.12.7:", type=("build", "run"))
-    depends_on("py-wheel@0.37.1:0.37", when="@2.12.7:", type="build")
+    depends_on("py-setuptools@62.6:62", when="@2.12.7:2", type=("build", "run"))
+    depends_on("py-wheel@0.37.1:0.37", when="@2.12.7:2", type="build")

@@ -16,6 +16,7 @@ class PyPyfftw(PythonPackage):
 
     license("BSD-3-Clause")
 
+    version("0.15.0", sha256="2f16b9854a40c8fdd10aa5803b24ddc6ab49f9cd559dbd7f07e7d61aa205c1ca")
     version("0.14.0", sha256="a55f94d3da9b5c04de1bc96932a93f922910f3984557931356173a515277b65b")
     version("0.13.1", sha256="09155e90a0c6d0c1f2d1f3668180a7de95fb9f83fef5137a112fb05978e87320")
     version("0.13.0", sha256="da85102405c0bd95d57eb19e99b01a0729d8406cb204c3900894b873784253da")
@@ -26,7 +27,8 @@ class PyPyfftw(PythonPackage):
     depends_on("python@3.9:", type=("build", "run"), when="@0.14.0:")
     depends_on("python@3.8:3.11", type=("build", "run"), when="@:0.13.1")
 
-    depends_on("py-setuptools@:59.4.0", type="build")
+    depends_on("py-setuptools@:59.4.0", type="build", when="@:0.14.0")
+    depends_on("py-setuptools", type="build")
 
     depends_on("py-cython@3.0:3", type="build", when="@0.14.0:")
     depends_on("py-cython@0.29.18:0", type="build", when="@0.13.0:0.13")

@@ -11,6 +11,7 @@ class PyIpyparallel(PythonPackage):
     homepage = "https://github.com/ipython/ipyparallel"
     pypi = "ipyparallel/ipyparallel-7.1.0.tar.gz"
 
+    version("9.0.0", sha256="70601cbaf9a169d350ffe22c82d5bbdfe6dfe4c4df02836d9990e9c559b5bcb6")
     version("8.4.1", sha256="670bbe05755381742e1ea01177dc428ff8f3e94af1f0d5642c9d19f37ca8289b")
     version("8.0.0", sha256="95305a886f2c42e9603c034ea684e5c031d9d4222c66ed6d85eb3ae15d631e4b")
     version("7.1.0", sha256="ea756df0d2485bac19cccb0dbf4cafbc855c922b9b5905b4906e6cfac8b3c648")
@@ -22,7 +23,8 @@ class PyIpyparallel(PythonPackage):
     depends_on("python@3.5:", type=("build", "run"), when="@6.3:")
     depends_on("python@2.7,3.4:", type=("build", "run"))
 
-    depends_on("py-jupyterlab@3.0:3", type="build", when="@7.1:")
+    depends_on("py-jupyterlab@3.0:3", type="build", when="@7.1:8")
+    depends_on("py-jupyterlab@4", type="build", when="@9:")
     depends_on("py-packaging", type="build", when="@7.1:8.0.0")
     depends_on("py-setuptools@40.8:", type="build", when="@7.1:8.2")
     depends_on("py-setuptools@:60", type="build", when="@:8.2.0")

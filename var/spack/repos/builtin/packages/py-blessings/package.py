@@ -13,7 +13,8 @@ class PyBlessings(PythonPackage):
 
     license("MIT")
 
+    version("1.7", sha256="98e5854d805f50a5b58ac2333411b0482516a8210f23f43308baeb58d77c157d")
     version("1.6", sha256="edc5713061f10966048bf6b40d9a514b381e0ba849c64e034c4ef6c1847d3007")
 
     # Needs 2to3
-    depends_on("py-setuptools@:57", type="build")
+    depends_on("py-setuptools", type="build")
