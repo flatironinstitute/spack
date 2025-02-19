@@ -29,12 +29,12 @@ class PyPyerfa(PythonPackage):
 
     # From setup.cfg
     depends_on("python@3.7:", type=("build", "run"))
-    depends_on("python@3.9:", type=("build", "run"), when="@2.0.1.5")
-    #depends_on("py-numpy@2.0.0rc1:", when="@2.0.1.5", type="build")
-    depends_on("py-numpy@1.19.3:", when="@2.0.1.5", type=("build", "run"))
+    depends_on("python@3.9:", type=("build", "run"), when="@2.0.1.5:")
+    depends_on("py-numpy@2.0.0rc1:", when="@2.0.1.5:", type="build")
+    depends_on("py-numpy@1.19.3:", when="@2.0.1.5:", type=("build", "run"))
     depends_on("py-numpy@1.25:1", when="@2.0.1.1", type=("build", "run"))
     depends_on("py-numpy@1.17:", type=("build", "run"))
-    depends_on("py-setuptools-scm@6.2:", when="@2.0.1.1", type="build")
+    depends_on("py-setuptools-scm@6.2:", when="@2.0.1.1:", type="build")
     depends_on("py-setuptools-scm@3.4:+toml", type="build")
     depends_on("py-setuptools-scm@6.2:", type="build", when="@2.0.1.5:")
 

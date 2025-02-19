@@ -52,7 +52,7 @@ class PyYt(PythonPackage):
         # Build dependencies:
         depends_on("py-setuptools@61.2:", type="build")
         depends_on("py-cython@3.0.3:", type="build")
-        #depends_on("py-numpy@2.0.0:", type="build")
+        depends_on("py-numpy@2.0.0:", type="build")
         depends_on("py-ewah-bool-utils@1.2.0:", type=("build", "run"))
 
         # Main dependencies:
@@ -209,3 +209,6 @@ class PyYt(PythonPackage):
         # yt = Executable(join_path(prefix.bin, "yt"))
         # yt("--help")
         python(join_path(self.prefix.bin, "yt"), "--help")
+
+    def setup_build_environment(self, env):
+        env.set("MAX_BUILD_CORES", str(make_jobs))
