@@ -556,7 +556,9 @@ class Python(Package):
 
         # setup.py needs to be able to read the CPPFLAGS and LDFLAGS
         # as it scans for the library and headers to build
-        link_deps = spec.dependencies(deptype="link")
+        link_deps = [
+            dep for dep in spec.dependencies(deptype="link") if not dep.prefix.startswith("/usr/")
+        ]
 
         if link_deps:
             # Header files are often included assuming they reside in a
