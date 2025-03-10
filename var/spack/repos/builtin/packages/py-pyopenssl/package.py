@@ -14,7 +14,7 @@ class PyPyopenssl(PythonPackage):
     drop your pyOpenSSL dependency."""
 
     homepage = "https://pyopenssl.org/"
-    pypi = "pyOpenSSL/pyOpenSSL-19.0.0.tar.gz"
+    pypi = "pyOpenSSL/pyopenssl-25.0.0.tar.gz"
 
     license("Apache-2.0")
 
