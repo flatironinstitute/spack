@@ -53,7 +53,7 @@ class PyPyarrow(PythonPackage, CudaPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools@40.1.0:", type="build", when="@10.0.1:")
     depends_on("py-setuptools@38.6.0:", type="build", when="@7:")
-    depends_on("py-setuptools-scm@:7", type="build", when="@0.15:")
+    depends_on("py-setuptools-scm@:7", type="build", when="@0.15:15")
     depends_on("py-cython", type="build")
     depends_on("py-cython@0.29.31:", type="build", when="@14:")
     depends_on("py-cython@0.29.31:2", type="build", when="@12:13")
@@ -61,7 +61,7 @@ class PyPyarrow(PythonPackage, CudaPackage):
     depends_on("py-cython@0.29:2", type="build", when="@0.15:7")
     depends_on("py-cython@:2", type="build", when="@:0.14")
     # in newer pip versions --install-option does not exist
-    depends_on("py-pip@:23.0", type="build")
+    depends_on("py-pip@:23.0", type="build", when="@:15")
 
     depends_on("py-numpy@1.16.6:", type=("build", "run"), when="@3:")
     # Prior to python 3.9 numpy must be >=0.14,<1.25
@@ -102,6 +102,7 @@ class PyPyarrow(PythonPackage, CudaPackage):
         env.set("PYARROW_WITH_ORC", self.spec.satisfies("+orc"))
         env.set("PYARROW_WITH_DATASET", self.spec.satisfies("+dataset"))
 
+    @when("@:15")
     def install_options(self, spec, prefix):
         args = []
         if spec.satisfies("+parquet"):
