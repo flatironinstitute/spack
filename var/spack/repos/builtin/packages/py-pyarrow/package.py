@@ -106,7 +106,11 @@ class PyPyarrow(PythonPackage):
         env.set("PYARROW_WITH_ORC", self.spec.satisfies("^arrow+orc"))
         env.set("PYARROW_WITH_DATASET", self.spec.satisfies("^arrow+dataset"))
 
+<<<<<<< HEAD
     @when("@:16")
+=======
+    @when("@:15")
+>>>>>>> origin/fi-pkgs
     def install_options(self, spec, prefix):
         args = []
         if spec.satisfies("^arrow+parquet"):
