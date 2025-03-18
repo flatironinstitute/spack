@@ -9,12 +9,11 @@ class PyJaracoFunctools(PythonPackage):
     """Functools like those found in stdlib"""
 
     homepage = "https://github.com/jaraco/jaraco.functools"
-    pypi = "jaraco.functools/jaraco.functools-2.0.tar.gz"
+    pypi = "jaraco.functools/jaraco_functools-2.0.tar.gz"
 
     license("MIT")
 
     version("4.1.0", sha256="70f7e0e2ae076498e212562325e805204fc092d7b4c17e0e86c959e249701a9d")
-    version("2.0", sha256="35ba944f52b1a7beee8843a5aa6752d1d5b79893eeb7770ea98be6b637bf9345")
 
     depends_on("py-setuptools", type="build")
     depends_on("py-setuptools-scm@1.15.0:", type="build")
