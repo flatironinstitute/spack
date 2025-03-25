@@ -13,6 +13,7 @@ class PyOptree(PythonPackage):
 
     license("Apache-2.0")
 
+    version("0.14.1", sha256="c011c6124d6dcbfceade2d7c4f836eab66ed8cf9ab12f94535b41a71dd734637")
     version("0.10.0", sha256="dc7e8880f997365083191784d141c790833877af71aec8825c7f2b7f7f43c98e")
 
     depends_on("cxx", type="build")  # generated
