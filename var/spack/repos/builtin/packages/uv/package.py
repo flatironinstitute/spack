@@ -17,6 +17,8 @@ class Uv(CargoPackage):
 
     version("0.6.8", sha256="462929b218cdd4c4f197f611f132fa55329a8f3558d164ec06ee5b5b0a48cee0")
 
+    variant("module_append_path", default=False, description="Have the module append to PATH instead of prepending")
+
     depends_on("c", type="build")
 
     depends_on("rust@1.83:")
@@ -32,3 +34,9 @@ class Uv(CargoPackage):
                 *self.std_build_args,
                 *self.build_args,
             )
+
+    def setup_run_environment(self, env):
+        if "+module_append_path" in self.spec:
+            env.append_path("PATH", self.prefix.bin)
+        else:
+            env.prepend_path("PATH", self.prefix.bin)
