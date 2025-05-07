@@ -541,6 +541,7 @@ class Nvhpc(Package, CompilerPackage):
         env.prepend_path("LIBRARY_PATH", prefix.lib)
         env.prepend_path("LD_LIBRARY_PATH", prefix.lib)
         env.prepend_path("MANPATH", prefix.man)
+        env.prepend_path("CMAKE_PREFIX_PATH", self._version_prefix())
 
         if "+mpi" in self.spec:
             mpi_prefix = Prefix(
