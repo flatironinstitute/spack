@@ -17,6 +17,7 @@ class Gdrcopy(MakefilePackage, CudaPackage):
     license("MIT")
 
     version("master", branch="master")
+    version("2.5", sha256="196400877be7e511edcf2a87b21a605cca99522ff217c97429348fd9153b30d7")
     version("2.4.1", sha256="faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed")
     version("2.3", sha256="b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475")
     version("2.2", sha256="e4be119809391b18c735346d24b3b398dd9421cbff47ef12befbae40d61da45f")
