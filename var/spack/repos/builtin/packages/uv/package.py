@@ -15,18 +15,21 @@ class Uv(CargoPackage):
 
     license("APACHE 2.0 or MIT", checked_by="lgarrison")
 
+    version("0.7.13", sha256="04abb241591dd374f7f1b9fea6cc43180e99c8c2607767b06d31c78e1ce3cd65")
     version("0.6.8", sha256="462929b218cdd4c4f197f611f132fa55329a8f3558d164ec06ee5b5b0a48cee0")
 
     variant("module_append_path", default=False, description="Have the module append to PATH instead of prepending")
 
     depends_on("c", type="build")
 
-    depends_on("rust@1.83:")
+    depends_on("rust@1.83:", when="@0.6.8:")
+    depends_on("rust@1.85:", when="@0.7.13:")
 
     def build(self, spec, prefix) -> None:
         with fs.working_dir(self.build_directory):
             self.module.cargo(
                 "install",
+                "--locked",
                 "--root",
                 "out",
                 "--path",
