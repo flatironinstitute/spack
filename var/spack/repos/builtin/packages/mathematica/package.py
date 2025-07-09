@@ -22,6 +22,11 @@ class Mathematica(Package):
     manual_download = False
 
     version(
+        "14.0.0",
+        sha256="52b701120e86ea76d55fef97d33d281b926389e5cbd00aae02ab63cd8e44067e",
+        expand=False,
+    )
+    version(
         "13.2.1",
         sha256="180da4fa3bc4e264c9b086cc1dc7b9739d7a87f8251cb9d776d8447e7366934c",
         expand=False,
@@ -77,15 +82,13 @@ class Mathematica(Package):
             "-verbose",
             "-targetdir={0}".format(prefix),
             "-execdir={0}".format(prefix.bin),
-            "-selinux=y",
         )
         # This is what most people would use on a cluster but the installer
         # does not symlink it
         ws_link_path = os.path.join(prefix.bin, "wolframscript")
         if not os.path.exists(ws_link_path):
-            ln = which("ln")
             ws_path = os.path.join(prefix, "Executables", "wolframscript")
-            ln("-s", ws_path, ws_link_path)
+            os.symlink(ws_path, ws_link_path)
 
         # Move back .spack where it belongs
         copy_tree(join_path(self.stage.path, ".spack"), join_path(prefix, ".spack"))
