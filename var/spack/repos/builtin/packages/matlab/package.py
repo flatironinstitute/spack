@@ -25,6 +25,7 @@ class Matlab(Package):
     homepage = "https://www.mathworks.com/products/matlab.html"
     manual_download = True
 
+    version('R2025a', sha256='b65be5a14a535d20bc47349e373481e76c961d8e099a385af44ccfa0745b2893')
     version('R2024b', sha256='4b84c7baac3ee0f42d0549991fb8afd45e2b6221d2d5c8aeea1caa0c80920003')
     version('R2023b', sha256='a780fed3be026e993a99e2a1b2a6136ed0dfc4aa63fcd0c1ced7509992b471d2')
     version('R2023a', sha256='42d501b2c53a29994f7d09c167bb9857f03335e000ee0e3d3e32ad4aede6fee5')
