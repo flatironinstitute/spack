@@ -19,6 +19,14 @@ versions = [
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/ad42ee3b-7a2f-41cb-b902-689f651920da/intel-fortran-compiler-2025.0.4.21_offline.sh",
             "sha256": "ad453f1dd68111e7cf7053d6f86fa26d982bd9ab61982cbb6dbe5195fb6feedb",
         },
+        "nvidia-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=nvidia&version=2025.0.0&filters[]=12.0&filters[]=linux",
+            "sha256": "264a43d2e07c08eb31d6483fb1c289a6b148709e48e9a250efc1b1e9a527feb6",
+        },
+        "amd-plugin": {
+            "url": "https://developer.codeplay.com/api/v1/products/download?product=oneapi&variant=amd&version=2025.0.0&filters[]=6.1.0&filters[]=linux",
+            "sha256": "2c5a147e82f0e995b9c0457b53967cc066d5741d675cb64cb9eba8e3c791a064",
+        },
     },
     {
         "version": "2025.0.3",
