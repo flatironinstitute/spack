@@ -7,10 +7,9 @@ import pathlib
 import shutil
 from typing import NamedTuple
 
-import jsonschema
 import pytest
 
-from llnl.util.filesystem import mkdirp, working_dir
+import spack.vendor.jsonschema
 
 import spack
 import spack.binary_distribution
@@ -22,17 +21,19 @@ import spack.environment as ev
 import spack.hash_types as ht
 import spack.main
 import spack.paths as spack_paths
+import spack.repo
+import spack.spec
+import spack.stage
 import spack.util.spack_yaml as syaml
+import spack.version
 from spack.ci import gitlab as gitlab_generator
 from spack.ci.common import PipelineDag, PipelineOptions, SpackCIConfig
 from spack.ci.generator_registry import generator
 from spack.cmd.ci import FAILED_CREATE_BUILDCACHE_CODE
-from spack.database import INDEX_JSON_FILE
 from spack.error import SpackError
-from spack.schema.buildcache_spec import schema as specfile_schema
+from spack.llnl.util.filesystem import mkdirp, working_dir
 from spack.schema.database_index import schema as db_idx_schema
-from spack.spec import Spec
-from spack.test.conftest import MockHTTPResponse
+from spack.test.conftest import MockHTTPResponse, RepoBuilder
 
 config_cmd = spack.main.SpackCommand("config")
 ci_cmd = spack.main.SpackCommand("ci")
@@ -51,25 +52,46 @@ pytestmark = [
 
 
 @pytest.fixture()
-def ci_base_environment(working_env, tmpdir):
-    os.environ["CI_PROJECT_DIR"] = tmpdir.strpath
+def ci_base_environment(working_env, tmp_path: pathlib.Path):
+    os.environ["CI_PROJECT_DIR"] = str(tmp_path)
     os.environ["CI_PIPELINE_ID"] = "7192"
     os.environ["CI_JOB_NAME"] = "mock"
 
 
 @pytest.fixture(scope="function")
-def mock_git_repo(git, tmpdir):
+def mock_git_repo(git, tmp_path: pathlib.Path):
     """Create a mock git repo with two commits, the last one creating
     a .gitlab-ci.yml"""
 
-    repo_path = tmpdir.join("mockspackrepo").strpath
+    repo_path = str(tmp_path / "mockspackrepo")
     mkdirp(repo_path)
 
     with working_dir(repo_path):
         git("init")
 
+        git("config", "--local", "user.email", "testing@spack.io")
+        git("config", "--local", "user.name", "Spack Testing")
+
+        # This path is used to satisfy git root detection and detection of environment changed
+        path_to_env = os.path.sep.join(("no", "such", "env", "path", "spack.yaml"))
+        os.makedirs(os.path.dirname(path_to_env))
+        with open(path_to_env, "w", encoding="utf-8") as f:
+            f.write(
+                """
+spack:
+    specs:
+    - a
+"""
+            )
+
+        git("add", path_to_env)
+
         with open("README.md", "w", encoding="utf-8") as f:
             f.write("# Introduction")
+
+        # initial commit with README
+        git("add", "README.md")
+        git("-c", "commit.gpgsign=false", "commit", "-m", "initial commit")
 
         with open(".gitlab-ci.yml", "w", encoding="utf-8") as f:
             f.write(
@@ -80,13 +102,6 @@ testjob:
             """
             )
 
-        git("config", "--local", "user.email", "testing@spack.io")
-        git("config", "--local", "user.name", "Spack Testing")
-
-        # initial commit with README
-        git("add", "README.md")
-        git("-c", "commit.gpgsign=false", "commit", "-m", "initial commit")
-
         # second commit, adding a .gitlab-ci.yml
         git("add", ".gitlab-ci.yml")
         git("-c", "commit.gpgsign=false", "commit", "-m", "add a .gitlab-ci.yml")
@@ -95,7 +110,9 @@ testjob:
 
 
 @pytest.fixture()
-def ci_generate_test(tmp_path, mutable_mock_env_path, install_mockery, ci_base_environment):
+def ci_generate_test(
+    tmp_path: pathlib.Path, mutable_mock_env_path, install_mockery, ci_base_environment
+):
     """Returns a function that creates a new test environment, and runs 'spack generate'
     on it, given the content of the spack.yaml file.
 
@@ -123,7 +140,7 @@ def ci_generate_test(tmp_path, mutable_mock_env_path, install_mockery, ci_base_e
     return _func
 
 
-def test_ci_generate_with_env(ci_generate_test, tmp_path, mock_binary_index):
+def test_ci_generate_with_env(ci_generate_test, tmp_path: pathlib.Path, mock_binary_index):
     """Make sure we can get a .gitlab-ci.yml from an environment file
     which has the gitlab-ci, cdash, and mirrors sections.
     """
@@ -182,9 +199,9 @@ spack:
     assert yaml_contents["workflow"]["rules"] == [{"when": "always"}]
 
     assert "stages" in yaml_contents
-    assert len(yaml_contents["stages"]) == 5
+    assert len(yaml_contents["stages"]) == 6
     assert yaml_contents["stages"][0] == "stage-0"
-    assert yaml_contents["stages"][4] == "stage-rebuild-index"
+    assert yaml_contents["stages"][5] == "stage-rebuild-index"
 
     assert "rebuild-index" in yaml_contents
     rebuild_job = yaml_contents["rebuild-index"]
@@ -198,7 +215,9 @@ spack:
     assert yaml_contents["variables"]["SPACK_ARTIFACTS_ROOT"] == "my_artifacts_root"
 
 
-def test_ci_generate_with_env_missing_section(ci_generate_test, tmp_path, mock_binary_index):
+def test_ci_generate_with_env_missing_section(
+    ci_generate_test, tmp_path: pathlib.Path, mock_binary_index
+):
     """Make sure we get a reasonable message if we omit gitlab-ci section"""
     env_yaml = f"""\
 spack:
@@ -212,7 +231,9 @@ spack:
         ci_generate_test(env_yaml)
 
 
-def test_ci_generate_with_cdash_token(ci_generate_test, tmp_path, mock_binary_index, monkeypatch):
+def test_ci_generate_with_cdash_token(
+    ci_generate_test, tmp_path: pathlib.Path, mock_binary_index, monkeypatch
+):
     """Make sure we it doesn't break if we configure cdash"""
     monkeypatch.setenv("SPACK_CDASH_AUTH_TOKEN", "notreallyatokenbutshouldnotmatter")
     spack_yaml_content = f"""\
@@ -236,19 +257,25 @@ spack:
     project: Not used
     site: Nothing
 """
+
+    def _urlopen(*args, **kwargs):
+        return MockHTTPResponse.with_json(200, "OK", headers={}, body={})
+
+    monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
+
     spack_yaml, original_file, output = ci_generate_test(spack_yaml_content)
     yaml_contents = syaml.load(original_file.read_text())
 
     # That fake token should have resulted in being unable to
     # register build group with cdash, but the workload should
     # still have been generated.
-    assert "Failed to create or retrieve buildgroups" in output
+    assert "Failed to create or retrieve buildgroup" in output
     expected_keys = ["rebuild-index", "stages", "variables", "workflow"]
     assert all([key in yaml_contents.keys() for key in expected_keys])
 
 
 def test_ci_generate_with_custom_settings(
-    ci_generate_test, tmp_path, mock_binary_index, monkeypatch
+    ci_generate_test, tmp_path: pathlib.Path, mock_binary_index, monkeypatch
 ):
     """Test use of user-provided scripts and attributes"""
     monkeypatch.setattr(spack, "get_version", lambda: "0.15.3")
@@ -326,7 +353,7 @@ spack:
         assert ci_obj["custom_attribute"] == "custom!"
 
 
-def test_ci_generate_pkg_with_deps(ci_generate_test, tmp_path, ci_base_environment):
+def test_ci_generate_pkg_with_deps(ci_generate_test, tmp_path: pathlib.Path, ci_base_environment):
     """Test pipeline generation for a package w/ dependencies"""
     spack_yaml, outputfile, _ = ci_generate_test(
         f"""\
@@ -367,7 +394,7 @@ spack:
     assert "dependency-install" in found
 
 
-def test_ci_generate_for_pr_pipeline(ci_generate_test, tmp_path, monkeypatch):
+def test_ci_generate_for_pr_pipeline(ci_generate_test, tmp_path: pathlib.Path, monkeypatch):
     """Test generation of a PR pipeline with disabled rebuild-index"""
     monkeypatch.setenv("SPACK_PIPELINE_TYPE", "spack_pull_request")
 
@@ -408,7 +435,7 @@ spack:
     )
 
 
-def test_ci_generate_with_external_pkg(ci_generate_test, tmp_path, monkeypatch):
+def test_ci_generate_with_external_pkg(ci_generate_test, tmp_path: pathlib.Path, monkeypatch):
     """Make sure we do not generate jobs for external pkgs"""
     spack_yaml, outputfile, _ = ci_generate_test(
         f"""\
@@ -435,7 +462,7 @@ spack:
     assert all("externaltool" not in key for key in yaml_contents)
 
 
-def test_ci_rebuild_missing_config(tmp_path, working_env, mutable_mock_env_path):
+def test_ci_rebuild_missing_config(tmp_path: pathlib.Path, working_env, mutable_mock_env_path):
     spack_yaml = tmp_path / "spack.yaml"
     spack_yaml.write_text(
         """
@@ -714,7 +741,7 @@ spack:
         )
 
     install_cmd("archive-files")
-    buildcache_cmd("push", "-f", "-u", mirror_url, "archive-files")
+    buildcache_cmd("push", "-f", "-u", "--update-index", mirror_url, "archive-files")
 
     with working_dir(tmp_path):
         env_cmd("create", "test", "./spack.yaml")
@@ -851,30 +878,26 @@ spack:
 
             # Test generating buildcache index while we have bin mirror
             buildcache_cmd("update-index", mirror_url)
-            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as idx_fd:
-                index_object = json.load(idx_fd)
-                jsonschema.validate(index_object, db_idx_schema)
+
+            # Validate resulting buildcache (database) index
+            layout_version = spack.binary_distribution.CURRENT_BUILD_CACHE_LAYOUT_VERSION
+            url_and_version = spack.binary_distribution.MirrorURLAndVersion(
+                mirror_url, layout_version
+            )
+            index_fetcher = spack.binary_distribution.DefaultIndexFetcher(url_and_version, None)
+            result = index_fetcher.conditional_fetch()
+            spack.vendor.jsonschema.validate(json.loads(result.data), db_idx_schema)
 
             # Now that index is regenerated, validate "buildcache list" output
             assert "patchelf" in buildcache_cmd("list", output=str)
-            # Also test buildcache_spec schema
-            for file_name in os.listdir(mirror_dir / "build_cache"):
-                if file_name.endswith(".spec.json.sig"):
-                    with open(mirror_dir / "build_cache" / file_name, encoding="utf-8") as f:
-                        spec_dict = Spec.extract_json_from_clearsig(f.read())
-                        jsonschema.validate(spec_dict, specfile_schema)
 
             logs_dir = scratch / "logs_dir"
             logs_dir.mkdir()
             ci.copy_stage_logs_to_artifacts(concrete_spec, str(logs_dir))
             assert "spack-build-out.txt.gz" in os.listdir(logs_dir)
 
-            dl_dir = scratch / "download_dir"
-            buildcache_cmd("download", "--spec-file", json_path, "--path", str(dl_dir))
-            assert len(os.listdir(dl_dir)) == 2
 
-
-def test_push_to_build_cache_exceptions(monkeypatch, tmp_path, capsys):
+def test_push_to_build_cache_exceptions(monkeypatch, tmp_path: pathlib.Path, capsys):
     def push_or_raise(*args, **kwargs):
         raise spack.binary_distribution.PushToBuildCacheError("Error: Access Denied")
 
@@ -882,14 +905,14 @@ def test_push_to_build_cache_exceptions(monkeypatch, tmp_path, capsys):
 
     # Input doesn't matter, as we are faking exceptional output
     url = tmp_path.as_uri()
-    ci.push_to_build_cache(None, url, None)
+    ci.push_to_build_cache(spack.spec.Spec(), url, False)
     assert f"Problem writing to {url}: Error: Access Denied" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("match_behavior", ["first", "merge"])
 @pytest.mark.parametrize("git_version", ["big ol commit sha", None])
 def test_ci_generate_override_runner_attrs(
-    ci_generate_test, tmp_path, monkeypatch, match_behavior, git_version
+    ci_generate_test, tmp_path: pathlib.Path, monkeypatch, match_behavior, git_version
 ):
     """Test that we get the behavior we want with respect to the provision
     of runner attributes like tags, variables, and scripts, both when we
@@ -1032,7 +1055,7 @@ spack:
 
 
 def test_ci_rebuild_index(
-    tmp_path: pathlib.Path, working_env, mutable_mock_env_path, install_mockery, mock_fetch
+    tmp_path: pathlib.Path, working_env, mutable_mock_env_path, install_mockery, mock_fetch, capsys
 ):
     scratch = tmp_path / "working_dir"
     mirror_dir = scratch / "mirror"
@@ -1065,41 +1088,62 @@ spack:
             with open(tmp_path / "spec.json", "w", encoding="utf-8") as f:
                 f.write(concrete_spec.to_json(hash=ht.dag_hash))
 
-            install_cmd("--fake", "--add", "-f", str(tmp_path / "spec.json"))
+            install_cmd("--fake", str(tmp_path / "spec.json"))
             buildcache_cmd("push", "-u", "-f", mirror_url, "callpath")
             ci_cmd("rebuild-index")
 
-            with open(mirror_dir / "build_cache" / INDEX_JSON_FILE, encoding="utf-8") as f:
-                jsonschema.validate(json.load(f), db_idx_schema)
+            with capsys.disabled():
+                output = buildcache_cmd("list", "-L", "--allarch")
+                assert concrete_spec.dag_hash() + " callpath" in output
 
 
 def test_ci_get_stack_changed(mock_git_repo, monkeypatch):
     """Test that we can detect the change to .gitlab-ci.yml in a
     mock spack git repo."""
     monkeypatch.setattr(spack.paths, "prefix", mock_git_repo)
-    assert ci.get_stack_changed("/no/such/env/path") is True
+    fake_env_path = os.path.join(
+        spack.paths.prefix, os.path.sep.join(("no", "such", "env", "path"))
+    )
+    assert ci.stack_changed(fake_env_path) is True
 
 
-def test_ci_generate_prune_untouched(ci_generate_test, tmp_path, monkeypatch):
+def test_ci_generate_prune_untouched(
+    ci_generate_test, monkeypatch, tmp_path: pathlib.Path, repo_builder: RepoBuilder
+):
     """Test pipeline generation with pruning works to eliminate
     specs that were not affected by a change"""
     monkeypatch.setenv("SPACK_PRUNE_UNTOUCHED", "TRUE")  # enables pruning of untouched specs
 
-    def fake_compute_affected(r1=None, r2=None):
-        return ["libdwarf"]
+    def fake_compute_affected(repo, rev1=None, rev2=None):
+        if "mock" in os.path.basename(repo.root):
+            return ["libdwarf"]
+        else:
+            return ["pkg-c"]
 
-    def fake_stack_changed(env_path, rev1="HEAD^", rev2="HEAD"):
+    def fake_stack_changed(env_path):
         return False
 
-    monkeypatch.setattr(ci, "compute_affected_packages", fake_compute_affected)
-    monkeypatch.setattr(ci, "get_stack_changed", fake_stack_changed)
+    def fake_change_revisions(env_path):
+        return "HEAD^", "HEAD"
 
-    spack_yaml, outputfile, _ = ci_generate_test(
-        f"""\
+    repo_builder.add_package("pkg-a", dependencies=[("pkg-b", None, None)])
+    repo_builder.add_package("pkg-b", dependencies=[("pkg-c", None, None)])
+    repo_builder.add_package("pkg-c")
+    repo_builder.add_package("pkg-d")
+
+    monkeypatch.setattr(ci, "compute_affected_packages", fake_compute_affected)
+    monkeypatch.setattr(ci, "stack_changed", fake_stack_changed)
+    monkeypatch.setattr(ci, "get_change_revisions", fake_change_revisions)
+
+    with spack.repo.use_repositories(repo_builder.root, override=False):
+        spack_yaml, outputfile, _ = ci_generate_test(
+            f"""\
 spack:
   specs:
     - archive-files
     - callpath
+    - pkg-a
+    - pkg-d
   mirrors:
     buildcache-destination: {tmp_path / 'ci-mirror'}
   ci:
@@ -1109,7 +1153,7 @@ spack:
           - donotcare
         image: donotcare
 """
-    )
+        )
 
     # Dependency graph rooted at callpath
     # callpath -> dyninst -> libelf
@@ -1129,7 +1173,17 @@ spack:
             generated_hashes.append(yaml_contents[ci_key]["variables"]["SPACK_JOB_SPEC_DAG_HASH"])
 
     assert env_hashes["archive-files"] not in generated_hashes
-    for spec_name in ["callpath", "dyninst", "mpich", "libdwarf", "libelf"]:
+    assert env_hashes["pkg-d"] not in generated_hashes
+    for spec_name in [
+        "callpath",
+        "dyninst",
+        "mpich",
+        "libdwarf",
+        "libelf",
+        "pkg-a",
+        "pkg-b",
+        "pkg-c",
+    ]:
         assert env_hashes[spec_name] in generated_hashes
 
 
@@ -1241,7 +1295,9 @@ spack:
             assert not_expected not in output
 
 
-def test_ci_generate_external_signing_job(ci_generate_test, tmp_path, monkeypatch):
+def test_ci_generate_external_signing_job(
+    install_mockery, ci_generate_test, tmp_path: pathlib.Path, monkeypatch
+):
     """Verify that in external signing mode: 1) each rebuild jobs includes
     the location where the binary hash information is written and 2) we
     properly generate a final signing job in the pipeline."""
@@ -1503,7 +1559,8 @@ def test_cmd_first_line():
     assert spack.cmd.first_line(doc) == first
 
 
-def test_gitlab_config_scopes(ci_generate_test, tmp_path):
+@pytest.mark.skip(reason="Gitlab CI was removed from Spack")
+def test_gitlab_config_scopes(install_mockery, ci_generate_test, tmp_path: pathlib.Path):
     """Test pipeline generation with real configs included"""
     configs_path = os.path.join(spack_paths.share_path, "gitlab", "cloud_pipelines", "configs")
     _, outputfile, _ = ci_generate_test(
@@ -1580,8 +1637,8 @@ spack:
         assert snd in pipeline_doc["rebuild-index"]["script"][0]
 
 
-def dynamic_mapping_setup(tmpdir):
-    filename = str(tmpdir.join("spack.yaml"))
+def dynamic_mapping_setup(tmp_path: pathlib.Path):
+    filename = str(tmp_path / "spack.yaml")
     with open(filename, "w", encoding="utf-8") as f:
         f.write(
             """\
@@ -1606,7 +1663,7 @@ spack:
 
 
 def test_ci_dynamic_mapping_empty(
-    tmpdir,
+    tmp_path: pathlib.Path,
     working_env,
     mutable_mock_env_path,
     install_mockery,
@@ -1620,10 +1677,10 @@ def test_ci_dynamic_mapping_empty(
 
     monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
-    _ = dynamic_mapping_setup(tmpdir)
-    with tmpdir.as_cwd():
+    _ = dynamic_mapping_setup(tmp_path)
+    with working_dir(str(tmp_path)):
         env_cmd("create", "test", "./spack.yaml")
-        outputfile = str(tmpdir.join(".gitlab-ci.yml"))
+        outputfile = str(tmp_path / ".gitlab-ci.yml")
 
         with ev.read("test"):
             output = ci_cmd("generate", "--output-file", outputfile)
@@ -1631,7 +1688,7 @@ def test_ci_dynamic_mapping_empty(
 
 
 def test_ci_dynamic_mapping_full(
-    tmpdir,
+    tmp_path: pathlib.Path,
     working_env,
     mutable_mock_env_path,
     install_mockery,
@@ -1649,10 +1706,10 @@ def test_ci_dynamic_mapping_full(
 
     monkeypatch.setattr(ci.common, "_urlopen", _urlopen)
 
-    label = dynamic_mapping_setup(tmpdir)
-    with tmpdir.as_cwd():
+    label = dynamic_mapping_setup(tmp_path)
+    with working_dir(str(tmp_path)):
         env_cmd("create", "test", "./spack.yaml")
-        outputfile = str(tmpdir.join(".gitlab-ci.yml"))
+        outputfile = str(tmp_path / ".gitlab-ci.yml")
 
         with ev.read("test"):
             ci_cmd("generate", "--output-file", outputfile)
@@ -1669,7 +1726,7 @@ def test_ci_dynamic_mapping_full(
 
 def test_ci_generate_unknown_generator(
     ci_generate_test,
-    tmp_path,
+    tmp_path: pathlib.Path,
     mutable_mock_env_path,
     install_mockery,
     mock_packages,
@@ -1704,7 +1761,7 @@ spack:
 
 def test_ci_generate_copy_only(
     ci_generate_test,
-    tmp_path,
+    tmp_path: pathlib.Path,
     monkeypatch,
     mutable_mock_env_path,
     install_mockery,
@@ -1806,7 +1863,7 @@ def generate_unittest_pipeline(
 
 def test_ci_generate_alternate_target(
     ci_generate_test,
-    tmp_path,
+    tmp_path: pathlib.Path,
     mutable_mock_env_path,
     install_mockery,
     mock_packages,
@@ -1841,3 +1898,222 @@ spack:
 
     assert pipeline_doc.startswith("unittestpipeline")
     assert "externaltest" in pipeline_doc
+
+
+@pytest.fixture
+def fetch_versions_match(monkeypatch):
+    """Fake successful checksums returned from downloaded tarballs."""
+
+    def get_checksums_for_versions(url_by_version, package_name, **kwargs):
+        pkg_cls = spack.repo.PATH.get_pkg_class(package_name)
+        return {v: pkg_cls.versions[v]["sha256"] for v in url_by_version}
+
+    monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
+
+
+@pytest.fixture
+def fetch_versions_invalid(monkeypatch):
+    """Fake successful checksums returned from downloaded tarballs."""
+
+    def get_checksums_for_versions(url_by_version, package_name, **kwargs):
+        return {
+            v: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+            for v in url_by_version
+        }
+
+    monkeypatch.setattr(spack.stage, "get_checksums_for_versions", get_checksums_for_versions)
+
+
+@pytest.mark.parametrize("versions", [["2.1.4"], ["2.1.4", "2.1.5"]])
+def test_ci_validate_standard_versions_valid(capfd, mock_packages, fetch_versions_match, versions):
+    spec = spack.spec.Spec("diff-test")
+    pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
+    version_list = [spack.version.Version(v) for v in versions]
+
+    assert spack.cmd.ci.validate_standard_versions(pkg, version_list)
+
+    out, err = capfd.readouterr()
+    for version in versions:
+        assert f"Validated diff-test@{version}" in out
+
+
+@pytest.mark.parametrize("versions", [["2.1.4"], ["2.1.4", "2.1.5"]])
+def test_ci_validate_standard_versions_invalid(
+    capfd, mock_packages, fetch_versions_invalid, versions
+):
+    spec = spack.spec.Spec("diff-test")
+    pkg = spack.repo.PATH.get_pkg_class(spec.name)(spec)
+    version_list = [spack.version.Version(v) for v in versions]
+
+    assert spack.cmd.ci.validate_standard_versions(pkg, version_list) is False
+
+    out, err = capfd.readouterr()
+    for version in versions:
+        assert f"Invalid checksum found diff-test@{version}" in err
+
+
+@pytest.mark.parametrize("versions", [[("1.0", -2)], [("1.1", -4), ("2.0", -6)]])
+def test_ci_validate_git_versions_valid(
+    capfd, monkeypatch, mock_packages, mock_git_version_info, versions
+):
+    spec = spack.spec.Spec("diff-test")
+    pkg_class = spack.repo.PATH.get_pkg_class(spec.name)
+    pkg = pkg_class(spec)
+    version_list = [spack.version.Version(v) for v, _ in versions]
+
+    repo_path, filename, commits = mock_git_version_info
+    version_commit_dict = {
+        spack.version.Version(v): {"tag": f"v{v}", "commit": commits[c]} for v, c in versions
+    }
+
+    monkeypatch.setattr(pkg_class, "git", repo_path)
+    monkeypatch.setattr(pkg_class, "versions", version_commit_dict)
+
+    assert spack.cmd.ci.validate_git_versions(pkg, version_list)
+
+    out, err = capfd.readouterr()
+    for version in version_list:
+        assert f"Validated diff-test@{version}" in out
+
+
+@pytest.mark.parametrize("versions", [[("1.0", -3)], [("1.1", -5), ("2.0", -5)]])
+def test_ci_validate_git_versions_bad_tag(
+    capfd, monkeypatch, mock_packages, mock_git_version_info, versions
+):
+    spec = spack.spec.Spec("diff-test")
+    pkg_class = spack.repo.PATH.get_pkg_class(spec.name)
+    pkg = pkg_class(spec)
+    version_list = [spack.version.Version(v) for v, _ in versions]
+
+    repo_path, filename, commits = mock_git_version_info
+    version_commit_dict = {
+        spack.version.Version(v): {"tag": f"v{v}", "commit": commits[c]} for v, c in versions
+    }
+
+    monkeypatch.setattr(pkg_class, "git", repo_path)
+    monkeypatch.setattr(pkg_class, "versions", version_commit_dict)
+
+    assert spack.cmd.ci.validate_git_versions(pkg, version_list) is False
+
+    out, err = capfd.readouterr()
+    for version in version_list:
+        assert f"Mismatched tag <-> commit found for diff-test@{version}" in err
+
+
+@pytest.mark.parametrize("versions", [[("1.0", -2)], [("1.1", -4), ("2.0", -6), ("3.0", -6)]])
+def test_ci_validate_git_versions_invalid(
+    capfd, monkeypatch, mock_packages, mock_git_version_info, versions
+):
+    spec = spack.spec.Spec("diff-test")
+    pkg_class = spack.repo.PATH.get_pkg_class(spec.name)
+    pkg = pkg_class(spec)
+    version_list = [spack.version.Version(v) for v, _ in versions]
+
+    repo_path, filename, commits = mock_git_version_info
+    version_commit_dict = {
+        spack.version.Version(v): {
+            "tag": f"v{v}",
+            "commit": "abcdefabcdefabcdefabcdefabcdefabcdefabc",
+        }
+        for v, c in versions
+    }
+
+    monkeypatch.setattr(pkg_class, "git", repo_path)
+    monkeypatch.setattr(pkg_class, "versions", version_commit_dict)
+
+    assert spack.cmd.ci.validate_git_versions(pkg, version_list) is False
+
+    out, err = capfd.readouterr()
+    for version in version_list:
+        assert f"Invalid commit for diff-test@{version}" in err
+
+
+def mock_packages_path(path):
+    def packages_path():
+        return path
+
+    return packages_path
+
+
+@pytest.fixture
+def verify_standard_versions_valid(monkeypatch):
+    def validate_standard_versions(pkg, versions):
+        for version in versions:
+            print(f"Validated {pkg.name}@{version}")
+        return True
+
+    monkeypatch.setattr(spack.cmd.ci, "validate_standard_versions", validate_standard_versions)
+
+
+@pytest.fixture
+def verify_git_versions_valid(monkeypatch):
+    def validate_git_versions(pkg, versions):
+        for version in versions:
+            print(f"Validated {pkg.name}@{version}")
+        return True
+
+    monkeypatch.setattr(spack.cmd.ci, "validate_git_versions", validate_git_versions)
+
+
+@pytest.fixture
+def verify_standard_versions_invalid(monkeypatch):
+    def validate_standard_versions(pkg, versions):
+        for version in versions:
+            print(f"Invalid checksum found {pkg.name}@{version}")
+        return False
+
+    monkeypatch.setattr(spack.cmd.ci, "validate_standard_versions", validate_standard_versions)
+
+
+@pytest.fixture
+def verify_git_versions_invalid(monkeypatch):
+    def validate_git_versions(pkg, versions):
+        for version in versions:
+            print(f"Invalid commit for {pkg.name}@{version}")
+        return False
+
+    monkeypatch.setattr(spack.cmd.ci, "validate_git_versions", validate_git_versions)
+
+
+def test_ci_verify_versions_valid(
+    monkeypatch,
+    mock_packages,
+    mock_git_package_changes,
+    verify_standard_versions_valid,
+    verify_git_versions_valid,
+):
+    repo, _, commits = mock_git_package_changes
+    with spack.repo.use_repositories(repo):
+        monkeypatch.setattr(spack.repo, "builtin_repo", lambda: repo)
+
+        out = ci_cmd("verify-versions", commits[-1], commits[-3])
+        assert "Validated diff-test@2.1.5" in out
+        assert "Validated diff-test@2.1.6" in out
+
+
+def test_ci_verify_versions_standard_invalid(
+    monkeypatch,
+    mock_packages,
+    mock_git_package_changes,
+    verify_standard_versions_invalid,
+    verify_git_versions_invalid,
+):
+    repo, _, commits = mock_git_package_changes
+    with spack.repo.use_repositories(repo):
+        monkeypatch.setattr(spack.repo, "builtin_repo", lambda: repo)
+
+        out = ci_cmd("verify-versions", commits[-1], commits[-3], fail_on_error=False)
+        assert "Invalid checksum found diff-test@2.1.5" in out
+        assert "Invalid commit for diff-test@2.1.6" in out
+
+
+def test_ci_verify_versions_manual_package(monkeypatch, mock_packages, mock_git_package_changes):
+    repo, _, commits = mock_git_package_changes
+    with spack.repo.use_repositories(repo):
+        monkeypatch.setattr(spack.repo, "builtin_repo", lambda: repo)
+
+        pkg_class = spack.repo.PATH.get_pkg_class("diff-test")
+        monkeypatch.setattr(pkg_class, "manual_download", True)
+
+        out = ci_cmd("verify-versions", commits[-1], commits[-2])
+        assert "Skipping manual download package: diff-test" in out

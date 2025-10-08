@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 import os.path
+import pathlib
 import sys
 
 import pytest
 
-import llnl.util.tty as tty
-from llnl.util.filesystem import join_path
-
 import spack.config
+import spack.llnl.util.tty as tty
 import spack.util.remote_file_cache as rfc_util
+from spack.llnl.util.filesystem import join_path
 
 github_url = "https://github.com/fake/fake/{0}/develop"
 gitlab_url = "https://gitlab.fake.io/user/repo/-/blob/config/defaults"
@@ -51,10 +51,10 @@ def test_rfc_remote_local_path_no_dest():
         _ = rfc_util.local_path(path, "")
 
 
-compilers_sha256 = (
-    "381732677538143a8f900406c0654f2730e2919a11740bdeaf35757ab3e1ef3e"
-    if sys.platform == "win32"
-    else "e91148ed5a0da7844e9f3f9cfce0fa60cce509461886bc3b006ee9eb711f69df"
+packages_yaml_sha256 = (
+    "6a1b26c857ca7e5bcd7342092e2f218da43d64b78bd72771f603027ea3c8b4af"
+    if sys.platform != "win32"
+    else "ae3239d769f9e6dc137a998489b0d44c70b03e21de4ecd6a623a3463a1a5c3f4"
 )
 
 
@@ -67,7 +67,8 @@ compilers_sha256 = (
             ValueError,
             "Requires sha256",
         ),
-        (f"{gitlab_url}/compilers.yaml", compilers_sha256, None, ""),
+        # This is the packages.yaml in lib/spack/spack/test/data/config
+        (f"{gitlab_url}/packages.yaml", packages_yaml_sha256, None, ""),
         (f"{gitlab_url}/packages.yaml", "abcdef", ValueError, "does not match"),
         (f"{github_url.format('blob')}/README.md", "", OSError, "No such"),
         (github_url.format("tree"), "", OSError, "No such"),
@@ -75,7 +76,7 @@ compilers_sha256 = (
     ],
 )
 def test_rfc_remote_local_path(
-    tmpdir, mutable_empty_config, mock_fetch_url_text, url, sha256, err, msg
+    tmp_path: pathlib.Path, mutable_empty_config, mock_fetch_url_text, url, sha256, err, msg
 ):
     def _has_content(filename):
         # The first element of all configuration files for this test happen to
@@ -90,7 +91,7 @@ def test_rfc_remote_local_path(
         return False
 
     def _dest_dir():
-        return join_path(tmpdir.strpath, "cache")
+        return join_path(str(tmp_path), "cache")
 
     if err is not None:
         with spack.config.override("config:url_fetch_method", "curl"):

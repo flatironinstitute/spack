@@ -20,8 +20,6 @@ import re
 import sys
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-import llnl.util.tty
-
 import spack.config
 import spack.error
 import spack.operating_systems.windows_os as winOs
@@ -30,6 +28,7 @@ import spack.spec
 import spack.util.environment
 import spack.util.spack_yaml
 import spack.util.windows_registry
+from spack.llnl.util import tty
 
 
 def _externals_in_packages_yaml() -> Set[spack.spec.Spec]:
@@ -93,14 +92,13 @@ def _spec_is_valid(spec: spack.spec.Spec) -> bool:
     except spack.error.SpackError:
         # It is assumed here that we can at least extract the package name from the spec so we
         # can look up the implementation of determine_spec_details
-        msg = f"Constructed spec for {spec.name} does not have a string representation"
-        llnl.util.tty.warn(msg)
+        tty.warn(f"Constructed spec for {spec.name} does not have a string representation")
         return False
 
     try:
         spack.spec.Spec(str(spec))
     except spack.error.SpackError:
-        llnl.util.tty.warn(
+        tty.warn(
             "Constructed spec has a string representation but the string"
             " representation does not evaluate to a valid spec: {0}".format(str(spec))
         )
@@ -109,20 +107,24 @@ def _spec_is_valid(spec: spack.spec.Spec) -> bool:
     return True
 
 
-def path_to_dict(search_paths: List[str]):
+def path_to_dict(search_paths: List[str]) -> Dict[str, str]:
     """Return dictionary[fullpath]: basename from list of paths"""
-    path_to_lib = {}
+    path_to_lib: Dict[str, str] = {}
     # Reverse order of search directories so that a lib in the first
     # entry overrides later entries
     for search_path in reversed(search_paths):
         try:
-            with os.scandir(search_path) as entries:
-                path_to_lib.update(
-                    {entry.path: entry.name for entry in entries if entry.is_file()}
-                )
+            dir_iter = os.scandir(search_path)
         except OSError as e:
-            msg = f"cannot scan '{search_path}' for external software: {str(e)}"
-            llnl.util.tty.debug(msg)
+            tty.debug(f"cannot scan '{search_path}' for external software: {e}")
+            continue
+        with dir_iter as entries:
+            for entry in entries:
+                try:
+                    if entry.is_file():
+                        path_to_lib[entry.path] = entry.name
+                except OSError as e:
+                    tty.debug(f"cannot scan '{search_path}' for external software: {e}")
 
     return path_to_lib
 
@@ -224,6 +226,7 @@ def update_configuration(
             pkg_config["buildable"] = False
         pkg_to_cfg[package_name] = pkg_config
 
+    scope = scope or spack.config.default_modify_scope()
     pkgs_cfg = spack.config.get("packages", scope=scope)
     pkgs_cfg = spack.schema.merge_yaml(pkgs_cfg, pkg_to_cfg)
     spack.config.set("packages", pkgs_cfg, scope=scope)
@@ -389,7 +392,7 @@ def find_win32_additional_install_paths() -> List[str]:
     windows_search_ext = []
     cuda_re = r"CUDA_PATH[a-zA-Z1-9_]*"
     # The list below should be expanded with other
-    # common Windows install locations as neccesary
+    # common Windows install locations as necessary
     path_ext_keys = ["I_MPI_ONEAPI_ROOT", "MSMPI_BIN", "MLAB_ROOT", "NUGET_PACKAGES"]
     user = os.environ["USERPROFILE"]
     add_path = lambda key: re.search(cuda_re, key) or key in path_ext_keys

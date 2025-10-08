@@ -9,8 +9,6 @@
 """
 from typing import Any, Dict
 
-from llnl.util.lang import union_dicts
-
 import spack.schema.bootstrap
 import spack.schema.cdash
 import spack.schema.ci
@@ -26,8 +24,10 @@ import spack.schema.mirrors
 import spack.schema.modules
 import spack.schema.packages
 import spack.schema.repos
+import spack.schema.toolchains
 import spack.schema.upstreams
 import spack.schema.view
+from spack.llnl.util.lang import union_dicts
 
 #: Properties for inclusion in other schemas
 properties: Dict[str, Any] = union_dicts(
@@ -46,6 +46,7 @@ properties: Dict[str, Any] = union_dicts(
     spack.schema.modules.properties,
     spack.schema.packages.properties,
     spack.schema.repos.properties,
+    spack.schema.toolchains.properties,
     spack.schema.upstreams.properties,
     spack.schema.view.properties,
 )

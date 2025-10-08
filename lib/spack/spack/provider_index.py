@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Classes and functions to manage providers of virtual dependencies"""
-from typing import Dict, List, Optional, Set
+from typing import Dict, Iterable, Optional, Set
 
 import spack.error
 import spack.spec
@@ -80,7 +80,7 @@ class ProviderIndex(_IndexBase):
     def __init__(
         self,
         repository: "spack.repo.RepoType",
-        specs: Optional[List["spack.spec.Spec"]] = None,
+        specs: Optional[Iterable["spack.spec.Spec"]] = None,
         restrict: bool = False,
     ):
         """Provider index based on a single mapping of providers.
@@ -240,8 +240,8 @@ class ProviderIndex(_IndexBase):
         index.providers = _transform(
             providers,
             lambda vpkg, plist: (
-                spack.spec.SpecfileV4.from_node_dict(vpkg),
-                set(spack.spec.SpecfileV4.from_node_dict(p) for p in plist),
+                spack.spec.SpecfileLatest.from_node_dict(vpkg),
+                set(spack.spec.SpecfileLatest.from_node_dict(p) for p in plist),
             ),
         )
         return index

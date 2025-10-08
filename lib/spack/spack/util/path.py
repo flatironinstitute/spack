@@ -17,10 +17,9 @@ import tempfile
 from datetime import date
 from typing import Optional
 
-import llnl.util.tty as tty
-from llnl.util.lang import memoized
-
+import spack.llnl.util.tty as tty
 import spack.util.spack_yaml as syaml
+from spack.llnl.util.lang import memoized
 
 __all__ = ["substitute_config_variables", "substitute_path_variables", "canonicalize_path"]
 
@@ -69,6 +68,7 @@ def replacements():
         "user": lambda: get_user(),
         "tempdir": lambda: tempfile.gettempdir(),
         "user_cache_path": lambda: spack.paths.user_cache_path,
+        "spack_instance_id": lambda: spack.paths.spack_instance_id,
         "architecture": lambda: arch,
         "arch": lambda: arch,
         "platform": lambda: arch.platform,
@@ -166,6 +166,7 @@ def substitute_config_variables(path):
     - $user                The current user's username
     - $user_cache_path     The user cache directory (~/.spack, unless overridden)
     - $root                The install tree root.
+    - $spack_instance_id   Hash that distinguishes Spack instances on the filesystem
     - $architecture        The spack architecture triple for the current system
     - $arch                The spack architecture triple for the current system
     - $platform            The spack platform for the current system
@@ -279,7 +280,7 @@ def canonicalize_path(path: str, default_wd: Optional[str] = None) -> str:
     if url.scheme:
         if url.scheme != "file":
             # Have a remote URL so simply return it with substitutions
-            return os.path.normpath(path)
+            return path
 
         # Drop the URL scheme from the local path
         path = url_path

@@ -7,8 +7,6 @@
 /var/spack/environments
 !/var/spack/environments/bootstrap/spack.yaml
 !/var/spack/environments/modules/spack.yaml
-/var/spack/repos/*/index.yaml
-/var/spack/repos/*/lock
 /opt
 /bootstrap
 /share/spack/dotkit
