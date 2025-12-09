@@ -639,11 +639,13 @@ def chmod_x(entry, perms):
 
 
 @system_path_filter
-def copy_mode(src, dest):
+def copy_mode(src, dest, src_stat=None):
     """Set the mode of dest to that of src unless it is a link."""
     if islink(dest):
         return
-    src_mode = os.stat(src).st_mode
+    if src_stat is None:
+        src_stat = os.stat(src)
+    src_mode = src_stat.st_mode
     dest_mode = os.stat(dest).st_mode
     if src_mode & stat.S_IXUSR:
         dest_mode |= stat.S_IXUSR
@@ -789,16 +791,16 @@ def copy_tree(
 
         mkdirp(abs_dest)
 
-        for s, d in traverse_tree(
+        for s, d, st in traverse_tree(
             abs_src,
             abs_dest,
             order="pre",
             follow_links=not symlinks,
             ignore=ignore,
             follow_nonexisting=True,
+            with_stat=True,
         ):
-            if islink(s):
-                link_target = resolve_link_target_relative_to_the_link(s)
+            if stat.S_ISLNK(st.st_mode):
                 if symlinks:
                     target = readlink(s)
                     if os.path.isabs(target):
@@ -814,12 +816,12 @@ def copy_tree(
                     links.append((target, d, s))
                     continue
 
-                elif os.path.isdir(link_target):
+                elif os.path.isdir(s):  # follows symlink
                     mkdirp(d)
                 else:
                     shutil.copyfile(s, d)
             else:
-                if os.path.isdir(s):
+                if stat.S_ISDIR(st.st_mode):
                     mkdirp(d)
                 else:
                     shutil.copy2(s, d)
@@ -1258,6 +1260,7 @@ def traverse_tree(
     ignore: Optional[Callable[[str], bool]] = None,
     follow_nonexisting: bool = True,
     follow_links: bool = False,
+    with_stat: bool = False,
 ):
     """Traverse two filesystem trees simultaneously.
 
@@ -1294,68 +1297,57 @@ def traverse_tree(
         follow_nonexisting (bool): Whether to descend into directories in
             ``src`` that do not exit in ``dest``. Default is True
         follow_links (bool): Whether to descend into symlinks in ``src``
+        with_stat (bool): Return a third value in the tuple of the stat of the
+            source file
     """
     if order not in ("pre", "post"):
         raise ValueError("Order must be 'pre' or 'post'.")
+    preorder = order == "pre"
 
-    # List of relative paths to ignore under the src root.
-    ignore = ignore or (lambda filename: False)
+    def do_traverse(source_dir: str, dest_dir: str, rel_dir: str, child: str):
+        rel = os.path.join(rel_dir, child)
+        # Don't descend into ignored directories
+        if ignore and ignore(rel):
+            return
 
-    # Don't descend into ignored directories
-    if ignore(rel_path):
-        return
-
-    source_path = os.path.join(source_root, rel_path)
-    dest_path = os.path.join(dest_root, rel_path)
-
-    # preorder yields directories before children
-    if order == "pre":
-        yield (source_path, dest_path)
-
-    for f in os.listdir(source_path):
-        source_child = os.path.join(source_path, f)
-        dest_child = os.path.join(dest_path, f)
-        rel_child = os.path.join(rel_path, f)
-
+        # XXX TODO??
         # If the source path is a link and the link's source is ignored, then ignore the link too,
         # but only do this if the ignore is defined.
-        if ignore is not None:
-            if islink(source_child) and not follow_links:
-                target = readlink(source_child)
-                all_parents = accumulate(target.split(os.sep), lambda x, y: os.path.join(x, y))
-                if any(map(ignore, all_parents)):
-                    tty.warn(
-                        f"Skipping {source_path} because the source or a part of the source's "
-                        f"path is included in the ignores."
-                    )
-                    continue
+        #if ignore is not None:
+        #   if islink(source_child) and not follow_links:
+        #       target = readlink(source_child)
+        #       all_parents = accumulate(target.split(os.sep), lambda x, y: os.path.join(x, y))
+        #       if any(map(ignore, all_parents)):
+        #           tty.warn(
+        #               f"Skipping {source_path} because the source or a part of the source's "
+        #               f"path is included in the ignores."
+        #           )
+        #           continue
 
-        # Treat as a directory
-        # TODO: for symlinks, os.path.isdir looks for the link target. If the
-        # target is relative to the link, then that may not resolve properly
-        # relative to our cwd - see resolve_link_target_relative_to_the_link
-        if os.path.isdir(source_child) and (follow_links or not islink(source_child)):
-            # When follow_nonexisting isn't set, don't descend into dirs
-            # in source that do not exist in dest
-            if follow_nonexisting or os.path.exists(dest_child):
-                tuples = traverse_tree(
-                    source_root,
-                    dest_root,
-                    rel_child,
-                    order=order,
-                    ignore=ignore,
-                    follow_nonexisting=follow_nonexisting,
-                    follow_links=follow_links,
-                )
-                for t in tuples:
-                    yield t
+        source = os.path.join(source_dir, child)
+        dest = os.path.join(dest_dir, child)
+
+        source_stat = os.stat(source, follow_symlinks=follow_links)
+        res = (source, dest, source_stat) if with_stat else (source, dest)
 
         # Treat as a file.
-        elif not ignore(os.path.join(rel_path, f)):
-            yield (source_child, dest_child)
+        if not stat.S_ISDIR(source_stat.st_mode):
+            yield res
+        # Treat as a directory
+        # When follow_nonexisting isn't set, don't descend into dirs
+        # in source that do not exist in dest
+        elif follow_nonexisting or os.path.exists(dest):
+            # preorder yields directories before children
+            if preorder:
+                yield res
 
-    if order == "post":
-        yield (source_path, dest_path)
+            for f in os.listdir(source):
+                yield from do_traverse(source, dest, rel, f)
+
+            if not preorder:
+                yield res
+
+    yield from do_traverse(source_root, dest_root, "", rel_path)
 
 
 class BaseDirectoryVisitor:

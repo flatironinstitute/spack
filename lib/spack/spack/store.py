@@ -169,8 +169,9 @@ class Store:
         self.layout = spack.directory_layout.DirectoryLayout(
             root, projections=projections, hash_length=hash_length
         )
+        db_root = spack.config.get("config:database_root", root)
         self.db = spack.database.Database(
-            root, upstream_dbs=upstreams, lock_cfg=lock_cfg, layout=self.layout
+            db_root, upstream_dbs=upstreams, lock_cfg=lock_cfg, layout=self.layout
         )
 
         timeout_format_str = (
@@ -182,7 +183,7 @@ class Store:
             spack.database.prefix_lock_path(root), default_timeout=lock_cfg.package_timeout
         )
         self.failure_tracker = spack.database.FailureTracker(
-            self.root, default_timeout=lock_cfg.package_timeout
+            db_root, default_timeout=lock_cfg.package_timeout
         )
 
     def reindex(self) -> None:

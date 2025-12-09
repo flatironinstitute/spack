@@ -49,6 +49,7 @@ line is a spec for a particular installation of the mpileaks package.
 import collections
 import collections.abc
 import enum
+import fnmatch
 import io
 import itertools
 import json
@@ -3263,7 +3264,7 @@ class Spec:
             return False
 
         # If the names are different, we need to consider virtuals
-        if self.name != other.name and self.name and other.name:
+        if self.name != other.name and self.name and other.name and not fnmatch.fnmatchcase(self.name, other.name):
             if not resolve_virtuals:
                 return False
 

@@ -58,6 +58,8 @@ def replacements():
     import spack
     import spack.environment as ev
     import spack.paths
+    import spack.store as store
+
 
     arch = architecture()
 
@@ -77,6 +79,7 @@ def replacements():
         "date": lambda: date.today().strftime("%Y-%m-%d"),
         "env": lambda: ev.active_environment().path if ev.active_environment() else NOMATCH,
         "spack_short_version": lambda: spack.get_short_version(),
+        "root": lambda: store.STORE.root,
     }
 
 
@@ -162,6 +165,7 @@ def substitute_config_variables(path):
     - $tempdir             Default temporary directory returned by tempfile.gettempdir()
     - $user                The current user's username
     - $user_cache_path     The user cache directory (~/.spack, unless overridden)
+    - $root                The install tree root.
     - $spack_instance_id   Hash that distinguishes Spack instances on the filesystem
     - $architecture        The spack architecture triple for the current system
     - $arch                The spack architecture triple for the current system

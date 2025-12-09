@@ -23,6 +23,9 @@ def setup_parser(subparser: argparse.ArgumentParser) -> None:
         help="concretize with test dependencies of only root packages or all packages",
     )
     subparser.add_argument(
+        "--no-regenerate", action="store_true", default=False, help="""Don't regenerate views."""
+    )
+    subparser.add_argument(
         "-q", "--quiet", action="store_true", help="don't print concretized specs"
     )
 
@@ -42,10 +45,11 @@ def concretize(parser, args):
 
     with env.write_transaction():
         concretized_specs = env.concretize(tests=tests)
+        ev.display_specs(concretized_specs)
         if not args.quiet:
             if concretized_specs:
                 tty.msg(f"Concretized {plural(len(concretized_specs), 'spec')}:")
                 ev.display_specs([concrete for _, concrete in concretized_specs])
             else:
                 tty.msg("No new specs to concretize.")
-        env.write()
+        env.write(regenerate=not args.no_regenerate)

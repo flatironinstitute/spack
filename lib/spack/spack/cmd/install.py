@@ -57,6 +57,7 @@ def install_kwargs_from_args(args):
         "include_build_deps": args.include_build_deps,
         "stop_at": args.until,
         "unsigned": args.unsigned,
+        "regenerate": not args.no_regenerate,
         "install_deps": ("dependencies" in args.things_to_install),
         "install_package": ("package" in args.things_to_install),
         "concurrent_packages": args.concurrent_packages,
@@ -199,6 +200,13 @@ def setup_parser(subparser: argparse.ArgumentParser) -> None:
         action="store_false",
         dest="add",
         help="(with environment) do not add spec to the environment as a root",
+    )
+
+    subparser.add_argument(
+        "--no-regenerate",
+        action="store_true",
+        default=False,
+        help="""(with environment) don't regenerate views""",
     )
 
     cd_group = subparser.add_mutually_exclusive_group()
@@ -401,7 +409,9 @@ def install_with_active_env(env: ev.Environment, args, install_kwargs, reporter)
         install_kwargs["reporter"] = reporter
         env.install_specs(specs_to_install, **install_kwargs)
     finally:
-        if env.views:
+        # TODO: this is doing way too much to trigger
+        # views and modules to be generated.
+        if env.views and not args.no_regenerate:
             with env.write_transaction():
                 env.write(regenerate=True)
 
