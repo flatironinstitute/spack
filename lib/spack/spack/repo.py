@@ -903,12 +903,6 @@ class RepoPath:
         """
         return any(repo.exists(pkg_name) for repo in self.repos)
 
-    def _have_name(self, pkg_name: str) -> bool:
-        have_name = pkg_name is not None
-        if have_name and not isinstance(pkg_name, str):
-            raise ValueError(f"is_virtual(): expected package name, got {type(pkg_name)}")
-        return have_name
-
     def is_virtual(self, pkg_name: str) -> bool:
         """Return True if the package with this name is virtual, False otherwise.
 
@@ -916,9 +910,9 @@ class RepoPath:
         is used to construct the provider index use the ``is_virtual_safe`` function.
 
         Args:
-            pkg_name (str): name of the package we want to check
+            pkg_name: name of the package we want to check
         """
-        have_name = self._have_name(pkg_name)
+        have_name = bool(pkg_name)
         return have_name and pkg_name in self.provider_index
 
     def is_virtual_safe(self, pkg_name: str) -> bool:
@@ -927,9 +921,9 @@ class RepoPath:
         This function doesn't use the provider index.
 
         Args:
-            pkg_name (str): name of the package we want to check
+            pkg_name: name of the package we want to check
         """
-        have_name = self._have_name(pkg_name)
+        have_name = bool(pkg_name)
         return have_name and (not self.exists(pkg_name) or self.get_pkg_class(pkg_name).virtual)
 
     def __contains__(self, pkg_name):
@@ -1714,14 +1708,26 @@ class RemoteRepoDescriptor(RepoDescriptor):
                         # determine the default branch from ls-remote
                         # (if no branch, tag, or commit is specified)
                         if not (self.commit or self.tag or self.branch):
-                            refs = git("ls-remote", "--symref", remote, "HEAD", output=str)
-                            ref_match = re.search(r"refs/heads/(\S+)", refs)
-                            if not ref_match:
+                            # Get HEAD and all branches. On more recent versions of git, this can
+                            # be done with a single call to `git ls-remote --symref remote HEAD`.
+                            refs = git("ls-remote", remote, "HEAD", "refs/heads/*", output=str)
+                            head_match = re.search(r"^([0-9a-f]+)\s+HEAD$", refs, re.MULTILINE)
+                            if not head_match:
+                                self.error = f"Unable to locate HEAD for {self.repository}"
+                                return
+
+                            head_sha = head_match.group(1)
+
+                            # Find the first branch that matches this SHA
+                            branch_match = re.search(
+                                rf"^{re.escape(head_sha)}\s+refs/heads/(\S+)$", refs, re.MULTILINE
+                            )
+                            if not branch_match:
                                 self.error = (
                                     f"Unable to locate a default branch for {self.repository}"
                                 )
                                 return
-                            self.branch = ref_match.group(1)
+                            self.branch = branch_match.group(1)
 
                     # determine the branch and remote if no config values exist
                     elif not (self.commit or self.tag or self.branch):
@@ -1729,11 +1735,13 @@ class RemoteRepoDescriptor(RepoDescriptor):
                         remote = git("config", f"branch.{self.branch}.remote", output=str).strip()
 
                     if self.commit:
-                        spack.util.git.pull_checkout_commit(self.commit, git_exe=git)
+                        spack.util.git.pull_checkout_commit(
+                            self.commit, remote=remote, depth=depth, git_exe=git
+                        )
 
                     elif self.tag:
                         spack.util.git.pull_checkout_tag(
-                            self.tag, remote, depth=depth, git_exe=git
+                            self.tag, remote=remote, depth=depth, git_exe=git
                         )
 
                     elif self.branch:

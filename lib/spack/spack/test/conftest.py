@@ -1043,6 +1043,49 @@ def mock_low_high_config(tmp_path: Path):
         yield config
 
 
+def create_config_scope(path: Path, name: str) -> spack.config.DirectoryConfigScope:
+    """helper for creating config scopes with included file/directory scopes
+    that do not have existing representation on the filesystem"""
+    base_scope_dir = path / "base"
+    config_data = syaml.syaml_dict(
+        {
+            "include": [
+                {
+                    "name": "sub_base",
+                    "path": str(path / name),
+                    "optional": True,
+                    "prefer_modify": True,
+                }
+            ]
+        }
+    )
+    base_scope_dir.mkdir()
+    with open(str(base_scope_dir / "include.yaml"), "w+", encoding="utf-8") as f:
+        syaml.dump_config(config_data, stream=f, default_flow_style=False)
+    scope = spack.config.DirectoryConfigScope("base", str(base_scope_dir))
+    return scope
+
+
+@pytest.fixture()
+def mock_missing_dir_include_scopes(tmp_path: Path):
+    """Mocks a config scope containing optional directory scope
+    includes that do not have represetation on the filesystem"""
+    scope = create_config_scope(tmp_path, "sub")
+
+    with spack.config.use_configuration(scope) as config:
+        yield config
+
+
+@pytest.fixture
+def mock_missing_file_include_scopes(tmp_path: Path):
+    """Mocks a config scope containing optional file scope
+    includes that do not have represetation on the filesystem"""
+    scope = create_config_scope(tmp_path, "sub.yaml")
+
+    with spack.config.use_configuration(scope) as config:
+        yield config
+
+
 def _populate(mock_db):
     r"""Populate a mock database with packages.
 
@@ -1209,32 +1252,11 @@ def install_mockery(temporary_store: spack.store.Store, mutable_config, mock_pac
     temporary_store.failure_tracker.clear_all()
 
 
-@pytest.fixture(scope="module")
-def temporary_mirror_dir(tmp_path_factory: pytest.TempPathFactory):
-    dir = tmp_path_factory.mktemp("mirror")
-    yield str(dir)
-
-
 @pytest.fixture(scope="function")
-def temporary_mirror(temporary_mirror_dir):
-    mirror_url = url_util.path_to_file_url(temporary_mirror_dir)
-    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
-    yield temporary_mirror_dir
-    mirror_cmd("rm", "--scope=site", "test-mirror-func")
-
-
-@pytest.fixture(scope="function")
-def mutable_temporary_mirror_dir(tmp_path_factory: pytest.TempPathFactory):
-    dir = tmp_path_factory.mktemp("mirror")
-    yield str(dir)
-
-
-@pytest.fixture(scope="function")
-def mutable_temporary_mirror(mutable_temporary_mirror_dir):
-    mirror_url = url_util.path_to_file_url(mutable_temporary_mirror_dir)
-    mirror_cmd("add", "--scope", "site", "test-mirror-func", mirror_url)
-    yield mutable_temporary_mirror_dir
-    mirror_cmd("rm", "--scope=site", "test-mirror-func")
+def temporary_mirror(mutable_config, tmp_path_factory):
+    mirror_dir = tmp_path_factory.mktemp("mirror")
+    mirror_cmd("add", "test-mirror-func", mirror_dir.as_uri())
+    yield str(mirror_dir)
 
 
 @pytest.fixture(scope="function")
@@ -2333,6 +2355,9 @@ class MockHTTPResponse(io.IOBase):
         """Create a mock HTTP response with JSON string as body"""
         body = io.BytesIO(json.dumps(body).encode("utf-8"))
         return cls(status, reason, headers, body)
+
+    def readable(self):
+        return True
 
     def read(self, *args, **kwargs):
         return self._body.read(*args, **kwargs)

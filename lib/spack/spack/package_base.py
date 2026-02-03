@@ -59,9 +59,8 @@ from spack.llnl.util.filesystem import (
     islink,
     symlink,
 )
-from spack.llnl.util.lang import ClassProperty, classproperty, memoized
+from spack.llnl.util.lang import ClassProperty, classproperty, dedupe, memoized
 from spack.resource import Resource
-from spack.solver.versions import concretization_version_order
 from spack.util.package_hash import package_hash
 from spack.util.typing import SupportsRichComparison
 from spack.version import GitVersion, StandardVersion, VersionError, is_git_version
@@ -2575,15 +2574,51 @@ def deprecated_version(pkg: PackageBase, version: Union[str, StandardVersion]) -
 
 
 def preferred_version(pkg: Union[PackageBase, Type[PackageBase]]):
-    """
-    Returns a sorted list of the preferred versions of the package.
+    """Returns the preferred versions of the package according to package.py.
+
+    Accounts for version deprecation in the package recipe. Doesn't account for
+    any user configuration in packages.yaml.
 
     Arguments:
         pkg: The package whose versions are to be assessed.
     """
 
-    version, _ = max(pkg.versions.items(), key=concretization_version_order)
+    def _version_order(version_info):
+        version, info = version_info
+        deprecated_key = not info.get("deprecated", False)
+        return (deprecated_key, *concretization_version_order(version_info))
+
+    version, _ = max(pkg.versions.items(), key=_version_order)
     return version
+
+
+def sort_by_pkg_preference(
+    versions: Iterable[Union[GitVersion, StandardVersion]],
+    *,
+    pkg: Union[PackageBase, Type[PackageBase]],
+) -> List[Union[GitVersion, StandardVersion]]:
+    """Sorts the list of versions passed in input according to the preferences in the package. The
+    return value does not contain duplicate versions. Most preferred versions first.
+    """
+    s = [(v, pkg.versions.get(v, {})) for v in dedupe(versions)]
+    return [v for v, _ in sorted(s, reverse=True, key=concretization_version_order)]
+
+
+def concretization_version_order(version_info: Tuple[Union[GitVersion, StandardVersion], dict]):
+    """Version order key for concretization, where preferred > not preferred,
+    finite > any infinite component; only if all are the same, do we use default version
+    ordering.
+
+    Version deprecation needs to be accounted for separately.
+    """
+    version, info = version_info
+    return (
+        info.get("preferred", False),
+        not isinstance(version, GitVersion),
+        not version.isdevelop(),
+        not version.is_prerelease(),
+        version,
+    )
 
 
 class PackageStillNeededError(InstallError):

@@ -25,11 +25,10 @@ import spack.llnl.util.tty as tty
 import spack.package_base
 import spack.package_prefs as prefs
 import spack.repo
+import spack.report
 import spack.spec
 import spack.store
-import spack.test.conftest
 import spack.util.lock as lk
-from spack.installer import PackageInstaller
 from spack.main import SpackCommand
 from spack.test.conftest import RepoBuilder
 
@@ -142,8 +141,8 @@ def test_install_from_cache_errors(install_mockery):
     with pytest.raises(
         spack.error.InstallError, match="No binary found when cache-only was specified"
     ):
-        PackageInstaller(
-            [spec.package], package_cache_only=True, dependencies_cache_only=True
+        inst.PackageInstaller(
+            [spec.package], root_policy="cache_only", dependencies_policy="cache_only"
         ).install()
     assert not spec.package.installed_from_binary_cache
 
@@ -646,6 +645,22 @@ def test_installer_init_requests(install_mockery):
     assert request.pkg.name == spec_name
 
 
+def false(*args, **kwargs):
+    return False
+
+
+def test_rewire_task_no_tarball(monkeypatch, mock_packages):
+    spec = spack.concretize.concretize_one("splice-t")
+    dep = spack.concretize.concretize_one("splice-h+foo")
+    out = spec.splice(dep)
+
+    rewire_task = inst.RewireTask(out.package, inst.BuildRequest(out.package, {}))
+    monkeypatch.setattr(inst, "_process_binary_cache_tarball", false)
+    monkeypatch.setattr(spack.report.InstallRecord, "succeed", lambda x: None)
+
+    assert rewire_task.complete() == inst.ExecuteResult.MISSING_BUILD_SPEC
+
+
 @pytest.mark.parametrize("transitive", [True, False])
 def test_install_spliced(install_mockery, mock_fetch, monkeypatch, capsys, transitive):
     """Test installing a spliced spec"""
@@ -669,7 +684,7 @@ def test_install_spliced_build_spec_installed(install_mockery, capfd, mock_fetch
 
     # Do the splice.
     out = spec.splice(dep, transitive)
-    PackageInstaller([out.build_spec.package]).install()
+    inst.PackageInstaller([out.build_spec.package]).install()
 
     installer = create_installer([out], {"verbose": True, "fail_fast": True})
     installer._init_queue()
@@ -688,19 +703,14 @@ def test_install_spliced_build_spec_installed(install_mockery, capfd, mock_fetch
     "root_str", ["splice-t^splice-h~foo", "splice-h~foo", "splice-vt^splice-a"]
 )
 def test_install_splice_root_from_binary(
-    mutable_mock_env_path,
-    install_mockery,
-    mock_fetch,
-    mutable_temporary_mirror,
-    transitive,
-    root_str,
+    mutable_mock_env_path, install_mockery, mock_fetch, temporary_mirror, transitive, root_str
 ):
     """Test installing a spliced spec with the root available in binary cache"""
     # Test splicing and rewiring a spec with the same name, different hash.
     original_spec = spack.concretize.concretize_one(root_str)
     spec_to_splice = spack.concretize.concretize_one("splice-h+foo")
 
-    PackageInstaller([original_spec.package, spec_to_splice.package]).install()
+    inst.PackageInstaller([original_spec.package, spec_to_splice.package]).install()
 
     out = original_spec.splice(spec_to_splice, transitive)
 
@@ -709,7 +719,7 @@ def test_install_splice_root_from_binary(
         "push",
         "--unsigned",
         "--update-index",
-        mutable_temporary_mirror,
+        temporary_mirror,
         str(original_spec),
         str(spec_to_splice),
     )
@@ -717,7 +727,7 @@ def test_install_splice_root_from_binary(
     uninstall = SpackCommand("uninstall")
     uninstall("-ay")
 
-    PackageInstaller([out.package], unsigned=True).install()
+    inst.PackageInstaller([out.package], unsigned=True).install()
 
     assert len(spack.store.STORE.db.query()) == len(list(out.traverse()))
 
