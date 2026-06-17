@@ -30,7 +30,9 @@ help([[{{ long_description| textwrap(72)| join() }}]])
 {% if has_modulepath_modifications %}
 -- Services provided by the package
 {% for name in provides %}
+{% if name != "compiler" %}
 family("{{ name }}")
+{% endif %}
 {% endfor %}
 
 -- Loading this module unlocks the path below unconditionally
@@ -86,6 +88,8 @@ append_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 remove_path("{{ cmd.name }}", "{{ cmd.value }}", "{{ cmd.separator }}")
 {% elif command_name == 'SetEnv' %}
 setenv("{{ cmd.name }}", "{{ cmd.value }}")
+{% elif command_name == 'PushEnv' %}
+pushenv("{{ cmd.name }}", "{{ cmd.value }}")
 {% elif command_name == 'UnsetEnv' %}
 unsetenv("{{ cmd.name }}")
 {% endif %}

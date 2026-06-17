@@ -1335,7 +1335,12 @@ class Repo:
             for patch in itertools.chain.from_iterable(spec.package.patches.values()):
                 if patch.path:
                     if os.path.exists(patch.path):
-                        fs.install(patch.path, path)
+                        dest = getattr(patch, "relative_path", None)
+                        if not dest or os.path.isabs(dest):
+                            dest = os.path.basename(patch.path)
+                        dest = os.path.join(path, dest)
+                        fs.mkdirp(os.path.dirname(dest))
+                        fs.install(patch.path, dest)
                     else:
                         warnings.warn(f"Patch file did not exist: {patch.path}")
 

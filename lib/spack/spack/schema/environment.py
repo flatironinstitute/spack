@@ -23,6 +23,7 @@ env_modifications: Dict[str, Any] = {
             "description": "Environment variables to set to specific values",
             **dictionary_of_strings_or_num,
         },
+        "push": dictionary_of_strings_or_num,
         "unset": {
             "description": "Environment variables to remove/unset",
             "default": [],
