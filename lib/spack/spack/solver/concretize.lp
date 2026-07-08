@@ -211,6 +211,10 @@ related(NodeA, NodeB) :- attr("closure", NodeA, NodeB, "linkrun").
 % In the "root" unification set only ID = 0 are allowed
 :- unification_set("root", node(ID, _)), ID != 0.
 
+% Build-set IDs are interchangeable labels, so forbid gaps to avoid churn when searching.
+build_set_used(ID) :- build_set_id(_, ID).
+:- build_set_used(ID), ID > 0, not build_set_used(ID-1).
+
 % In the "root" unification set we allow only packages from the link-run possible subDAG
 :- unification_set("root", node(_, Package)), not possible_in_link_run(Package), not virtual(Package).
 
@@ -1875,12 +1879,6 @@ node_os_weight(PackageNode, Weight)
  :- attr("node", PackageNode),
     attr("node_os", PackageNode, OS),
     os(OS, Weight).
-
-% every OS is compatible with itself. We can use `os_compatible` to declare
-os_compatible(OS, OS) :- os(OS).
-
-% Transitive compatibility among operating systems
-os_compatible(OS1, OS3) :- os_compatible(OS1, OS2), os_compatible(OS2, OS3).
 
 % If an OS is set explicitly respect the value
 attr("node_os", PackageNode, OS) :- attr("node_os_set", PackageNode, OS), attr("node", PackageNode).

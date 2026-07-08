@@ -4,6 +4,7 @@
 import collections
 import collections.abc
 import contextlib
+import errno
 import glob
 import os
 import pathlib
@@ -806,6 +807,28 @@ class ViewDescriptor:
             "directory or file not managed by Spack. Please remove it manually to update the view."
         )
 
+    def _move_old_view_aside(self) -> Optional[str]:
+        """Move an existing view at ``self.root`` aside so we can roll back to it.
+
+        Returns where the old view was moved, or ``None`` if there was none, or it had to be
+        removed in place (overlayfs EXDEV) and can no longer be restored.
+        """
+        if not os.path.lexists(self.root):
+            return None
+        old_view = f"{self.root}.old.{uuid.uuid4().hex[:8]}"
+        try:
+            os.rename(self.root, old_view)
+        except OSError as e:
+            # overlayfs (e.g. `docker build`) can't rename a dir off a lower layer; remove it
+            # in place instead and give up rollback. A mount point also can't be renamed off its
+            # device (same EXDEV), but rmtree would wipe the mounted volume and then crash on the
+            # final rmdir, so refuse it.
+            if e.errno != errno.EXDEV or os.path.ismount(self.root):
+                raise
+            shutil.rmtree(self.root)
+            return None
+        return old_view
+
     def content_hash(self, specs):
         d = syaml.syaml_dict(
             [
@@ -821,20 +844,14 @@ class ViewDescriptor:
         to exist on the filesystem."""
         return self._view(self.root).get_projection_for_spec(spec)
 
-    def view(self, new: Optional[str] = None) -> fsv.SimpleFilesystemView:
+    def view(self) -> fsv.SimpleFilesystemView:
         """
         Returns a view object for the *underlying* view directory. This means that the
-        self.root symlink is followed, and that the view has to exist on the filesystem
-        (unless ``new``). This function is useful when writing to the view.
+        self.root symlink is followed, and that the view has to exist on the filesystem.
+        This function is useful when writing to the view.
 
-        Raise if new is None and there is no current view
-
-        Arguments:
-            new: If a string, create a FilesystemView rooted at that path. Default None. This
-                should only be used to regenerate the view, and cannot be used to access specs.
+        Raise if there is no current view.
         """
-        if new:
-            return self._view(new)
         if os.path.islink(self.root):
             path: Optional[str] = self._current_root  # old format: follow symlink
         elif os.path.isdir(self.root):
@@ -915,28 +932,25 @@ class ViewDescriptor:
 
         root_parent = os.path.dirname(self.root)
         root_basename = os.path.basename(self.root)
-        suffix = uuid.uuid4().hex[:8]
-        # Working directory for the new view
-        new_root = os.path.join(root_parent, f"{root_basename}.new.{suffix}")
-        # Temporary location for the old view in case we need to roll back
-        old_root = os.path.join(root_parent, f"{root_basename}.old.{suffix}")
+
+        # The view is built *in place* at self.root: packages bake the projection path
+        # (e.g. shebangs, pyvenv.cfg) into file contents, and that path has to be the
+        # final view location, not a temporary build directory that's renamed afterwards.
+        # To stay able to roll back, move an existing view aside first.
+        old_root = self._move_old_view_aside()
 
         try:
-            fs.mkdirp(new_root)
-            self.view(new=new_root).add_specs(*specs)
+            fs.mkdirp(self.root)
+            self._view(self.root).add_specs(*specs)
 
             # Claim ownership of the view by dropping a marker file with the content hash.
-            with open(os.path.join(new_root, MARKER_FILE), "x", encoding="utf-8") as f:
+            with open(self.marker_path, "x", encoding="utf-8") as f:
                 f.write(content_hash)
 
-            # Rename self.root -> <root>.old (if it exists), then .new -> self.root
-            if os.path.lexists(self.root):
-                os.rename(self.root, old_root)
-            os.rename(new_root, self.root)
-
         except Exception as e:
-            # Restore self.root if the rename sequence left it missing
-            if not os.path.lexists(self.root) and os.path.lexists(old_root):
+            # Roll back to the previous view (if any).
+            shutil.rmtree(self.root, ignore_errors=True)
+            if old_root is not None:
                 try:
                     os.rename(old_root, self.root)
                 except OSError:
@@ -958,9 +972,8 @@ class ViewDescriptor:
                 ) from e
             raise
 
-        finally:
-            if os.path.lexists(new_root):
-                shutil.rmtree(new_root, ignore_errors=True)
+        if old_root is None:
+            return
 
         # Clean up old view
         if os.path.islink(old_root):

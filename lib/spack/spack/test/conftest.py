@@ -4,6 +4,7 @@
 
 import base64
 import collections
+import contextlib
 import datetime
 import email.message
 import errno
@@ -36,6 +37,7 @@ import spack.compilers.config
 import spack.compilers.libraries
 import spack.concretize
 import spack.config
+import spack.database
 import spack.directives_meta
 import spack.environment as ev
 import spack.error
@@ -1365,6 +1367,55 @@ class MockConfig:
         return self.configuration(module_set_name)[self.writer_key]
 
 
+@contextlib.contextmanager
+def writable(database):
+    """Allow a database to be written inside this context manager."""
+    old_lock, old_is_upstream = database.lock, database.is_upstream
+    db_root = Path(database.root)
+
+    try:
+        # this is safe on all platforms during tests (tests get their own tmpdirs)
+        database.lock = spack.llnl.util.lock.Lock(str(database._lock_path), enable=False)
+        database.is_upstream = False
+        db_root.chmod(mode=0o755)
+        with database.write_transaction():
+            yield
+    finally:
+        db_root.chmod(mode=0o555)
+        database.lock = old_lock
+        database.is_upstream = old_is_upstream
+
+
+@pytest.fixture()
+def upstream_and_downstream_db(tmp_path: Path, gen_mock_layout):
+    """Fixture for a pair of stores: upstream and downstream.
+
+    Upstream API prohibits writing to an upstream, so we also return a writable version
+    of the upstream DB for tests to use.
+
+    """
+    mock_db_root = tmp_path / "mock_db_root"
+    mock_db_root.mkdir()
+    mock_db_root.chmod(0o555)
+
+    upstream_db = spack.database.Database(
+        str(mock_db_root), is_upstream=True, layout=gen_mock_layout("a")
+    )
+    with writable(upstream_db):
+        upstream_db._write()
+
+    downstream_db_root = tmp_path / "mock_downstream_db_root"
+    downstream_db_root.mkdir()
+    downstream_db_root.chmod(0o755)
+
+    downstream_db = spack.database.Database(
+        str(downstream_db_root), upstream_dbs=[upstream_db], layout=gen_mock_layout("b")
+    )
+    downstream_db._write()
+
+    yield upstream_db, downstream_db
+
+
 class ConfigUpdate:
     def __init__(self, root_for_conf, writer_mod, writer_key, monkeypatch):
         self.root_for_conf = root_for_conf
@@ -1436,11 +1487,14 @@ def mock_gnupghome(monkeypatch):
 ##########
 
 
-@pytest.fixture(scope="session", params=[(".tar.gz", "z")])
+@pytest.fixture(scope="session")
 def mock_archive(request, tmp_path_factory: pytest.TempPathFactory):
     """Creates a very simple archive directory with a configure script and a
     makefile that installs to a prefix. Tars it up into an archive.
     """
+    # Tests may override it via an indirect parametrization
+    ext, tar_flag = getattr(request, "param", (".tar.gz", "z"))
+
     try:
         tar = spack.util.executable.which("tar", required=True)
     except spack.util.executable.CommandNotFoundError:
@@ -1469,8 +1523,8 @@ def mock_archive(request, tmp_path_factory: pytest.TempPathFactory):
 
     # Archive it
     with working_dir(str(tmpdir)):
-        archive_name = "{0}{1}".format(spack.stage._source_path_subdir, request.param[0])
-        tar("-c{0}f".format(request.param[1]), archive_name, spack.stage._source_path_subdir)
+        archive_name = "{0}{1}".format(spack.stage._source_path_subdir, ext)
+        tar("-c{0}f".format(tar_flag), archive_name, spack.stage._source_path_subdir)
 
     Archive = collections.namedtuple(
         "Archive", ["url", "path", "archive_file", "expanded_archive_basedir"]

@@ -264,6 +264,13 @@ def install_from_buildcache(
     unsigned: Optional[bool],
     state_stream: io.TextIOWrapper,
 ) -> bool:
+    # Skip if no configured mirror accepts this spec (select/exclude filters)
+    if not any(
+        m.matches_binary(spec, direction="fetch")
+        for m in spack.mirrors.mirror.MirrorCollection(binary=True).values()
+    ):
+        return False
+
     send_state("fetching from build cache", state_stream)
     try:
         tarball_stage = spack.binary_distribution.download_tarball(
@@ -383,7 +390,8 @@ def worker_function(
     run_tests: bool,
     state: IpcChannel,
     parent: IpcChannel,
-    echo_control: IpcChannel,
+    tee_control_r: IpcChannel,
+    tee_control_w: Optional[IpcChannel],
     jobserver_info: Tuple[Optional[str], Any],
     log_path: str,
     global_state: GlobalStateMarshaler,
@@ -408,7 +416,8 @@ def worker_function(
         run_tests: Whether to run install-time tests for this package
         state: Connection to send state updates to
         parent: Connection to send build output to
-        echo_control: Connection to receive echo control messages from
+        tee_control_r: Read end of the control pipe; the parent sends echo on/off here
+        tee_control_w: Write end of the control pipe; used to stop the tee thread on POSIX
         jobserver_info: MAKEFLAGS to set, so that the build process uses the POSIX jobserver, and
             opaque data only to be serialized (e.g. old style jobserver r/w pipes, only to be
             inherited in the build process)
@@ -466,7 +475,7 @@ def worker_function(
     sys.stdin = open(os.devnull, "r", encoding=sys.stdin.encoding)
 
     # Start the tee thread to forward output to the log file and parent process.
-    tee = Tee(echo_control, parent, log_path)
+    tee = Tee(tee_control_r, tee_control_w, parent, log_path)
 
     # Use closedfd=false because of the connection objects. Use line buffering.
     # Replace sys.stdout/stderr AFTER Tee.dup2() so Python creates FileIO (WriteFile) rather
@@ -846,6 +855,7 @@ def start_build(
             state_w_conn,
             output_w_conn,
             control_r_conn,
+            control_w_conn if sys.platform != "win32" else None,
             jobserver_details,
             log_path,
             GlobalStateMarshaler(serialize_env=False),
@@ -1715,8 +1725,7 @@ class ScheduleResult(NamedTuple):
 def schedule_builds(
     pending: List[str],
     build_graph: BuildGraph,
-    db: spack.database.Database,
-    prefix_locker: spack.database.SpecLocker,
+    store: spack.store.Store,
     overwrite: Set[str],
     overwrite_time: float,
     capacity: int,
@@ -1739,8 +1748,7 @@ def schedule_builds(
     Args:
         pending: List of dag hashes pending installation; modified in-place.
         build_graph: The build dependency graph; used for node lookup and parent enqueueing.
-        db: Package database; used for read lock and installed-status queries.
-        prefix_locker: Per-spec write locker.
+        store: The local store for installs.
         overwrite: Set of dag hashes to overwrite even if already installed.
         overwrite_time: Timestamp (from time.time()) at which the overwrite install was requested.
             A spec in ``overwrite`` whose DB installation_time >= overwrite_time was installed by
@@ -1758,6 +1766,7 @@ def schedule_builds(
     newly_installed: List[Tuple[str, spack.spec.Spec, spack.util.lock.Lock]] = []
     to_mark_explicit: List[MarkExplicitAction] = []
     blocked = True
+    db = store.db
 
     # Acquire the DB read lock non-blocking; hold it throughout the loop so the in-memory snapshot
     # stays consistent while we acquire per-spec prefix locks.
@@ -1769,7 +1778,7 @@ def schedule_builds(
         while capacity and idx < len(pending):
             dag_hash = pending[idx]
             spec = build_graph.nodes[dag_hash]
-            lock = prefix_locker.lock(spec)
+            lock = store.prefix_locker.lock(spec)
 
             if lock.try_acquire_write():
                 blocked = False
@@ -1810,12 +1819,16 @@ def schedule_builds(
                 continue
 
             # Write lock acquired: proceed with scheduling.
-            # Don't schedule builds for specs from upstream databases.
-            if upstream and record and not record.installed:
-                lock.release_write()
-                raise spack.error.InstallError(
-                    f"Cannot install {spec}: it is uninstalled in an upstream database."
-                )
+
+            # Allow local installs of specs that are referenced but uninstalled in an upstream db.
+            # In edge cases where an upstream has forcibly uninstalled just a link dep, we cannot
+            # fix the situation by installing it locally, because dependents in the upstream
+            # reference the missing upstream path. However, we document that users should not
+            # remove installed specs from upstreams, so it's a relatively safe assumption that
+            # missing upstream specs were never installed or garbage collected build deps, and are
+            # not referenced by absolute path in installed dependents.
+            if upstream and record and not record.installed and not spec.external:
+                spec.set_prefix(store.layout.path_for_spec(spec))
 
             # Defensively assert prefix invariants
             if not spec.external:
@@ -2493,8 +2506,7 @@ class PackageInstaller:
         result = schedule_builds(
             pending=self.pending_builds,
             build_graph=self.build_graph,
-            db=self.db,
-            prefix_locker=spack.store.STORE.prefix_locker,
+            store=spack.store.STORE,  # todo: dependency injection
             overwrite=self.overwrite,
             overwrite_time=self.overwrite_time,
             capacity=self.capacity,
@@ -2550,10 +2562,11 @@ class PackageInstaller:
             if spec.external:
                 self.log_paths[dag_hash] = os.devnull
             else:
+                prefix = fs.polite_filename(
+                    f"spack-stage-{spec.name}-{spec.version}-{spec.dag_hash()}-"
+                )
                 log_fd, log_path = tempfile.mkstemp(
-                    prefix=f"spack-stage-{spec.name}-{spec.version}-{spec.dag_hash()}-",
-                    suffix=".log",
-                    dir=spack.stage.get_stage_root(),
+                    prefix=prefix, suffix=".log", dir=spack.stage.get_stage_root()
                 )
                 os.close(log_fd)
                 self.log_paths[dag_hash] = log_path
