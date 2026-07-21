@@ -604,9 +604,12 @@ class ArchSpec:
         )
 
     def to_dict(self):
+        # Abstract specs may have no target
+        if self.target is None:
+            target_data = None
         # Generic targets represent either an architecture family (like x86_64)
         # or a custom micro-architecture
-        if self.target.vendor == "generic":
+        elif self.target.vendor == "generic":
             target_data = str(self.target)
         else:
             # Get rid of compiler flag information before turning the uarch into a dict
@@ -619,6 +622,8 @@ class ArchSpec:
         """Import an ArchSpec from raw YAML/JSON data"""
         arch = d["arch"]
         target_name = arch["target"]
+        if target_name is None:
+            return ArchSpec((arch["platform"], arch["platform_os"], None))
         if not isinstance(target_name, str):
             target_name = target_name["name"]
         target = _make_microarchitecture(target_name)
@@ -3570,7 +3575,7 @@ class Spec:
             # translate patch sha256sums to patch objects by consulting the index
             if self._patches_assigned():
                 sha256s = list(self.variants["patches"]._patches_in_order_of_appearance)
-                pkg_cls = spack.repo.PATH.get_pkg_class(self.name)
+                pkg_cls = spack.repo.PATH.get_pkg_class(self.fullname)
                 try:
                     self._patches = spack.repo.PATH.get_patches_for_package(sha256s, pkg_cls)
                 except spack.error.PatchLookupError as e:

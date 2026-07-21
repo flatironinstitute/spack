@@ -304,39 +304,50 @@ def _reorder_flags(flag_list: List[spack.spec.CompilerFlag]) -> List[spack.spec.
 
 
 def spec_dict_to_json(spec_dict: SpecDict) -> Dict:
-    """Serialize a SpecDict to JSON, taking care to preserve node structure in serialized specs."""
-    # A SpecDict has one entry for each spec in a solution, but some are abstract and some
-    # are concrete. We need DAG hashes for the abstract specs to serialize them, so force-cache
-    # them to avoid lots of redundant computation.
-    # TODO: spec serialization was really designed for concrete and small abstract specs.
-    # This should really be handled by Spec, but it will take some work to adjust the format.
-    for spec in spec_dict.values():
-        if not spec.concrete:
-            spec._cached_hash(ht.dag_hash, force=True)
+    """Serialize a SpecDict to JSON, taking care to preserve node structure in serialized specs.
 
+    Note: this does not yet handle spliced specs and will raise an error if they're passed in.
+
+    Raises:
+        SpliceSerializationError: if any node in ``spec_dict`` has a ``build_spec``.
+    """
     # Specs are keyed in spec_dict by their solver-assigned NodeId, but reused concrete
-    # specs may have transitive dependencies or build_specs that do not have a NodeId.
+    # specs may have transitive dependencies that do not have a NodeId.
     # Make a dictionary preserving the NodeIds from input.
     node_id_for: Dict[int, NodeId] = {id(spec): nid for nid, spec in spec_dict.items()}
 
-    # make a list of all nodes in specs and their build_specs
     specs = list(spec_dict.values())
-    specs += [spec.build_spec for spec in specs if spec.build_spec is not spec]
 
-    # Traverse every spec reachable from spec_dict's values, deduped by hash, and add them
-    # to the serialized entries either a) with their original NodeId, or b) with None if they
-    # don't have a NodeId. This ensures that all nodes are added and NodeIds are preserved.
-    entries = []
-    for dep in spack.traverse.traverse_nodes(specs, key=lambda s: s.dag_hash()):
-        node = dep.to_node_dict()
-        node["hash"] = dep.dag_hash()
-        entries.append((node_id_for.get(id(dep)), node))
+    try:
+        # A SpecDict has one entry for each spec in a solution, but some are abstract and some
+        # are concrete. We need DAG hashes for the abstract specs to serialize them, so
+        # force-cache them, taking care to do so bottom-up, to avoid exponential recomputation.
+        # TODO: spec serialization was really designed for concrete and small abstract specs.
+        # This should really be handled by Spec, but it will take some work to adjust the format.
+        for spec in spack.traverse.traverse_nodes(specs, key=id, order="post"):
+            if spec.build_spec is not spec:
+                raise SpliceSerializationError(
+                    f"cannot serialize spliced spec {spec.name}; SpecDicts with spliced "
+                    "specs are not serializable."
+                )
+            if not spec.concrete:
+                spec._cached_hash(ht.dag_hash, force=True)
 
-    # Clear the hashes cached above, as they will need to be recomputed after post-concretization.
-    # They're only used here as keys for reading and writing spec DAGs.
-    for spec in spec_dict.values():
-        if not spec.concrete:
-            spec.clear_caches()
+        # Traverse every spec reachable from spec_dict's values, deduped by hash, and add them
+        # to the serialized entries either a) with their original NodeId, or b) with None if they
+        # don't have a NodeId. This ensures that all nodes are added and NodeIds are preserved.
+        entries = []
+        for dep in spack.traverse.traverse_nodes(specs, key=lambda s: s.dag_hash()):
+            node = dep.to_node_dict()
+            node["hash"] = dep.dag_hash()
+            entries.append((node_id_for.get(id(dep)), node))
+
+    finally:
+        # Clear hashes cached above, which must be recomputed in post-concretization
+        # They're only used here as keys for reading and writing spec DAGs.
+        for spec in spack.traverse.traverse_nodes(specs, key=id):
+            if not spec.concrete:
+                spec.clear_caches()
 
     return {"_meta": {"spec_version": spack.spec.SpecfileLatest.SPEC_VERSION}, "specs": entries}
 
@@ -489,6 +500,8 @@ class Result:
             "optimal": self.optimal,
             "warnings": self.warnings,
             "nmodels": self.nmodels,
+            # abstract specs are not used for deserialization, but dropping them is
+            # forward-incompatible with Spack 1.2 and earlier.
             "abstract_specs": [s.to_dict() for s in self.abstract_specs],
             "satisfiable": self.satisfiable,
             "answers": [
@@ -497,12 +510,14 @@ class Result:
         }
 
     @staticmethod
-    def from_dict(obj: dict):
-        """Returns Result object from compatible dictionary"""
+    def from_dict(obj: dict, specs: List[spack.spec.Spec]):
+        """Returns Result object from compatible dictionary, for the given input specs.
 
-        abstract_specs = [spack.spec.Spec.from_dict(s) for s in obj["abstract_specs"]]
-
-        result = Result(abstract_specs)
+        The stored abstract specs are troubleshooting metadata and are deliberately not
+        deserialized: the caller's input specs are authoritative. This also keeps cache
+        entries with unreadable abstract spec data usable.
+        """
+        result = Result(specs)
         result.criteria = [OptimizationCriteria(*t) for t in obj["criteria"]]
         result.optimal = obj["optimal"]
         result.warnings = obj["warnings"]
@@ -560,8 +575,11 @@ class ConcretizationCache:
         count limits. Cleanup is done in LRU ordering."""
         entry_limit = spack.config.get("concretizer:concretization_cache:entry_limit", 1000)
 
-        # determine if we even need to clean up
-        entries = list(self.cache_entries())
+        try:
+            entries = list(self.cache_entries())
+        except FileNotFoundError:
+            return
+
         if len(entries) <= entry_limit:
             return
 
@@ -569,11 +587,9 @@ class ConcretizationCache:
         removal_queue = []
         for entry in entries:
             try:
-                entry_stat_info = entry.stat()
                 # mtime will always be time of last use as we update it after
                 # each read and obviously after each write
-                mod_time = entry_stat_info.st_mtime
-                removal_queue.append((mod_time, entry))
+                removal_queue.append((entry.stat(follow_symlinks=False).st_mtime, entry.path))
             except FileNotFoundError:
                 # don't need to cleanup the file, it's not there!
                 pass
@@ -581,17 +597,19 @@ class ConcretizationCache:
         removal_queue.sort()  # sort items for removal, ascending, so oldest first
 
         # Try to remove the oldest half of the cache.
-        for _, entry_to_rm in removal_queue[: entry_limit // 2]:
-            self._remove_entry(entry_to_rm)
+        for _, path in removal_queue[: entry_limit // 2]:
+            self._remove_entry(pathlib.Path(path))
 
-    def cache_entries(self):
-        """Generator producing cache entries within a bucket"""
-        if not self.root.exists():
-            return
-        for cache_entry in self.root.iterdir():
-            # skip dotfiles and old-style directory entries
-            if not cache_entry.name.startswith(".") and cache_entry.is_file():
-                yield cache_entry
+    def cache_entries(self) -> Iterator["os.DirEntry"]:
+        """Yield a ``DirEntry`` for every entry in the cache.
+
+        Raises ``FileNotFoundError`` if the cache root doesn't exist.
+        """
+        with os.scandir(self.root) as it:
+            for entry in it:
+                # skip dotfiles and old-style directory entries
+                if not entry.name.startswith(".") and entry.is_file():
+                    yield entry
 
     def _prefix_digest(self, problem: str) -> str:
         """Return the first two characters of, and the full, sha256 of the given asp problem"""
@@ -621,21 +639,27 @@ class ConcretizationCache:
         """
         cache_path = self._cache_path_from_problem(problem)
 
-        # Content-keyed: if the file exists, it already has the right content.
-        if cache_path.exists():
+        try:
+            results_dict = result.to_dict()
+        except SpliceSerializationError:
+            # Results with spliced specs can't be serialized (yet).
+            tty.debug(f"Not caching result with spliced specs for {cache_path}")
             return
-
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
 
         cache_dict = {
             "_meta": {"version": ConcretizationCache.VERSION},
-            "results": result.to_dict(),
+            "results": results_dict,
             "statistics": statistics,
         }
 
         # Write to a temp file in the same directory, then atomically rename.
         # mkstemp appends random characters after the prefix, so names are unique.
-        fd, tmp_path = tempfile.mkstemp(dir=self.root, prefix=".tmp_")
+        # A missing root dir is the only expected failure; create it and retry once.
+        try:
+            fd, tmp_path = tempfile.mkstemp(dir=self.root, prefix=".tmp_")
+        except FileNotFoundError:
+            self.root.mkdir(parents=True, exist_ok=True)
+            fd, tmp_path = tempfile.mkstemp(dir=self.root, prefix=".tmp_")
         try:
             with os.fdopen(fd, "wb") as raw_f:
                 with gzip.open(raw_f, "wb", compresslevel=6) as f:
@@ -647,26 +671,35 @@ class ConcretizationCache:
             self._remove_entry(pathlib.Path(tmp_path))
             return
 
-    def fetch(self, problem: str) -> Union[Tuple[Result, Dict], Tuple[None, None]]:
+        # Only a newly stored entry can push the cache over its entry limit, so this is the
+        # only place that needs to prune. Listing the entire cache is too expensive to do on
+        # every solve, let alone cache hits.
+        self.cleanup()
+
+    def fetch(
+        self, problem: str, specs: List[spack.spec.Spec]
+    ) -> Union[Tuple[Result, Dict], Tuple[None, None]]:
         """Returns the concretization cache result for a lookup based on the given problem.
 
         Checks the concretization cache for the given problem, and either returns the
         Python objects cached on disk representing the concretization results and statistics
         or returns none if no cache entry was found.
+
+        The returned Result is associated with ``specs``, the input specs of the caller:
+        the problem hash guarantees they are equivalent to the ones the entry was stored
+        with.
         """
         cache_path = self._cache_path_from_problem(problem)
-        if not cache_path.exists():
-            return None, None
 
-        # Each failure below removes the cache entry so that corrupt or outdated files
-        # don't persist and cause repeated failed lookups.
         try:
             with gzip.open(cache_path, "rb") as f:
                 cache_content = json.loads(f.read().decode("utf-8"))
-        except (OSError, json.JSONDecodeError) as e:
+        except FileNotFoundError:  # cache miss
+            return None, None
+        except (OSError, json.JSONDecodeError) as e:  # corrupt cache entry
             tty.debug(
                 f"ConcretizationCache.fetch(): force-removing {cache_path} because it is "
-                f"corrupt, truncated, or removed since the exists() check: {e}"
+                f"corrupt or truncated: {e}"
             )
             self._remove_entry(cache_path)
             return None, None
@@ -690,8 +723,14 @@ class ConcretizationCache:
             return None, None
 
         try:
-            result = Result.from_dict(results)
-        except (KeyError, TypeError, ValueError, spack.error.SpecSyntaxError) as e:
+            result = Result.from_dict(results, specs)
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+            spack.error.SpecError,
+            spack.error.SpecSyntaxError,
+        ) as e:
             tty.debug(
                 f"ConcretizationCache.fetch(): force-removing {cache_path}. "
                 f"Valid JSON but spec data is malformed or incompatible: {e}"
@@ -1089,11 +1128,11 @@ class PyclingoDriver:
         # try to fetch from the cache
         result = None
         if cache:
-            result, concretization_stats = cache.fetch(cache_key)
+            result, concretization_stats = cache.fetch(cache_key, specs)
         timer.stop("cache-check")
 
         # run the solver
-        if not result:
+        if result is None:
             tty.debug("Starting concretizer")
             result = self._run_clingo(specs, setup, "\n".join(problem), control_file_paths, timer)
             result.raise_if_unsat()
@@ -3993,7 +4032,6 @@ class Solver:
             output=output,
             allow_deprecated=allow_deprecated,
         )
-        self._conc_cache.cleanup()
         return result
 
     def solve(self, specs: Sequence[spack.spec.Spec], **kwargs) -> Result:
@@ -4063,8 +4101,6 @@ class Solver:
             input_specs = list(x for (x, y) in result.unsolved_specs)
             for spec in result.specs:
                 reusable_specs.extend(spec.traverse())
-
-        self._conc_cache.cleanup()
 
 
 class _SkipConcreteVisitor(traverse.BaseVisitor):
@@ -4154,6 +4190,10 @@ class SolverError(InternalConcretizerError):
 
 class InvalidSpliceError(spack.error.SpackError):
     """For cases in which the splice configuration is invalid."""
+
+
+class SpliceSerializationError(spack.error.SpackError):
+    """Attempt to serialize a SpecDict that contains spliced specs (currently unsupported)."""
 
 
 class NoCompilerFoundError(spack.error.SpackError):

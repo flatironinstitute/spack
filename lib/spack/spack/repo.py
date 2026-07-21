@@ -75,7 +75,8 @@ SPACK_REPO_INDEX_FILE_NAME = "spack-repo-index.yaml"
 def package_repository_lock() -> spack.util.lock.Lock:
     """Lock for process safety when cloning remote package repositories"""
     return spack.util.lock.Lock(
-        os.path.join(spack.paths.user_cache_path, "package-repository.lock")
+        os.path.join(spack.paths.user_cache_path, "package-repository.lock"),
+        enable=spack.config.CONFIG.get("config:locks", True),
     )
 
 
@@ -1623,7 +1624,7 @@ def get_repo_yaml_dir(
     namespace_components = namespace.split(".")
 
     if not all(nm.valid_module_name(n, package_api=package_api) for n in namespace_components):
-        raise InvalidNamespaceError(f"'{namespace}' is not a valid namespace." % namespace)
+        raise InvalidNamespaceError(f"'{namespace}' is not a valid namespace.")
 
     return os.path.join(root, "spack_repo", *namespace_components), namespace
 
